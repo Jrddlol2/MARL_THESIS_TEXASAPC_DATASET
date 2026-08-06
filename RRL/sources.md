@@ -68,6 +68,13 @@
   as a 10-way Cartesian product when it's actually 6 mutually-exclusive
   actions. See AUDIT_TRAIL.md.
 
+- **Wangsun** — checked 2026-08-06. Traffic-speed scaling clip $[0.8,1.2]$
+  (Eq. 23) confirmed exact match. Table 1.2 entries (S,T disturbance coverage,
+  "real-world bus services" environment) confirmed reasonable. Found and
+  fixed one error: manuscript attributed a $[1,3]$ demand-surge clip to Wang &
+  Sun, but their Eq. 22 actually clips to $[1,10]$; the manuscript's specific
+  bound and its justifying narrative weren't in the source. See AUDIT_TRAIL.md.
+
 All other CONFIRMED-filename sources below have NOT yet had their specific
 manuscript claims checked — filename matching only establishes which PDF
 corresponds to which key, not that every citation is accurate.

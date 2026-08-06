@@ -120,6 +120,14 @@ found and fixed so far, both pre-existing (written before this session).
 **Fix:** Removed the fabricated continuous-vs-discrete comparison. Reframed the $|A_i|=10$ design as this study's own choice (broader than Rodriguez's), correctly described Rodriguez's actual 6-action mutually-exclusive space, and kept the citation only for what's verifiably true: the matching $\Omega$ holding-strength values, and the driver-compliance argument (Rodriguez models non-compliant drivers executing 60-80% of instructed holding time — confirmed against Section 6.3 "Driver compliance"). Did NOT change the study's own $|A_i|=10$ design, since that value is load-bearing elsewhere (Table 3.1 notation, the SARL state/action-space dimensionality discussion in introduction.tex, and the ~960-run computational budget in Methodological Challenges) and correcting the citation doesn't require touching it.
 **Commit message:** `Fix Rodriguez2023Cooperative citation: remove unsupported continuous-vs-discrete claim, correct action-space description`
 
+### Wangsun — demand-surge clip range mismatch
+**Date:** 2026-08-06
+**File edited:** methods.tex
+**Section:** 3.2.6, Passenger Demand subsubsection
+**What was wrong:** Text claimed the demand-surge scaling factor is "clipped to $[1,3]$, following Wang and Sun." Checked against the actual paper (Eq. 22): their scaling factor $p_d \sim \mathcal{N}(1,\sigma_d^2)$ is clipped to $[1, 10]$, not $[1,3]$. The manuscript's follow-up justification ("upper bound of 3 corresponds to roughly a tripling... spanning the range observed during major event let-outs and severe-weather mode shifts") also does not appear anywhere in the source — it reads as an invented rationale for a number that was never Wang & Sun's.
+**Fix:** Kept the study's own $[1,3]$ clip value (changing it to match $[1,10]$ would be a substantive experimental redesign, outside the scope of a citation fix) but stopped attributing the specific bound to Wang & Sun — cited them only for the general Gaussian-clipped scaling mechanism, and reframed $[1,3]$ explicitly as this study's own choice with a %TODO-VAL flag to revisit it against the wider literature range during implementation.
+**Commit message:** `Fix Wangsun citation: correct demand-surge clip attribution, flag [1,3] as study's own choice not Wang & Sun's`
+
 ---
 
 *Nothing follows.*

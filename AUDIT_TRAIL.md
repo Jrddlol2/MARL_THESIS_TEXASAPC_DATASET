@@ -305,4 +305,21 @@ The full action set is the Cartesian product of these two components: $|A_i| = 5
 
 ---
 
+## 2026-08-06 — Citation fix: Wangsun — methods.tex, Section 3.2.6
+**Commit:** not yet committed
+
+**Before:**
+```latex
+The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$, clipped to $[1, 3]$, following Wang and Sun~\cite{Wangsun}. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3 corresponds to roughly a tripling of baseline boarding rates, spanning the range observed during major event let-outs and severe-weather mode shifts. Sampling occurs...
+```
+
+**After:**
+```latex
+The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$ and clipped to $[1, 3]$, following the general Gaussian-clipped demand-scaling mechanism of Wang and Sun~\cite{Wangsun}, though this study adopts a narrower clip than their $[1, 10]$ range. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3, corresponding to roughly a tripling of baseline boarding rates, is this study's own choice (\%TODO-VAL: revisit against Wang and Sun's wider range during implementation) rather than a value drawn from prior work. Sampling occurs...
+```
+
+**Why:** Verified against the actual PDF (RRL/Robust_Dynamic_Bus_Control...pdf). Their Eq. 22 clips the demand scaling factor to $[1,10]$, not $[1,3]$ — the manuscript's specific bound and its "event let-outs" justification were not supported by the source.
+
+---
+
 *Nothing follows.*
