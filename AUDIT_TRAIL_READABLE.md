@@ -402,4 +402,20 @@ The corridor was described in prose only, with no map figure. The Introduction h
 
 ---
 
+## 2026-08-06 — N1 (self-identified, not RTC) — methods.tex, Section 3.2.7
+
+**BEFORE**
+
+The Reward Function subsection ended with: "This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized." Nothing after that explained how an agent actually receives its reward in practice.
+
+**AFTER**
+
+Same ending, followed by two new additions. **First: "The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's local observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time."** **Second, a formula showing the three priorities combine as a weighted sum of penalty terms** (headway irregularity, waiting time, and skip-degeneracy, each multiplied by a weight left as a placeholder to be tuned later), **with a closing sentence explaining that each term is a penalty, so the agent maximizes its return by minimizing all three at once — and that this sign convention, not the exact formulas or weights, is what's being fixed here.**
+
+**Why:** self-identified gap, not an RTC comment. The existing text explained the reward's *priorities* and said the *weighting* is deferred to implementation, but never said whether the reward is individual or shared, how the priorities combine into one number, or the sign convention. Added those three things without touching the existing structure/weighting distinction or specifying any coefficient value.
+
+**Note:** since this isn't an RTC panel comment, it doesn't get a row in the conformity-of-revisions table.
+
+---
+
 *Nothing follows.*

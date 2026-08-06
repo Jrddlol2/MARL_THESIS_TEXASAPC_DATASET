@@ -334,4 +334,18 @@ Overleaf project's Figures folder**, or the new figure won't compile there.
 
 ---
 
+## Self-Identified Notices (not RTC-requested)
+
+### N1 — Reward function mechanics not explained
+**Date:** 2026-08-06
+**File edited:** methods.tex
+**Section:** 3.2.7, end of "Reward Function ($R$) and Objective" subsubsection, before "Proposed Learning Algorithm"
+**What was added/changed:**
+> Added two clarifications the existing text didn't cover, without touching the existing "structure vs. weighting deferred to EO 2.1" framing: (1) the reward is computed individually per agent per control event ($r_{i,t}$, agent $i$'s own entry in the transition tuple already introduced in the Training and Execution Protocol), not a shared team-level signal, while still reflecting corridor-wide regularity through the headway components already in $s_{i,t}$; (2) the three priorities combine as a weighted sum of non-positive penalty terms (Eq. eq:reward-form), with the coefficients left as %TODO-VAL per the already-established EO 2.1 deferral, and the sign convention (penalties, not rewards, so the agent maximizes return by minimizing bunching/waiting/skipping) stated explicitly.
+**Constraint check:** Did not specify the exact mathematical form of each penalty term or any coefficient value — only the additive structure and sign convention, consistent with the existing text's own distinction between reward *structure* (fixed here) and *weighting* (an implementation-phase deliverable).
+**Note:** This is a self-identified gap, not an RTC panel comment — do not add a row for this in the conformity-of-revisions table.
+**Commit message:** `N1: clarify reward mechanics (per-agent computation, combination form, sign convention) in 3.2.7`
+
+---
+
 *Nothing follows.*

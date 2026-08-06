@@ -511,6 +511,15 @@ where $t_k$ is the elapsed time to the $k$-th future control event, consistent w
 
 The \textbf{structure} of the per-event reward $r_{i, t+k}$ --- its component terms and the operational priorities they encode --- is defined in this chapter. Its \textbf{exact weighting and sensitivity analysis} are a research objective of this study (Specific Objective 2, Expected Output 2.1), to be finalized during implementation rather than inherited from prior work. This separation is deliberate: the reward \textit{form} is grounded here, while the tuning of its coefficients is treated as an empirical question. The reward formulation must balance three competing operational priorities: (i) headway regularity, since bunching is the primary failure mode of bus corridors; (ii) passenger waiting time at served stops, which is the most direct passenger-experience metric; and (iii) a penalty term that discourages degenerate skipping behavior, since an unconstrained skip action could otherwise reduce headway variance by refusing to serve passengers. Existing MARL bus-control reward formulations span a range of trade-offs among these priorities, from headway-coefficient-of-variation forms for holding-only action spaces \cite{Wangsun,Wang2023MultiObj} to passenger-time forms for combined holding-and-skipping action spaces \cite{Rodriguez2023Cooperative}. This study defines the reward \textit{structure} for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized.
 
+The reward is computed individually for each agent at every control event, not as a shared team-level signal: $r_{i,t}$ is agent $i$'s own entry in the transition $(s_{i,t}, a_{i,t}, r_{i,t}, s_{i,t'})$ written to the shared replay buffer (Training and Execution Protocol, step 4), so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in $s_{i,t}$, principally the forward and backward headway components $h^-$ and $\hat{h}^+$, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms,
+
+\begin{equation}
+r_{i,t+k} = -w_1 \cdot (\text{headway-irregularity term}) - w_2 \cdot (\text{waiting-time term}) - w_3 \cdot (\text{skip-degeneracy term}),
+\label{eq:reward-form}
+\end{equation}
+
+with weights $w_1, w_2, w_3$ \%TODO-VAL: to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return in Eq.~\eqref{eq:bellman} by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.
+
 \subsubsection{Proposed Learning Algorithm}
 \label{subsec:proposed-algorithm}
 

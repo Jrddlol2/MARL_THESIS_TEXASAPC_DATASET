@@ -537,4 +537,24 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 
 ---
 
+## 2026-08-06 — N1 (self-identified, not RTC) — methods.tex, Section 3.2.7
+**Commit:** not yet committed
+
+```diff
+  ...This study defines the reward \textit{structure} for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized.
++
++ The reward is computed individually for each agent at every control event, not as a shared team-level signal: $r_{i,t}$ is agent $i$'s own entry in the transition $(s_{i,t}, a_{i,t}, r_{i,t}, s_{i,t'})$ written to the shared replay buffer (Training and Execution Protocol, step 4), so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in $s_{i,t}$, principally the forward and backward headway components $h^-$ and $\hat{h}^+$, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms,
++
++ \begin{equation}
++ r_{i,t+k} = -w_1 \cdot (\text{headway-irregularity term}) - w_2 \cdot (\text{waiting-time term}) - w_3 \cdot (\text{skip-degeneracy term}),
++ \label{eq:reward-form}
++ \end{equation}
++
++ with weights $w_1, w_2, w_3$ \%TODO-VAL: to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return in Eq.~\eqref{eq:bellman} by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.
+```
+
+**Why:** self-identified gap (user notice, not an RTC comment) — the existing text defined the reward's *priorities* and deferred *weighting* to EO 2.1, but never explained the reward's *mechanics*: whether it's individual or shared, how the three priorities combine into a scalar, or the sign convention. Added those three things without touching the existing structure/weighting distinction or specifying any coefficient value.
+
+---
+
 *Nothing follows.*

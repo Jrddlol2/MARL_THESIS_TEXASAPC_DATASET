@@ -3,7 +3,7 @@
 # Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 0 | Pending: 3
 # (E1C1/E2C5/E4C22 blocked — no dataset access. Everything else unblocked
 # is done. N1 self-identified notice (reward mechanics) also still pending.)
-# Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
+# Self-identified notices (not RTC-requested): 1 | Done: 1 | Pending: 0
 
 ---
 
@@ -340,7 +340,7 @@ deadline pressure from the panel and should stay lowest priority unless
 the group decides otherwise. Do not present these in the conformity-of-
 revisions table as panel-requested changes — they are not.
 
-## [ ] N1 — Reward function mechanics not explained
+## [x] N1 — Reward function mechanics not explained
 **Source:** User notice (not an RTC/examiner comment)
 **Priority:** LOWEST
 **File:** methods.tex
