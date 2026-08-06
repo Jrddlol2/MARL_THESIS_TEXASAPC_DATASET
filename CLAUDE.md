@@ -196,20 +196,23 @@ There are TWO audit trail files, and every entry goes into BOTH:
   `(Author, Year)`, `\ref{tab:x}`/`\label{}` become a plain name like "the
   parameter table," `\textbf{}`/`\textit{}` become plain text, math mode
   becomes words or a described formula, tables become a markdown table or a
-  described list. Use clearly separated, blockquoted BEFORE/AFTER blocks —
-  not one merged paragraph — so the reader can skim the labels alone to
-  see where something changed, then read the block for what changed:
+  described list. Use bold standalone subtitle lines for BEFORE/AFTER — not
+  blockquoted, not merged into one paragraph — so each reads like its own
+  mini-heading followed by plain body text:
 
-    > **BEFORE**
-    > [the old sentence/paragraph in plain English]
+    **BEFORE**
+    [the old sentence/paragraph in plain English, as a normal paragraph]
 
-    > **AFTER**
-    > [the old, unchanged part in plain text, with the new/added clause
-    > wrapped in **bold** so it stands out inside the block]
+    **AFTER**
+    [the old, unchanged part in plain text, with the new/added clause
+    wrapped in **bold** so it stands out inside the paragraph]
 
-  Within the AFTER block, bold only the part that's actually new/different
-  — leave unchanged surrounding text plain, so the eye goes straight to the
-  change without having to re-read the whole block. If several small
+  The BEFORE/AFTER labels are bold on their own line with a blank line
+  after, then the paragraph follows as ordinary text (no `>` blockquote
+  markers). Within the AFTER paragraph, bold only the part that's actually
+  new/different — leave unchanged surrounding text plain, so the eye goes
+  straight to the change without having to re-read the whole paragraph. If
+  several small
   before/after pairs belong to one task (e.g. a callout sweep touching many
   sentences), a table with Before/After columns is fine instead of many
   blockquote pairs — pick whichever is more skimmable for that entry. This
