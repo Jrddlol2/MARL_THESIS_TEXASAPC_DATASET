@@ -431,4 +431,18 @@ Overleaf project's Figures folder**, or the new figure won't compile there.
 
 ---
 
+### N2 — MARL-vs-bus-scheduling framing ambiguity and Research Gap justification
+**Date:** 2026-08-06
+**File edited:** problem.tex
+**Section:** 2.3 (Significance of the Study, opening sentence) and 2.2 (Research Gap, end of first paragraph)
+**Source:** User notice, prompted by a recollection that a panelist questioned during Q&A whether the study reads as more focused on MARL than on bus scheduling. Not found verbatim anywhere in RTC_DECISION_LETTER.md's 22 official items — treated as an oral/impression-level comment, not a written requirement, so this stays an N-item rather than an E-item.
+**What was added/changed:**
+> (1) Significance section: added one sentence stating explicitly that MARL is the control method under evaluation and EDSA service reliability is the object of study, explaining why practical significance is presented before scientific significance. (2) Research Gap: appended two sentences grounding the "combined disturbance" framing in an EDSA-specific operational fact — the corridor has independently-documented weather-driven service disruptions (\cite{PhilstarTyphoon2024, PIA_Emergency2023}) and chronic mechanical-failure risk (\cite{Chua2026}) as concurrent ongoing realities — rather than presenting the combination as only a gap in prior comparison tables, while explicitly preserving the existing statement that the disturbance generators are independently sampled (no causal/temporal link claimed).
+**Citation check before drafting:** An earlier draft of the Research Gap addition cited `BusRepair2023` and `PhilstarTyphoon2024` together to claim breakdowns and weather delays "cluster in the same wet-season months." Checked both bib entries before writing anything: `BusRepair2023` is about DPWH road/infrastructure emergency repair closures, not documented bus vehicle breakdowns, and doesn't establish a weather cause; `PhilstarTyphoon2024` is a single dated event, not evidence of a seasonal pattern. Neither supports a clustering claim, so that draft was discarded. The version actually applied uses `Chua2026` (already cited in introduction.tex:34 for "chronic stressors" from mid-route breakdowns) for the mechanical-failure-risk claim instead, and drops the clustering/calendar claim entirely.
+**Constraint check:** No new numerical or empirical claims introduced; both new citations (`PhilstarTyphoon2024`, `PIA_Emergency2023`, `Chua2026`) were already load-bearing elsewhere in the manuscript for the same characterization, not newly invented uses.
+**Note:** Self-identified, not an RTC panel comment — do not add a row for this in the conformity-of-revisions table.
+**Commit message:** `N2: clarify MARL-vs-bus-scheduling framing and ground combined-disturbance gap in EDSA operational facts (2.2, 2.3)`
+
+---
+
 *Nothing follows.*

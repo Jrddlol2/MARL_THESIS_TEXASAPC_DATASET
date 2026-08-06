@@ -557,6 +557,35 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 
 ---
 
+## 2026-08-06 — N2 — problem.tex, Section 2.3 (Significance)
+**Commit:** not yet committed
+
+```diff
+  \section{Significance of the Study}
+- This study contributes both practical and scientific significance.
++ This study contributes both practical and scientific significance. MARL is the control method under evaluation in this study; the corridor's service reliability under disturbance is the object of study it is applied to measure, which is why practical significance is discussed first.
+
+  \textbf{Practical significance.} The EDSA Carousel carries on the order of $1.8\times10^5$ passengers daily...
+```
+
+**Why:** self-identified, prompted by the user's recollection that a panelist questioned during Q&A whether the study reads as more focused on MARL than bus scheduling. States the thesis's own positioning explicitly rather than leaving it implicit in section ordering.
+
+---
+
+## 2026-08-06 — N2 — problem.tex, Section 2.2 (Research Gap)
+**Commit:** not yet committed
+
+```diff
+  Without this characterization, it cannot be determined whether reported MARL gains persist, degrade gracefully, or collapse under realistic operating disturbances, which in turn blocks the transition of MARL bus scheduling from simulation to real urban transit deployment.
++ This joint-disturbance framing reflects two independently-documented, concurrent operational realities of the same corridor rather than only a gap in existing comparison tables: EDSA experiences both weather-driven service disruptions \cite{PhilstarTyphoon2024, PIA_Emergency2023} and chronic mechanical-failure risk \cite{Chua2026} as ongoing features of its operating environment, so a controller validated against each in isolation provides no evidence of how it behaves when a transit operator's actual risk exposure includes both at once. The disturbance generators remain independently sampled within the simulation (Section~3.2.6); this operational context motivates evaluating their union, not a claim that the two are causally or temporally linked.
+
+  The weather-disturbance class (W) in particular was identified through the literature survey conducted earlier in this study...
+```
+
+**Why:** self-identified. Grounds the "combined disturbance" framing in an EDSA-specific operational fact rather than presenting it as only a gap in existing MARL comparison tables (Table~\ref{tab:marl_performance}), while explicitly preserving the existing independence statement in Section~3.2.6 so the two additions don't contradict each other.
+
+---
+
 ## 2026-08-06 — N1 rewrite (user-provided prose) — methods.tex, Section 3.2.7
 **Commit:** not yet committed
 

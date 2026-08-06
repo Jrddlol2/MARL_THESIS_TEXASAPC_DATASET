@@ -2,8 +2,8 @@
 # Updated: 2026-08-06
 # Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 0 | Pending: 3
 # (E1C1/E2C5/E4C22 blocked — no dataset access. Everything else unblocked
-# is done. N1 self-identified notice (reward mechanics) also still pending.)
-# Self-identified notices (not RTC-requested): 1 | Done: 1 | Pending: 0
+# is done.)
+# Self-identified notices (not RTC-requested): 2 | Done: 2 | Pending: 0
 
 ---
 
@@ -367,6 +367,37 @@ explicitly an implementation-phase deliverable per the existing text.
 Use %TODO-VAL for $w_1, w_2, w_3$. This task can be skipped or deferred
 past the August 8, 2026 submission if time runs short, since it responds
 to no panel requirement.
+
+---
+
+## [x] N2 — MARL-vs-bus-scheduling framing ambiguity and Research Gap justification
+**Source:** User notice (not an RTC/examiner comment) — prompted by a
+recollection that a panelist questioned during Q&A whether the study
+reads as more focused on MARL than on bus scheduling. Not present
+verbatim in RTC_DECISION_LETTER.md's 22 official items, so treated as an
+oral/impression-level concern rather than a formal requirement.
+**Priority:** LOWEST
+**File:** problem.tex
+**Section:** 2.3 (Significance of the Study, opening sentence) and 2.2
+(Research Gap, end of first paragraph)
+**Instruction:** (1) State explicitly in the Significance section that
+MARL is the control method under evaluation, not itself the object being
+improved, and that EDSA service reliability under disturbance is the
+object of study — explaining why practical significance is presented
+before scientific significance. (2) In the Research Gap, ground the
+"combined disturbance" framing in an EDSA-specific operational fact
+rather than presenting it as only an unfilled cell in the MARL literature
+comparison tables, while not contradicting the existing statement
+(Section 3.2.6) that the disturbance generators are independently
+sampled with no causal/temporal link.
+**Constraint:** No new numerical or empirical claims. Any new citation
+used must already be load-bearing elsewhere in the manuscript for the
+same characterization — do not introduce a citation to support a claim
+it doesn't actually make. (An earlier draft tried to cite BusRepair2023
+and PhilstarTyphoon2024 together for a "wet-season clustering" claim
+neither source actually supports; checked both bib entries before
+writing anything and dropped that framing — see TRACKER.md/AUDIT_TRAIL.md
+for the discarded version and what was used instead.)
 
 ---
 

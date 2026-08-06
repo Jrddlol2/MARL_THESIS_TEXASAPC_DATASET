@@ -402,6 +402,40 @@ The corridor was described in prose only, with no map figure. The Introduction h
 
 ---
 
+## 2026-08-06 — N2 (self-identified, not RTC) — problem.tex, Section 2.3 (Significance)
+
+**BEFORE**
+
+The Significance section opened with a single plain sentence: "This study contributes both practical and scientific significance." The order (practical significance discussed first, scientific significance second) was never explained.
+
+**AFTER**
+
+"This study contributes both practical and scientific significance. **MARL is the control method under evaluation in this study; the corridor's service reliability under disturbance is the object of study it is applied to measure, which is why practical significance is discussed first.**"
+
+**Why:** self-identified, prompted by the user's recollection that a panelist questioned during Q&A whether the study reads as more focused on MARL than on bus scheduling. This isn't in the official RTC decision letter's 22 written items, so it's treated as an oral/impression-level concern rather than a formal requirement. States the thesis's own positioning explicitly instead of leaving readers to infer it from section ordering.
+
+**Note:** since this isn't an RTC panel comment, it doesn't get a row in the conformity-of-revisions table.
+
+---
+
+## 2026-08-06 — N2 (self-identified, not RTC) — problem.tex, Section 2.2 (Research Gap)
+
+**BEFORE**
+
+The Research Gap paragraph ended with: "Without this characterization, it cannot be determined whether reported MARL gains persist, degrade gracefully, or collapse under realistic operating disturbances, which in turn blocks the transition of MARL bus scheduling from simulation to real urban transit deployment." The paragraph then moved directly into a separate discussion of the weather-disturbance class specifically, without explaining why testing the disturbances *together* mattered beyond it being an unfilled cell in the literature-comparison table.
+
+**AFTER**
+
+The same sentence stays, followed by: "**This joint-disturbance framing reflects two independently-documented, concurrent operational realities of the same corridor rather than only a gap in existing comparison tables: EDSA experiences both weather-driven service disruptions (Mangaluz, 2024; PIA emergency-response reporting) and chronic mechanical-failure risk (Chua, 2026) as ongoing features of its operating environment, so a controller validated against each in isolation provides no evidence of how it behaves when a transit operator's actual risk exposure includes both at once. The disturbance generators remain independently sampled within the simulation (Section 3.2.6); this operational context motivates evaluating their union, not a claim that the two are causally or temporally linked.**"
+
+**Why:** self-identified. Grounds the "combined disturbance" framing in a real, citable fact about EDSA's operating environment rather than presenting the combination as valuable only because no prior comparison table has filled that cell. Also explicitly reaffirms that the disturbance generators remain independently sampled (established earlier in the methods chapter), so this addition doesn't contradict that existing design choice.
+
+**Citation check performed first:** an earlier draft tried to claim breakdowns and weather delays cluster in the same wet-season months, citing a DPWH road-repair-closure article and a single flooding article. Checked both sources before writing anything into the manuscript: the road-repair article is about infrastructure closures, not documented bus breakdowns, and doesn't establish a weather cause; the flooding article is one dated event, not evidence of a recurring seasonal pattern. Neither supported the clustering claim, so it was dropped in favor of the weaker but fully-supported "two documented, concurrent risks" framing actually used above.
+
+**Note:** since this isn't an RTC panel comment, it doesn't get a row in the conformity-of-revisions table.
+
+---
+
 ## 2026-08-06 — N1 (self-identified, not RTC) — methods.tex, Section 3.2.7
 
 **BEFORE**
