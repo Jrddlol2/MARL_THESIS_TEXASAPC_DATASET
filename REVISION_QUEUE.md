@@ -165,13 +165,21 @@ bus-control terms within the SARL vs MARL comparison.
 **Priority:** MEDIUM
 **File:** introduction.tex and methods.tex
 **Section:** 1.1 and 3.2.3
-**Instruction:** Add a clarifying sentence where [10] is cited in
-1.1 stating it is used as contextual evidence only, not as
-EDSA-specific calibration data. In 3.2.3, clarify that EDSA
-segment parameters are independently calibrated via GEH/RMSE
-(see "Bus Volume Validation via GEH Statistic" and "Speed
-Trajectory Calibration via RMSE" subsections in methods.tex).
-**Constraint:** Do not remove the [10] citation.
+**Instruction:** The RTC letter raises TWO separate concerns about [10],
+not one — check both are addressed:
+  (a) RECENCY: "[10] is not quite new" — add a sentence noting its
+      publication date/vintage and why it remains usable as contextual
+      evidence despite its age (e.g., the rainfall-impact mechanism it
+      documents is not time-sensitive even if the specific study is older).
+  (b) CORRIDOR MISMATCH: [10] studies a different corridor (North Luzon
+      Expressway, not EDSA) — add a clarifying sentence where [10] is
+      cited in 1.1 stating it is used as contextual evidence only, not as
+      EDSA-specific calibration data. In 3.2.3, clarify that EDSA segment
+      parameters are independently calibrated via GEH/RMSE (see "Bus
+      Volume Validation via GEH Statistic" and "Speed Trajectory
+      Calibration via RMSE" subsections in methods.tex).
+**Constraint:** Do not remove the [10] citation. See RTC_DECISION_LETTER.md
+for the verbatim examiner wording.
 
 ---
 

@@ -34,8 +34,15 @@ flat `.tex` file in the repo root, pulled in by `main.tex` via `\input{}`.
 ├── ai_declaration.tex   ← AI use declaration (currently empty)
 ├── thesis_refs.bib      ← BibTeX references
 ├── TRACKER.md           ← YOUR change log (you maintain this)
-└── REVISION_QUEUE.md    ← list of pending tasks (you read this)
+├── REVISION_QUEUE.md    ← list of pending tasks (you read this)
+└── RTC_DECISION_LETTER.md  ← verbatim official RTC decision email (source of truth)
 ```
+
+`RTC_DECISION_LETTER.md` is the unedited official comment list from the
+research technical committee. `README.md` (on GitHub) is an elaborated,
+annotated version of the same comments with suggested concrete actions —
+useful for guidance, but if its wording ever seems to add or drop a
+requirement relative to `RTC_DECISION_LETTER.md`, the letter wins.
 
 Wherever earlier notes or the panel-recommendations reference say
 `chapters/chapter1.tex`, `chapters/chapter2.tex`, or `chapters/chapter3.tex`,
@@ -175,8 +182,11 @@ E3C11: Add missing citations to figures (e.g., Figure 1.3)
 E3C12: Explain concepts in Figure 1.3 (bus states and actions)
 
 ### EXAMINER 3 — METHODOLOGY
-E3C13: Clarify whether Reference [10] parameters are adopted or
-       re-tuned for EDSA northbound
+E3C13: Reference [10] is flagged for TWO reasons — it "is not quite new"
+       (recency) AND it simulates a different corridor. Clarify whether
+       its parameters are adopted or re-tuned for EDSA northbound, and
+       address why an older study is still acceptable as contextual
+       evidence.
 E3C14: Justify why minor roads leading to the corridor are excluded
 E3C15: Add summary table of fixed and variable simulation parameters
        with target values
@@ -283,3 +293,13 @@ Example:
 - Line numbers and 1.5 spacing should be applied LAST (E3C18, E3C19)
   after all content edits are done, to avoid disrupting line references
   in TRACKER.md.
+
+---
+
+## TEAM NOTES (not manuscript edits — do not add these to REVISION_QUEUE.md)
+
+- **Q&A participation:** The RTC's decision letter includes a comment
+  outside the manuscript-revision list: "All proponents should have
+  significant participation in the Q&A period." This is feedback on the
+  group's defense performance, not something to fix in the .tex files.
+  No action for the revision agent — flagged here so it isn't lost.
