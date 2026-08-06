@@ -96,7 +96,11 @@ needs data that does not exist yet, use:
 ### R4 — Structural Preservation
 - Do not renumber existing sections, figures, or tables
 - Do not remove existing content unless explicitly instructed
-- New tables get the next available number (currently: Table 3.2)
+- New tables get the next available number. Don't hardcode a number here —
+  check methods.tex for the current highest `\label{tab:...}` before adding
+  one, since table content has been added/reverted during revision work.
+  As of 2026-08-06: `tab:notation` (3.1), `tab:sim-parameters` (3.2),
+  `tab:observation-features` (3.3) exist; next available is 3.4.
 - New figures get the next available number (currently: Figure 3.6)
 - Maintain existing LaTeX formatting conventions
 
@@ -295,6 +299,16 @@ Example:
   in TRACKER.md.
 
 ---
+
+## SELF-IDENTIFIED NOTICES
+
+`REVISION_QUEUE.md` can also hold "N"-numbered items (e.g. N1) below the
+panel's E-numbered items. These are gaps the group notices itself while
+reviewing the manuscript — NOT panel/RTC requirements. They are always
+LOWEST priority by default and must never be listed in the conformity-of-
+revisions table as a panel-requested change, since they weren't requested
+by the panel. Keep them clearly separated from the 22 official items so
+the conformity table stays accurate.
 
 ## TEAM NOTES (not manuscript edits — do not add these to REVISION_QUEUE.md)
 

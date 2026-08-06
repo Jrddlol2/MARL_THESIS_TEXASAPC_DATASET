@@ -1,12 +1,20 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-06
-# Total: 22 tasks | Done: 0 | In Progress: 0 | Pending: 22
+# Panel tasks (RTC-requested): 22 | Done: 4 | In Progress: 0 | Pending: 18 (3 of which are BLOCKED — no dataset access)
+# Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
 
 ---
 
 ## [ ] E1C1 — Dataset setup discussion
 **Examiner:** 1
 **Priority:** HIGH
+**Status:** BLOCKED — group does not have access to the SafeTravelPH
+dataset yet. Do NOT write descriptive/qualitative claims about the
+dataset's structure (e.g. what an individual record looks like, how
+it was collected, its granularity) until the group has actually seen
+it. A prior attempt at this task (2026-08-06) was reverted for
+overstepping this — see TRACKER.md "Reverted Work" for what was
+removed and why.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Add a "Dataset Description" subsection explaining
@@ -14,7 +22,9 @@ the SafeTravelPH dataset: what it is, when it was collected, what
 fields it contains, how it will be used for SUMO calibration.
 Use placeholder language — no numerical values yet.
 **Constraint:** No fabricated data values. Use %TODO-DATA tags
-where specific statistics will go once dataset is processed.
+where specific statistics will go once dataset is processed. Do not
+resume this task without explicit go-ahead from the user, even though
+it's technically satisfiable with placeholder language alone.
 
 ---
 
@@ -59,6 +69,8 @@ MARL vs non-MARL entries if needed.
 ## [ ] E2C5 — Dataset contents description
 **Examiner:** 2
 **Priority:** HIGH
+**Status:** BLOCKED — same as E1C1. Do not resume without explicit
+go-ahead from the user.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Same scope as E1C1 and E4C22. Consolidate into
@@ -96,7 +108,7 @@ Do not invent new thresholds.
 
 ---
 
-## [ ] E3C8 — Disturbance definitions and independence
+## [x] E3C8 — Disturbance definitions and independence
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** methods.tex
@@ -197,7 +209,7 @@ demand distributions already captured by calibration.
 
 ---
 
-## [ ] E3C15 — Fixed and variable parameters summary table
+## [x] E3C15 — Fixed and variable parameters summary table
 **Examiner:** 3-Method
 **Priority:** HIGH
 **File:** methods.tex
@@ -264,7 +276,7 @@ around line 228. Uncomment it after all content edits are complete.
 
 ---
 
-## [ ] E4C20 — Simulation mechanics explanation
+## [x] E4C20 — Simulation mechanics explanation
 **Examiner:** 4
 **Priority:** HIGH
 **File:** methods.tex
@@ -279,7 +291,7 @@ in prose.
 
 ---
 
-## [ ] E4C21 — Metric definitions and feature descriptions
+## [x] E4C21 — Metric definitions and feature descriptions
 **Examiner:** 4
 **Priority:** HIGH
 **File:** methods.tex
@@ -297,11 +309,51 @@ Deployment Source | Simulation Source.
 ## [ ] E4C22 — Dataset contents
 **Examiner:** 4
 **Priority:** HIGH
+**Status:** BLOCKED — same as E1C1. Do not resume without explicit
+go-ahead from the user.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Consolidated with E1C1 and E2C5. Addressed in
 that task.
 **Constraint:** See E1C1.
+
+---
+
+# SELF-IDENTIFIED NOTICES (not RTC/examiner comments)
+
+These are gaps noticed by the group itself while reviewing the manuscript,
+NOT recommendations from the research technical committee. They carry no
+deadline pressure from the panel and should stay lowest priority unless
+the group decides otherwise. Do not present these in the conformity-of-
+revisions table as panel-requested changes — they are not.
+
+## [ ] N1 — Reward function mechanics not explained
+**Source:** User notice (not an RTC/examiner comment)
+**Priority:** LOWEST
+**File:** methods.tex
+**Section:** 3.2.7, subsection "Reward Function ($R$) and Objective" (~lines 324–335)
+**Instruction:** The existing text defines the reward's *priorities*
+(headway regularity, passenger waiting time, skip-degeneracy penalty)
+and explicitly defers exact coefficient weighting to the implementation
+phase (Expected Output 2.1) — that part is fine and should NOT be
+changed. What's missing is the reward *mechanics*: how an agent actually
+receives $r_{i,t+k}$ in practice. Add a short paragraph or bullet list
+clarifying:
+  (a) reward is computed at each control event, for each agent $i$
+      individually (or state explicitly if any component is shared
+      across agents, e.g. a corridor-wide headway-CV term);
+  (b) the general combination form the three components take before
+      weights are tuned, e.g. a weighted sum such as
+      $r_{i,t+k} = -w_1 \cdot \text{CV}_h - w_2 \cdot \bar{W}_i - w_3 \cdot \text{skip\_penalty}_i$,
+      with $w_1, w_2, w_3$ left as %TODO-VAL since EO 2.1 hasn't run yet;
+  (c) sign convention — components are penalties (negative), so the
+      agent maximizes return by minimizing bunching, waiting, and
+      degenerate skipping.
+**Constraint:** Do not fabricate specific coefficient values — those are
+explicitly an implementation-phase deliverable per the existing text.
+Use %TODO-VAL for $w_1, w_2, w_3$. This task can be skipped or deferred
+past the August 8, 2026 submission if time runs short, since it responds
+to no panel requirement.
 
 ---
 
