@@ -144,36 +144,40 @@ Status codes:
 
 ## AUDIT TRAIL FORMAT
 
-In addition to TRACKER.md, `AUDIT_TRAIL.md` keeps a before/after historical
-record — think of it as TRACKER.md's per-task summary plus the actual old
-vs. new text, so anyone (including a future session with no memory of this
-one) can see exactly what changed and why without diffing git history
-themselves. After completing each task (or reverting one), append a dated
-entry to `AUDIT_TRAIL.md`:
+`AUDIT_TRAIL.md` is a before/after log of the ACTUAL MANUSCRIPT `.tex`
+CONTENT ONLY — the raw LaTeX as it appears/appeared in introduction.tex,
+problem.tex, methods.tex, etc. It is not a place to discuss REVISION_QUEUE.md
+wording, TRACKER.md bookkeeping, git/GitHub mechanics, or process decisions —
+those stay in TRACKER.md and commit messages. If a commit touched only
+tracking files and no manuscript `.tex`, it does not get an AUDIT_TRAIL.md
+entry at all.
 
-  ## YYYY-MM-DD — [Task ID(s) or short description]
-  **Commit:** `[hash]` "[commit message]" (fill in once committed; leave
-  as "not yet committed" if writing the entry before commit)
+After completing each task that changes manuscript `.tex` (or reverting
+one), append a dated entry:
+
+  ## YYYY-MM-DD — [Task ID(s)] — [file.tex, Section X.X]
+  **Commit:** `[hash]` (fill in once committed)
 
   **Before:**
-  ```
-  [short excerpt of the old text/table/section — enough to see what was there]
+  ```latex
+  [the exact old LaTeX — copy-paste real syntax, not a paraphrase]
   ```
 
   **After:**
-  ```
-  [short excerpt of the new text, or a description if the diff is large]
+  ```latex
+  [the exact new LaTeX — copy-paste real syntax, including the added
+  \begin{table}...\end{table} or \item lines etc. in full, not summarized]
   ```
 
-  **Why:** [the RTC comment or user instruction driving this change, and
-  any judgment calls made]
+  **Why:** one line — the RTC comment number or user instruction driving it.
 
-For a revert, use the same format but add explicit "Step 1 — Added",
-"Step 2 — [why it was wrong]", "Step 3 — Reverted" sub-sections so the
-false start is preserved as a lesson, not erased. Never delete old
-AUDIT_TRAIL.md entries, including ones describing mistakes — corrections
-get a new entry that references the one they fix, so the log stays honest
-even about false starts.
+For a revert, show the same **Before** (pre-edit LaTeX) and note the
+**After** is identical to **Before** — i.e. net zero change to the file —
+rather than narrating the back-and-forth. One line on why it was reverted
+is enough; the detailed reasoning belongs in TRACKER.md, not here.
+
+Keep entries strictly about what changed IN THE MANUSCRIPT. No editorializing
+about the revision-tracking process itself.
 
 ---
 

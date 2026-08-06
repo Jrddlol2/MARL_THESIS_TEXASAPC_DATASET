@@ -97,4 +97,29 @@ though the task is technically satisfiable with placeholder-only language.
 
 ---
 
+## Source Verification / Citation Corrections
+
+Not RTC-requested tasks — these are fact-checks against the actual RRL source
+PDFs (see RRL/sources.md), done at the user's request to catch claims that
+were unverifiable or wrong before a panelist could catch them. Two errors
+found and fixed so far, both pre-existing (written before this session).
+
+### Patil2025Conformal — "INRIX freeway data" correction
+**Date:** 2026-08-06
+**File edited:** methods.tex
+**Section:** 3.2.6, Weather-Induced Anomalies subsubsection
+**What was wrong:** Text claimed Patil et al. validated the lognormal parameterization "against INRIX freeway data via the Kolmogorov-Smirnov test." Checked against the actual paper: (1) the paper's own Table V classifies its test route as "Local, Minor/Principal Arterials," not a freeway; (2) the KS test was run on SUMO-simulated travel times to check log-normal shape fit, not directly against INRIX data — INRIX was used only to pick representative time windows and anchor mean travel times.
+**Fix:** Reworded to say the parameterization was tested via SUMO-simulated travel times anchored to INRIX data for an "urban arterial corridor," with the KS test confirming the simulated distribution's shape, not a direct INRIX comparison. The numeric result itself ($KS=0.036$, $p=0.94$ at $CV=1.0$) was independently confirmed correct against the paper's Section IV.F.
+**Commit message:** `Fix Patil2025Conformal citation: correct "freeway" to "arterial road," clarify KS test mechanism`
+
+### Rodriguez2023Cooperative — unsupported "vs. continuous formulations" claim
+**Date:** 2026-08-06
+**File edited:** methods.tex
+**Section:** 3.2.7, Action Space subsubsection
+**What was wrong:** Text attributed to Rodriguez et al. the claim that their 5-bin discretization "achieves combined holding-and-skipping control... without measurable loss of performance versus continuous formulations." Checked against the full paper: no continuous-action baseline exists anywhere in it — this comparison isn't made. Also, Rodriguez's actual action space is a 6-way mutually-exclusive choice (5 holding strengths, where $\omega=0$ already covers "no holding," plus 1 skip action), not this thesis's 5×2=10 independent Cartesian combination — the two designs are similar in spirit but not the same.
+**Fix:** Removed the fabricated continuous-vs-discrete comparison. Reframed the $|A_i|=10$ design as this study's own choice (broader than Rodriguez's), correctly described Rodriguez's actual 6-action mutually-exclusive space, and kept the citation only for what's verifiably true: the matching $\Omega$ holding-strength values, and the driver-compliance argument (Rodriguez models non-compliant drivers executing 60-80% of instructed holding time — confirmed against Section 6.3 "Driver compliance"). Did NOT change the study's own $|A_i|=10$ design, since that value is load-bearing elsewhere (Table 3.1 notation, the SARL state/action-space dimensionality discussion in introduction.tex, and the ~960-run computational budget in Methodological Challenges) and correcting the citation doesn't require touching it.
+**Commit message:** `Fix Rodriguez2023Cooperative citation: remove unsupported continuous-vs-discrete claim, correct action-space description`
+
+---
+
 *Nothing follows.*

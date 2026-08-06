@@ -1,267 +1,307 @@
-# AUDIT TRAIL — Group B3 Thesis Revision Work
-# Every substantive change to this repo's manuscript/process files, with
-# before/after context, why it happened, and which git commit it lives in.
-#
-# This file is a HISTORICAL LOG, not a task list — for current pending work
-# see REVISION_QUEUE.md; for the per-task conformity summary see TRACKER.md.
-# Append a new dated entry here every session that edits the manuscript or
-# the revision-tracking files themselves (CLAUDE.md/REVISION_QUEUE.md/
-# TRACKER.md), including reverts. Do not delete old entries — corrections
-# get their own new entry that references the one they fix.
+# AUDIT TRAIL — Group B3 Thesis Manuscript Changes
+# Before/after log of the ACTUAL .tex CONTENT ONLY. Not a task tracker
+# (see REVISION_QUEUE.md) and not a process log (see TRACKER.md / git log) —
+# this file is strictly "what did the LaTeX look like before, what does it
+# look like now." Append a new entry per task that touches manuscript .tex.
 
 ---
 
-## 2026-08-06 — Repo setup
-**Commit:** `0eff462` "Add thesis manuscript source and Claude Code revision-tracking setup"
-
-**Before:** No git history existed for the local manuscript. The GitHub repo
-[khalil-badal/MARL](https://github.com/khalil-badal/MARL) contained only a
-`README.md` (elaborated examiner comments), no `.tex` source.
-
-**After:** `CLAUDE.md`, `REVISION_QUEUE.md`, `TRACKER.md` created, adapted from
-a generic template to this repo's actual flat-file structure (`introduction.tex`,
-`problem.tex`, `methods.tex`, not a `chapters/` subfolder). Verified against
-the actual `main.tex` preamble: citations use `natbib` not biblatex, `lineno`
-was already loaded (only `\linenumbers` needed uncommenting for E3C19),
-`setspace` was not yet loaded (needed in full for E3C18).
-
-**Why:** Needed a working process before any manuscript edit could start.
-
----
-
-## 2026-08-06 — GitHub merge
-**Commit:** `1001e5d` "Merge remote README.md (examiner feedback) with local thesis source"
-
-**Before:** Local repo (17 files: manuscript + tracking files) and GitHub repo
-(1 file: `README.md`) had unrelated histories.
-
-**After:** Merged with `--allow-unrelated-histories`; no filename conflicts
-since local had no `README.md`. Pushed to `origin/main`.
-
-**Why:** User confirmed local `Desktop/Thesis` and the GitHub repo are meant
-to be the same project; needed to unify them without discarding either side.
-
----
-
-## 2026-08-06 — RTC decision letter cross-check
-**Commit:** `af672bc` "Add verbatim RTC decision letter; fix E3C13 to cover both recency and corridor concerns"
-
-User supplied the actual RTC decision email. Cross-checked it against the
-GitHub `README.md` (an elaborated/annotated version of the same comments)
-and the repo's `REVISION_QUEUE.md`.
-
-**Added:** `RTC_DECISION_LETTER.md` — verbatim copy of the official email,
-declared the source of truth (README.md's elaborated wording is
-interpretation, not the original ask, if the two ever diverge).
-
-**Before (REVISION_QUEUE.md, E3C13):**
-```
-**Instruction:** Add a clarifying sentence where [10] is cited in
-1.1 stating it is used as contextual evidence only, not as
-EDSA-specific calibration data. In 3.2.3, clarify that EDSA
-segment parameters are independently calibrated via GEH/RMSE
-(see "Bus Volume Validation via GEH Statistic" and "Speed
-Trajectory Calibration via RMSE" subsections in methods.tex).
-**Constraint:** Do not remove the [10] citation.
-```
-
-**After (REVISION_QUEUE.md, E3C13):**
-```
-**Instruction:** The RTC letter raises TWO separate concerns about [10],
-not one — check both are addressed:
-  (a) RECENCY: "[10] is not quite new" — add a sentence noting its
-      publication date/vintage and why it remains usable as contextual
-      evidence despite its age...
-  (b) CORRIDOR MISMATCH: [10] studies a different corridor...
-**Constraint:** Do not remove the [10] citation. See RTC_DECISION_LETTER.md
-for the verbatim examiner wording.
-```
-
-**Why:** The original transcription only captured the corridor-mismatch half
-of the examiner's comment on Reference [10]; the letter's actual wording —
-"Reference 10 is not quite new **and** simulates a different corridor" — has
-two separate concerns. Missing the "not quite new" (recency) half would have
-left that part of the comment unaddressed even after E3C13 was marked done.
-
-Also logged the oral-exam Q&A-participation comment as a non-actionable
-Team Note in `CLAUDE.md` (not a manuscript edit, so it doesn't belong in
-`REVISION_QUEUE.md`, but shouldn't be silently dropped either).
-
----
-
-## 2026-08-06 — First edit batch: E3C8, E3C15, E4C20, E4C21 completed; E1C1+E2C5+E4C22 drafted then reverted
-**Commit:** `01c49bf` "Complete E3C8, E3C15, E4C20, E4C21; revert dataset-description task pending data access"
-
-### E3C8 — Disturbance definitions and independence
-**File:** `methods.tex`, start of Section 3.2.6 (Stochastic Disturbance Generators)
+## 2026-08-06 — E3C8 — methods.tex, Section 3.2.6
+**Commit:** `01c49bf`
 
 **Before:**
-```
+```latex
 \subsection{Stochastic Disturbance Generators}
 \label{subsec:stochastic-vars}
 
-Four stochastic generators inject variability into the Python environment. ...
+Four stochastic generators inject variability into the Python environment. Generators (i) and (ii) follow the perturbation framework of Wang and Sun~\cite{Wangsun}; the weather generator's heavy-tailed lognormal formulation follows Patil et al.~\cite{Patil2025Conformal}; the breakdown generator follows the rescheduling formulation of Cao et al.~\cite{Cao2022Train}. Table~\ref{tab:notation} collects the symbols used across this section and the MARL formulation that follows.
 ```
 
-**After:** A `\paragraph{Disturbance Classes and Independence}` block was
-inserted immediately before that paragraph, defining five classes (D, S, T,
-W, B) as an itemized list — explicitly distinguishing baseline stochastic
-demand (D, always present) from demand surge (S, the controlled variable
-layered on top) — followed by a paragraph stating the four generators are
-injected independently with no causal chain between them.
+**After:**
+```latex
+\subsection{Stochastic Disturbance Generators}
+\label{subsec:stochastic-vars}
 
-**Why:** RTC comment 8 asked for explicit definitions of each disturbance
-and the difference between stochastic demand and demand surge; the existing
-text described the generators' mechanics but never opened with crisp
-definitions or stated independence explicitly.
+\paragraph{Disturbance Classes and Independence}
+
+This study distinguishes five disturbance classes, denoted D, S, T, W, and B:
+
+\begin{itemize}
+\item \textbf{Stochastic demand (D):} the baseline, always-present day-to-day randomness in passenger arrivals, drawn from the calibrated per-(stop, time-of-day) demand distributions (Section~\ref{subsec:data-pipeline}). D is not a disturbance layered on top of a deterministic baseline; it \textit{is} the baseline stochastic environment, present in every run regardless of which other generators are active.
+\item \textbf{Demand surge (S):} an episode-level multiplicative scaling factor, with standard deviation $\sigma_d$ (Table~\ref{tab:notation}), that amplifies baseline boarding rates above their empirical mean. S is the controlled experimental variable; D is always present, and S is what is added on top of it. Setting $\sigma_d = 0$ removes the surge and leaves only baseline demand variability (D).
+\item \textbf{Traffic-speed perturbation (T):} an episode-level scaling of corridor cruising speed, with standard deviation $\sigma_s$, representing everyday congestion friction. T governs inter-stop travel-time variability under ideal conditions.
+\item \textbf{Weather-induced delay (W):} a per-segment travel-time distribution with coefficient of variation $\eta$, drawn from a right-skewed lognormal rather than the Gaussian-based scaling used by T. W replaces T as the source of travel-time stochasticity once $\eta > 0$ (Section~\ref{subsec:stochastic-vars}).
+\item \textbf{Discrete bus breakdown (B):} a Poisson-distributed discrete event, with rate $\lambda$, that permanently removes one bus from the active agent set for the remainder of the simulated day.
+\end{itemize}
+
+The four generators that produce S, T, W, and B are injected independently: no causal chain links them within the simulation. A breakdown event (B) does not trigger a demand surge (S) or a weather delay (W), and a weather event does not induce a mechanical failure. In practice, some real-world disturbances co-occur causally --- for example, heavy rain may both slow buses (W) and concentrate passengers at covered stops (S) --- but this study treats each generator as an independent factor. This design choice isolates the individual and combined effect of each disturbance class on controller performance and allows the single-disturbance ablation (Section~\ref{subsec:evaluation}) to attribute degradation unambiguously to a specific class.
+
+Four stochastic generators inject variability into the Python environment. Generators (i) and (ii) follow the perturbation framework of Wang and Sun~\cite{Wangsun}; the weather generator's heavy-tailed lognormal formulation follows Patil et al.~\cite{Patil2025Conformal}; the breakdown generator follows the rescheduling formulation of Cao et al.~\cite{Cao2022Train}. Table~\ref{tab:notation} collects the symbols used across this section and the MARL formulation that follows.
+```
+
+**Why:** RTC comment 8 — define each disturbance explicitly, clarify independence, distinguish stochastic demand from demand surge.
 
 ---
 
-### E3C15 — Simulation parameter summary table
-**File:** `methods.tex`, end of Section 3.2.4 (Operating Conditions)
+## 2026-08-06 — E3C15 — methods.tex, Section 3.2.4 (end)
+**Commit:** `01c49bf`
 
-**Before:** Section 3.2.4 ended with "...A condition is a state of the
-world; a controller is a choice of algorithm." and went straight into
-Section 3.2.5 (Data Processing). No consolidated parameter table existed
-anywhere in the chapter.
+**Before:**
+```latex
+Throughout this chapter, \textit{ideal conditions} and \textit{non-ideal conditions} refer to these operating states of the simulated environment. \textit{Baseline controllers} refers separately to the three non-MARL control strategies (No Control, Forward Headway, Even Headway) against which the MARL policy is benchmarked. A condition is a state of the world; a controller is a choice of algorithm.
 
-**After:** A new table (`\label{tab:sim-parameters}`, compiles as Table 3.2)
-was inserted, with three grouped sections — Fixed / Swept-Variable / Derived
-parameters. Values already established elsewhere in the manuscript were
-reused rather than re-derived (stop count $M=24$, fleet size $N\approx12$–$30$,
-both cited from Section 1.2.2). Values with no prior basis use `%TODO-VAL`;
-data-derived values use `%TODO-DATA`.
+\subsection{Data Processing}
+```
 
-**Why:** RTC comment 15 asked for a single table summarizing fixed and
-variable parameters with target values; these were previously scattered in
-prose across 3.2.4–3.2.7 with no consolidated view.
+**After:**
+```latex
+Throughout this chapter, \textit{ideal conditions} and \textit{non-ideal conditions} refer to these operating states of the simulated environment. \textit{Baseline controllers} refers separately to the three non-MARL control strategies (No Control, Forward Headway, Even Headway) against which the MARL policy is benchmarked. A condition is a state of the world; a controller is a choice of algorithm.
 
-**Correction made during drafting:** the holding-action parameters ($\Delta
-T$, $\Omega$, $|A_i|$) were first mis-sourced to "Section 3.2.3"
-(Environment Model Validation); caught and corrected to "Section 3.2.7"
-(Action Space, their actual location) before finalizing.
+\begin{table}[htbp]
+\centering
+\caption{Simulation parameter summary: fixed, swept/variable, and derived parameters.}
+\label{tab:sim-parameters}
+\small
+\renewcommand{\arraystretch}{1.25}
+
+\begin{tabularx}{\textwidth}{
+>{\RaggedRight\arraybackslash}p{0.24\textwidth}
+>{\RaggedRight\arraybackslash}p{0.09\textwidth}
+X
+>{\RaggedRight\arraybackslash}p{0.20\textwidth}
+}
+
+\toprule
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value / Range} & \textbf{Source} \\
+\midrule
+\multicolumn{4}{l}{\textit{Fixed simulation parameters}} \\
+\midrule
+
+Simulation horizon & --- & Single simulated operating day (\%TODO-VAL: exact start/end hours) & Section~3.1 \\
+Total stop count (sub-corridor) & $M$ & 24 & Introduction, Section~1.2.2 \\
+Fleet size (active buses) & $N$ & $\approx 12$--$30$ & Introduction, Section~1.2.2 \\
+Control stop count & --- & \%TODO-VAL: determined by criteria in Section~3.2.2 once dataset is processed & Section~3.2.2 \\
+Scheduled headway & $H_0$ & \%TODO-VAL: from DOTr schedule records & DOTr records \\
+Bus passenger capacity & --- & \%TODO-VAL: from DOTr fleet specification & DOTr records \\
+Maximum holding duration & $\Delta T$ & \%TODO-VAL: to be set during implementation & Section~3.2.7 (Action Space) \\
+Holding action bins & $\Omega$ & $\{0.0, 0.1, 0.2, 0.3, 0.4\}$ & Section~3.2.7 (Action Space) \\
+Action space size per agent & $|A_i|$ & 10 (5 hold $\times$ 2 skip) & Section~3.2.7 (Action Space) \\
+Monte Carlo runs per cell & $N_{\text{runs}}$ & $\geq 30$ & Section~3.1 \\
+Discount / event-based discount & $\gamma$, $\beta$ & \%TODO-VAL: tuned during implementation & Section~3.2.7 \\
+
+\midrule
+\multicolumn{4}{l}{\textit{Swept / variable parameters}} \\
+\midrule
+
+Weather disturbance intensity & $\eta$ & $\{0.0, 0.3, 0.6, 1.0, 1.3\}$ & Section~3.2.6 \\
+Demand scaling std.\ dev.\ (clip) & $\sigma_d$ & Clip $[1, 3]$ & Section~3.2.6 \\
+Traffic-speed scaling std.\ dev.\ (clip) & $\sigma_s$ & Clip $[0.8, 1.2]$ & Section~3.2.6 \\
+Breakdown rate & $\lambda$ & \%TODO-VAL: calibrated during implementation (events/hour) & Section~3.2.6 \\
+
+\midrule
+\multicolumn{4}{l}{\textit{Derived parameters (from SUMO calibration)}} \\
+\midrule
+
+Baseline inter-stop travel time & $\mu$ & Per-segment, per-time-of-day bin, \%TODO-DATA & SafeTravelPH dataset \\
+Baseline travel-time std.\ dev.\ & $\sigma$ & Per-segment, per-time-of-day bin, \%TODO-DATA & SafeTravelPH dataset \\
+Baseline coefficient of variation & $CV_0$ & $\sigma/\mu$ per segment, \%TODO-DATA & Computed from dataset \\
+Lognormal shape parameter & $\sigma_{ln}$ & $\sqrt{\ln(\eta^2+1)}$ (Eq.~\ref{eq:sigma_ln}) & Method of moments \\
+Lognormal location parameter & $\mu_{ln}$ & $\ln(\mu) - \sigma_{ln}^2/2$ (Eq.~\ref{eq:mu_ln}) & Method of moments \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Parameters marked \%TODO-VAL are to be confirmed during the implementation phase upon receipt of the operational dataset and DOTr schedule records; parameters marked \%TODO-DATA will be computed during the SUMO calibration phase described in Section~3.2.3. The stop count ($M=24$) and fleet-size range ($N \approx 12$--$30$) are carried over from the state-space dimensionality discussion in Section~1.2.2 and are not new values introduced here.
+
+\subsection{Data Processing}
+```
+
+**Why:** RTC comment 15 — summarize fixed/variable simulation parameters with target values.
 
 ---
 
-### E4C20 — Per-generator simulation mechanics
-**File:** `methods.tex`, within each of the four generator subsubsections
+## 2026-08-06 — E4C20 — methods.tex, Section 3.2.6 (four generator subsections)
+**Commit:** `01c49bf`
 
-**Before (Passenger Demand, excerpt):**
-```
-...Sampling occurs at the start of each simulation run, producing varied
-demand profiles across episodes.
-```
-
-**After (Passenger Demand, excerpt):**
-```
-...Sampling occurs at the start of each simulation run, producing varied
-demand profiles across episodes. In implementation, the scaling factor
-$f_d \sim \mathcal{N}(1, \sigma_d^2)$ is sampled once per episode at
-initialization and applied uniformly to every per-stop, per-time-of-day
-arrival rate for the duration of that simulated operating day...
+**Before (Passenger Demand):**
+```latex
+The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$, clipped to $[1, 3]$, following Wang and Sun~\cite{Wangsun}. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3 corresponds to roughly a tripling of baseline boarding rates, spanning the range observed during major event let-outs and severe-weather mode shifts. Sampling occurs at the start of each simulation run, producing varied demand profiles across episodes.
 ```
 
-Equivalent one-sentence mechanics additions were made to Traffic Delays
-($f_s$ applied per-segment-traversal), Weather-Induced Anomalies (fresh
-lognormal draw per bus per traversal when $\eta>0$, tying back to the
-existing Eq. 3.4/3.5), and Bus Breakdowns (per-timestep Bernoulli trial with
-probability $\lambda \cdot dt$, which was implied but never stated before).
+**After (Passenger Demand):**
+```latex
+The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$, clipped to $[1, 3]$, following Wang and Sun~\cite{Wangsun}. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3 corresponds to roughly a tripling of baseline boarding rates, spanning the range observed during major event let-outs and severe-weather mode shifts. Sampling occurs at the start of each simulation run, producing varied demand profiles across episodes. In implementation, the scaling factor $f_d \sim \mathcal{N}(1, \sigma_d^2)$ is sampled once per episode at initialization and applied uniformly to every per-stop, per-time-of-day arrival rate for the duration of that simulated operating day, so all stops experience the same proportional demand shift within a single run while the shift itself varies across runs.
+```
 
-**Why:** RTC comment 20 asked for a step-by-step account of how each
-disturbance scenario is actually simulated (when sampled, what it affects,
-how it propagates) — the prior text described *what* each generator
-represents statistically but not *when/how* it fires during a run.
+**Before (Traffic Delays):**
+```latex
+Mean cruising speed between stops is adjusted dynamically using a scaling factor drawn from $\mathcal{N}(1, \sigma_s^2)$, clipped to $[0.8, 1.2]$, representing typical daily congestion friction \cite{Wangsun}. This generator provides the baseline stochastic variability in inter-stop travel time when the weather generator is inactive.
+```
+
+**After (Traffic Delays):**
+```latex
+Mean cruising speed between stops is adjusted dynamically using a scaling factor drawn from $\mathcal{N}(1, \sigma_s^2)$, clipped to $[0.8, 1.2]$, representing typical daily congestion friction \cite{Wangsun}. In implementation, the speed scaling factor $f_s \sim \mathcal{N}(1, \sigma_s^2)$ is sampled once per episode and applied to the bus's mean cruising speed on every inter-stop segment traversal during that day, producing a uniformly slower or faster corridor for that run without segment-level variation beyond the calibrated baseline. This generator provides the baseline stochastic variability in inter-stop travel time when the weather generator is inactive.
+```
+
+**Before (Weather-Induced Anomalies):**
+```latex
+The lognormal is chosen to model the shape that any such heavy-tailed disruption produces on per-segment travel time, regardless of its meteorological label. The disturbance intensity sweep is therefore read as a span of travel-time variability magnitudes, not as a sweep across named weather categories.
+```
+
+**After (Weather-Induced Anomalies):**
+```latex
+The lognormal is chosen to model the shape that any such heavy-tailed disruption produces on per-segment travel time, regardless of its meteorological label. In implementation, when $\eta > 0$ a fresh travel-time sample $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$ is drawn independently for each bus at each inter-stop segment traversal during the episode, replacing the traffic-speed generator's output for that traversal; the lognormal parameters $\mu_{ln}$ and $\sigma_{ln}$ are computed from the segment's empirical mean $\mu$ and the swept $\eta$ via Equations~\eqref{eq:sigma_ln}--\eqref{eq:mu_ln}. The disturbance intensity sweep is therefore read as a span of travel-time variability magnitudes, not as a sweep across named weather categories.
+```
+
+**Before (Bus Breakdowns):**
+```latex
+Breakdowns are triggered at random times sampled from a Poisson process with a configurable rate $\lambda$ (Table~\ref{tab:notation}). When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set...
+```
+
+**After (Bus Breakdowns):**
+```latex
+Breakdowns are triggered at random times sampled from a Poisson process with a configurable rate $\lambda$ (Table~\ref{tab:notation}). In implementation, at each discrete simulation timestep of length $dt$, a Bernoulli trial with probability $\lambda \cdot dt$ is evaluated independently for each active bus; a success removes that bus from the active agent set for the remainder of the simulated day. When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set...
+```
+
+**Why:** RTC comment 20 — explain in detail how each disturbance scenario is simulated.
 
 ---
 
-### E4C21 — Metric definitions and observation feature table
-**File:** `methods.tex`, Section 3.2.9 (Data Analysis Methods) and Section
-3.2.7 (State Space and Local Observations)
+## 2026-08-06 — E4C21 — methods.tex, Sections 3.2.9 and 3.2.7
+**Commit:** `01c49bf`
 
-**Before (3.2.9, opening):**
-```
+**Before (3.2.9 opening):**
+```latex
 \subsection{Data Analysis Methods}
 
-For each (control strategy, disturbance level) cell, $N \geq 30$
-independent Monte Carlo runs are executed...
+For each (control strategy, disturbance level) cell, $N \geq 30$ independent Monte Carlo runs are executed using matched random seeds across strategies. Three response variables are logged per run: mean passenger waiting time, mean total travel time, and headway coefficient of variation.
 ```
 
-**After (3.2.9, opening):** Added formal one-line definitions with numbered
-equations for the three response metrics — mean passenger waiting time
-($\bar{W}$, Eq. `eq:waiting_time`), mean total travel time ($\bar{T}$), and
-headway coefficient of variation ($CV_h$, Eq. `eq:headway_cv`) — before the
-existing "For each (control strategy...)" sentence.
+**After (3.2.9 opening):**
+```latex
+\subsection{Data Analysis Methods}
 
-**Before (3.2.7, State Space):** The observation vector's four components
-(spatial location, system regularity, passenger demand, environmental
-flags) were listed as an itemize block with no table connecting each
-feature to its real-world sensor source.
+The three response variables logged per run are defined as follows. \textbf{Mean passenger waiting time} ($\bar{W}$) is the average time elapsed from a passenger's arrival at a stop to their successful boarding, averaged across all passengers served and all stops over one simulated operating day:
 
-**After (3.2.7, State Space):** Added a table (`\label{tab:observation-features}`,
-compiles as Table 3.3) listing each feature, its symbol, its deployment-time
-source (AVL/APC/AFC/weather API/incident system), and its simulation-time
-source (bus model / generator output), followed by a sentence clarifying all
-simulated features are synthetic.
+\begin{equation}
+\bar{W} = \frac{1}{P} \sum_{p=1}^{P} \left(t_p^{\text{board}} - t_p^{\text{arrive}}\right)
+\label{eq:waiting_time}
+\end{equation}
 
-**Why:** RTC comment 21 asked for formal metric definitions and a
-description of observation features — both existed only as informal prose
-mentions before this edit.
+where $P$ is the total number of passengers served in the run and $t_p^{\text{board}}$, $t_p^{\text{arrive}}$ are the boarding and arrival times of passenger $p$. \textbf{Mean total travel time} ($\bar{T}$) is the average elapsed time from a bus's departure from the origin terminal to its arrival at the final stop of the sub-corridor, averaged across all bus trips completed during the simulated day. \textbf{Headway coefficient of variation} ($CV_h$) measures headway regularity:
+
+\begin{equation}
+CV_h = \frac{\sigma_h}{\mu_h}
+\label{eq:headway_cv}
+\end{equation}
+
+where $\sigma_h$ and $\mu_h$ are the standard deviation and mean of observed inter-bus headways recorded at all stops over one simulated operating day. $CV_h = 0$ denotes perfectly regular headways; larger values indicate increasing bunching severity. This construction mirrors the baseline coefficient of variation $CV_0$ already defined for travel time (Table~\ref{tab:notation}), applied here to the headway distribution instead.
+
+For each (control strategy, disturbance level) cell, $N \geq 30$ independent Monte Carlo runs are executed using matched random seeds across strategies. Three response variables are logged per run: mean passenger waiting time, mean total travel time, and headway coefficient of variation.
+```
+
+**Before (3.2.7 State Space, end of bullet list):**
+```latex
+\item \textbf{Environmental flags:} encoded indicators for the current disturbance intensity and any active downstream incident or breakdown.
+\end{itemize}
+
+\subsubsection{Action Space ($A_i$)}
+```
+
+**After (3.2.7 State Space, end of bullet list):**
+```latex
+\item \textbf{Environmental flags:} encoded indicators for the current disturbance intensity and any active downstream incident or breakdown.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Agent observation vector: features, symbols, and data sources.}
+\label{tab:observation-features}
+\small
+\renewcommand{\arraystretch}{1.25}
+
+\begin{tabularx}{\textwidth}{
+>{\RaggedRight\arraybackslash}p{0.24\textwidth}
+>{\RaggedRight\arraybackslash}p{0.11\textwidth}
+>{\RaggedRight\arraybackslash}X
+>{\RaggedRight\arraybackslash}X
+}
+
+\toprule
+\textbf{Feature} & \textbf{Symbol} & \textbf{Deployment Source} & \textbf{Simulation Source} \\
+\midrule
+
+Control stop index & --- & Route map (static) & Hardcoded stop list \\
+Forward headway & $h^-$ & AVL feed & Event-driven bus model \\
+Estimated backward headway & $\hat{h}^+$ & AVL feed & Event-driven bus model \\
+Onboard passenger count & --- & APC system & Running tally in bus model \\
+Waiting passenger count at stop & --- & AFC terminal / platform sensors & Stop queue in bus model \\
+Disturbance intensity flag & $\eta$ (encoded) & Weather API / public incident alert & Active generator parameter \\
+Downstream incident / breakdown flag & $b$ (binary) & Incident management system & Breakdown generator output \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+In simulation, all observation features are generated synthetically by the Python environment at each control event by querying the analytical bus model and the active stochastic generators; no real sensor data is consumed during training or evaluation.
+
+\subsubsection{Action Space ($A_i$)}
+```
+
+**Why:** RTC comment 21 — metric definitions and observation-feature descriptions.
 
 ---
 
-### E1C1 + E2C5 + E4C22 — Dataset Description — ADDED THEN REVERTED, same session
-**File:** `methods.tex`, Section 3.2.5 (Required Datasets)
+## 2026-08-06 — E1C1+E2C5+E4C22 — REVERTED, no net change
+**Commit:** `01c49bf` (added and reverted within the same uncommitted working state; the pushed commit contains no trace of this)
 
-**Step 1 — Added (mid-session, not committed):**
+**Before / After (identical — net zero diff):**
+```latex
+\item \textbf{Corridor bus operational data.} A per-trip record of EDSA Carousel bus operation along the study sub-corridor, collected over a continuous observation window of at least two weeks. ...The baseline operating point for this study is established from a crowdsourced operational record collected from the EDSA Busway during July 2023 through the SafeTravelPH mobile application.
+
+%A crowdsourced operational dataset of this form, for example, data collected from the EDSA Busway via the SafeTravelPH mobile application, provides a representative model of the required structure. Should bus-volume coverage prove insufficient for the GEH validation step, supplementary records may be requested from MMDA, DOTr, or the involved bus operators under the Freedom of Information process.
+
+\end{itemize}
+
+Severe-weather conditions are not estimated from operational data in this study but are injected as a controlled experimental variable, with disturbance magnitudes anchored to validated literature values rather than to a corridor-specific severe-weather sample.
 ```
-\paragraph{Dataset Description}
 
-The baseline operating point described above is grounded in the
-SafeTravelPH dataset: a crowdsourced mobile application through which
-commuters submit trip-level GPS trajectory reports while travelling along
-Philippine transit corridors. The record used in this study spans the EDSA
-Busway corridor during July 2023. Each submission corresponds to a single
-commuter trip and yields a per-trip trajectory log rather than a
-fixed-interval sensor feed, so record density varies by segment and time of
-day according to rider participation. ...
+**Why:** A "Dataset Description" paragraph + field table were drafted for this section, then reverted before commit — the group does not have dataset access yet, and the draft asserted qualitative claims about the dataset's structure that aren't yet warranted. Full detail on what was drafted and why it was pulled is in `TRACKER.md`.
+
+---
+
+## 2026-08-06 — Citation fix: Patil2025Conformal — methods.tex, Section 3.2.6
+**Commit:** not yet committed
+
+**Before:**
+```latex
+Travel time is drawn as $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$. Patil et al.~\cite{Patil2025Conformal} validated this parameterization against INRIX freeway data via the Kolmogorov-Smirnov test, reporting a close fit at the highest variability level they tested ($KS = 0.036$, $p = 0.94$ at $CV = 1.0$).
 ```
-plus a 6-row table ("SafeTravelPH dataset fields and their role in
-simulation calibration") and a closing sentence on the DOTr FOI source.
-All specific numbers used `%TODO-DATA` placeholders correctly.
 
-**Step 2 — User caught the problem before any commit:** "I should have said
-that you should not edit yet anything regarding the dataset. Because, we
-still dont have access to it yet." The issue wasn't the numeric
-placeholders (those were fine) — it was the *qualitative* claims: describing
-SafeTravelPH as a specific kind of app, its record structure, why record
-density would vary by rider participation, etc. That's asserting knowledge
-of a dataset the group hasn't actually seen yet.
+**After:**
+```latex
+Travel time is drawn as $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$. Patil et al.~\cite{Patil2025Conformal} tested this parameterization by generating SUMO-simulated travel times under the same CV-driven lognormal recipe --- with time windows and mean travel times anchored to INRIX historical data for an urban arterial corridor, not a freeway --- and confirming via the Kolmogorov-Smirnov test that the simulated distribution matches the assumed log-normal shape, reporting a close fit at the highest variability level they tested ($KS = 0.036$, $p = 0.94$ at $CV = 1.0$).
+```
 
-**Step 3 — Reverted:** The entire paragraph, table, and closing sentence
-were removed from `methods.tex`, restoring the exact pre-edit text (the
-"Corridor bus operational data" itemize block flowing directly into the
-"Severe-weather conditions are not estimated..." paragraph).
+**Why:** Verified against the actual PDF (RRL/Travel_Time_and_Weather-Aware...pdf). The paper's Table V classifies its route as "Local, Minor/Principal Arterials," not freeway; the KS test checks the simulated distribution's shape, not a direct INRIX comparison. The numeric KS/p values were confirmed correct.
 
-**After (net, in the pushed commit):** No change from the original
-`methods.tex` at this location — the add-then-revert nets to zero diff for
-this section. Confirmed via `git diff` before committing that no trace of
-the dataset-description content remained.
+---
 
-**Why reverted:** Per `CLAUDE.md` R1 (no data fabrication) and R6 (approved
-dataset language), the group has no access to the actual dataset yet, so
-even well-hedged qualitative description of "what it looks like" oversteps
-what can honestly be claimed right now.
+## 2026-08-06 — Citation fix: Rodriguez2023Cooperative — methods.tex, Section 3.2.7
+**Commit:** not yet committed
 
-**Follow-up state:** E1C1, E2C5, E4C22 reset to `[ ]` pending in
-`REVISION_QUEUE.md`, marked **BLOCKED — no dataset access**, with an
-explicit instruction not to resume without the user's go-ahead even though
-the task is technically satisfiable using placeholder language alone.
-`TRACKER.md` carries the full "Reverted Work" writeup this entry
-summarizes. Removing the dataset table also shifted subsequent table
-numbers: what would have been Table 3.3/3.4 (E3C15/E4C21's tables) compile
-as Table 3.2/3.3 instead — noted in `TRACKER.md` and `CLAUDE.md`, though no
-fix was needed in `methods.tex` itself since all in-text references use
-`\ref{}`, not hardcoded numbers.
+**Before:**
+```latex
+The full action set is the Cartesian product of these two components: $|A_i| = 5 \times 2 = 10$ discrete actions per control event. A continuous holding parameter $\alpha \in [0, 1]$ was considered, following Wang and Sun~\cite{Wangsun}, but rejected for three reasons. First, continuous actions require actor-critic algorithms, whose training instability compounds across the swept-disturbance evaluation budget. Second, Rodriguez et al.~\cite{Rodriguez2023Cooperative} showed that a 5-bin discretization of $\alpha$ achieves combined holding-and-skipping control on a comparable corridor without measurable loss of performance versus continuous formulations. Third, real driver compliance with second-level holding instructions is itself coarse \cite{Rodriguez2023Cooperative}, so continuous precision in $\alpha$ is not meaningful at deployment.
+```
+
+**After:**
+```latex
+The full action set is the Cartesian product of these two components: $|A_i| = 5 \times 2 = 10$ discrete actions per control event, allowing the agent to select a holding strength and a skip decision independently at each control event. This is a broader action space than Rodriguez et al.~\cite{Rodriguez2023Cooperative}, whose combined holding-and-skipping controller (DDQN-HA) instead selects among six \textit{mutually exclusive} actions: five holding strengths $\Omega = \{0.0, 0.1, 0.2, 0.3, 0.4\}$ (with $\omega = 0$ already covering the no-holding case) plus a single skip action. The discretized holding-strength set $\Omega$ adopted here matches theirs exactly. A continuous holding parameter $\alpha \in [0, 1]$ was considered, following Wang and Sun~\cite{Wangsun}, but rejected for two reasons. First, continuous actions require actor-critic algorithms, whose training instability compounds across the swept-disturbance evaluation budget. Second, real driver compliance with holding instructions is itself imperfect: Rodriguez et al.~\cite{Rodriguez2023Cooperative} model non-compliant drivers as departing after only 60--80\% of the instructed holding time, so continuous precision in $\alpha$ is not meaningful at deployment.
+```
+
+**Why:** Verified against the actual PDF (RRL/Cooperative bus holding and stop-skipping...pdf). No continuous-vs-discrete comparison exists anywhere in the paper — that claim was unsupported. Rodriguez's actual action space is 6 mutually-exclusive actions, not this study's 10-action independent Cartesian space. Kept the thesis's own $|A_i|=10$ design unchanged (it's load-bearing elsewhere in the manuscript); only corrected what is attributed to Rodriguez.
 
 ---
 

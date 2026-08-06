@@ -9,3 +9,7 @@
 *.synctex.gz
 *.bbl
 *.blg
+
+# RRL source papers: copyrighted publisher PDFs, kept local for citation
+# verification only (see RRL/sources.md). Never push these to GitHub.
+RRL/*.pdf

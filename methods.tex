@@ -50,7 +50,7 @@ These criteria are data-driven: they specify \textit{how} stops are selected fro
 
 \subsection{Environment Model Validation}
 
-Before MARL training begins, the SUMO calibration layer is statistically verified to approximate real-world bus operation along the corridor. Two industry-standard calibration metrics are used: the GEH statistic for bus volume on the dedicated corridor, and the Root Mean Square Error (RMSE) for bus speed trajectories. The calibration is restricted to the bus corridor itself, since the agents' state and reward depend only on bus dynamics; surrounding mixed-traffic flows do not enter the Python environment.
+Before MARL training begins, the SUMO calibration layer is statistically verified to approximate real-world bus operation along the corridor. Two industry-standard calibration metrics are used: the GEH statistic for bus volume on the dedicated corridor, and the Root Mean Square Error (RMSE) for bus speed trajectories. The calibration is restricted to the bus corridor itself, since the agents' state and reward depend only on bus dynamics; surrounding mixed-traffic flows do not enter the Python environment. This GEH/RMSE procedure calibrates EDSA-specific parameters directly from EDSA operational data and does not depend on the North Luzon Expressway rainfall-impact figures cited as motivating evidence in Section~1.1 \cite{TSSP_Rain2018}; that citation establishes only that weather materially affects Philippine road-traffic operations in general, not any EDSA-specific speed or capacity value used in this calibration.
 
 \begin{figure}[htbp]
     \centering
@@ -318,7 +318,7 @@ The lognormal shape and scale parameters follow the method-of-moments derivation
 
 \begin{equation} \mu_{ln} = \ln(\mu) - \frac{\sigma_{ln}^2}{2} \label{eq:mu_ln} \end{equation}
 
-Travel time is drawn as $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$. Patil et al.~\cite{Patil2025Conformal} validated this parameterization against INRIX freeway data via the Kolmogorov-Smirnov test, reporting a close fit at the highest variability level they tested ($KS = 0.036$, $p = 0.94$ at $CV = 1.0$).
+Travel time is drawn as $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$. Patil et al.~\cite{Patil2025Conformal} tested this parameterization by generating SUMO-simulated travel times under the same CV-driven lognormal recipe --- with time windows and mean travel times anchored to INRIX historical data for an urban arterial corridor, not a freeway --- and confirming via the Kolmogorov-Smirnov test that the simulated distribution matches the assumed log-normal shape, reporting a close fit at the highest variability level they tested ($KS = 0.036$, $p = 0.94$ at $CV = 1.0$).
 
 The disturbance intensity $\eta$ is swept across five values, $\eta \in \{0.0, 0.3, 0.6, 1.0, 1.3\}$, chosen to span and slightly exceed the empirically validated CV range of Patil et al.~\cite{Patil2025Conformal}, who evaluate scenarios at $CV \in \{0.1, 0.3, 0.5, 0.7, 1.0\}$. The basis for each swept value is as follows. $\eta = 0$ disables the generator and recovers the ideal condition. $\eta \in \{0.3, 0.6\}$ fall inside the validated range, representing moderate travel-time variability. $\eta = 1.0$ corresponds to the upper end of Patil et al.'s validated range and is adopted here as the nominal severe-disturbance operating point. $\eta = 1.3$ extends beyond the validated range as an extrapolated stress test; results at this level are interpreted as a probe of controller behavior under extreme conditions rather than as a calibrated scenario.
 
@@ -422,7 +422,7 @@ The agent's action $a_{i,t} = \pi_\theta(s_{i,t})$ combines two discrete compone
 \item \textbf{Stop-skipping:} a binary decision to bypass the next stop, triggered when the bus is severely delayed and near capacity, allowing headway recovery. Skipping is disallowed at the origin terminal and is not permitted if the immediately preceding trip already skipped that stop, so no passenger is denied service twice in a row.
 \end{itemize}
 
-The full action set is the Cartesian product of these two components: $|A_i| = 5 \times 2 = 10$ discrete actions per control event. A continuous holding parameter $\alpha \in [0, 1]$ was considered, following Wang and Sun~\cite{Wangsun}, but rejected for three reasons. First, continuous actions require actor-critic algorithms, whose training instability compounds across the swept-disturbance evaluation budget. Second, Rodriguez et al.~\cite{Rodriguez2023Cooperative} showed that a 5-bin discretization of $\alpha$ achieves combined holding-and-skipping control on a comparable corridor without measurable loss of performance versus continuous formulations. Third, real driver compliance with second-level holding instructions is itself coarse \cite{Rodriguez2023Cooperative}, so continuous precision in $\alpha$ is not meaningful at deployment.
+The full action set is the Cartesian product of these two components: $|A_i| = 5 \times 2 = 10$ discrete actions per control event, allowing the agent to select a holding strength and a skip decision independently at each control event. This is a broader action space than Rodriguez et al.~\cite{Rodriguez2023Cooperative}, whose combined holding-and-skipping controller (DDQN-HA) instead selects among six \textit{mutually exclusive} actions: five holding strengths $\Omega = \{0.0, 0.1, 0.2, 0.3, 0.4\}$ (with $\omega = 0$ already covering the no-holding case) plus a single skip action. The discretized holding-strength set $\Omega$ adopted here matches theirs exactly. A continuous holding parameter $\alpha \in [0, 1]$ was considered, following Wang and Sun~\cite{Wangsun}, but rejected for two reasons. First, continuous actions require actor-critic algorithms, whose training instability compounds across the swept-disturbance evaluation budget. Second, real driver compliance with holding instructions is itself imperfect: Rodriguez et al.~\cite{Rodriguez2023Cooperative} model non-compliant drivers as departing after only 60--80\% of the instructed holding time, so continuous precision in $\alpha$ is not meaningful at deployment.
 
 \subsubsection{Reward Function ($R$) and Objective}
 \label{subsec:reward}
@@ -513,7 +513,7 @@ The MARL policy is benchmarked against three baseline controllers: \textbf{No Co
 
 \subsubsection{No Control (NC)}
 
-No holding or skipping is applied. Each bus dwells only for the time required to serve boarding and alighting passengers, then departs immediately. NC serves as the lower bound of the comparison: it isolates the natural corridor behavior without any regularization. If MARL cannot beat NC, the controller is doing more harm than good. NC also provides the reference point for measuring the severity of bus bunching.
+No holding or skipping is applied. Each bus dwells only for the time required to serve boarding and alighting passengers, then departs immediately. NC serves as the lower bound of the comparison: it isolates the natural corridor behavior without any regularization. If MARL cannot beat NC, the controller is doing more harm than good. NC also provides the reference point for measuring the severity of bus bunching. Under non-ideal conditions, NC has no corrective mechanism whatsoever, so demand surges, weather-induced delays, and breakdowns are expected to compound directly into bunching with no attenuation.
 
 \subsubsection{Forward Headway (FH)}
 
@@ -524,7 +524,7 @@ d_{FH} = \max\!\left\{0,\, \bar{d} + g\,(H_0 - h^-)\right\}
 \label{eq:fh}
 \end{equation}
 
-where $H_0$ is the desired (scheduled) headway, $h^-$ is the forward headway (time gap to the bus ahead), $\bar{d}$ is the average slack delay at equilibrium, and $g > 0$ is a control gain parameter. If a bus is running closer to the bus ahead than scheduled ($h^- < H_0$), it holds for an additional period proportional to the gap deficit; if it is already at or beyond the desired spacing ($h^- \geq H_0$), it does not hold. Parameters $\bar{d}$ and $g$ follow Daganzo's original values. FH represents local, single-agent reactive control: each bus reacts only to information about the bus immediately ahead.
+where $H_0$ is the desired (scheduled) headway, $h^-$ is the forward headway (time gap to the bus ahead), $\bar{d}$ is the average slack delay at equilibrium, and $g > 0$ is a control gain parameter. If a bus is running closer to the bus ahead than scheduled ($h^- < H_0$), it holds for an additional period proportional to the gap deficit; if it is already at or beyond the desired spacing ($h^- \geq H_0$), it does not hold. Parameters $\bar{d}$ and $g$ follow Daganzo's original values. FH represents local, single-agent reactive control: each bus reacts only to information about the bus immediately ahead. Because Eq.~\eqref{eq:fh} conditions only on $h^-$, FH is expected to partially correct demand- and traffic-induced bunching but to respond poorly to a breakdown: it has no observation of the enlarged gap a failed bus leaves for the bus behind it, so the trailing bus's holding decision is uninformed by the breakdown until the irregularity has already propagated back to it.
 
 \subsubsection{Even Headway (EH)}
 
@@ -535,7 +535,7 @@ T_{EH} = \max\!\left\{\min\!\left[\frac{\hat{h}^+ - h^-}{2},\; 0.4\,H_0\right],\
 \label{eq:eh}
 \end{equation}
 
-where $h^-$ is the forward headway, $\hat{h}^+$ is the estimated backward headway (time gap to the bus behind), and $\frac{\hat{h}^+ - h^-}{2}$ is the holding time that would split the difference evenly between the two gaps. The hold is capped at $0.4\,H_0$ (40\% of the scheduled headway), the bound Rodriguez et al.\ used to prevent excessive intervention. This cap matches the maximum value in the MARL action set $\Omega = \{0, 0.1, 0.2, 0.3, 0.4\}$, so EH and MARL are constrained to the same maximum hold and the comparison is fair. EH represents globally-aware reactive control: it uses information about both neighbors but follows a fixed rule rather than a learned policy.
+where $h^-$ is the forward headway, $\hat{h}^+$ is the estimated backward headway (time gap to the bus behind), and $\frac{\hat{h}^+ - h^-}{2}$ is the holding time that would split the difference evenly between the two gaps. The hold is capped at $0.4\,H_0$ (40\% of the scheduled headway), the bound Rodriguez et al.\ used to prevent excessive intervention. This cap matches the maximum value in the MARL action set $\Omega = \{0, 0.1, 0.2, 0.3, 0.4\}$, so EH and MARL are constrained to the same maximum hold and the comparison is fair. EH represents globally-aware reactive control: it uses information about both neighbors but follows a fixed rule rather than a learned policy. Because Eq.~\eqref{eq:eh} is a fixed linear rule computed from the currently observed gaps, EH is expected to handle breakdowns better than FH, since the enlarged backward gap $\hat{h}^+$ enters the rule directly, but it has no mechanism to anticipate or discount the heavier-tailed delays that the weather generator introduces, since the rule was not designed with a heavy-tailed disturbance in mind.
 \clearpage
 \subsubsection{Baseline Comparisons}
 
@@ -574,7 +574,13 @@ For non-ideal disturbance levels, performance degradation is computed as the per
 
 
 
-\textbf{Stage A: Ideal-condition evaluation.} The weather and breakdown generators are disabled; demand and traffic-speed scaling are fixed at baseline means ($\eta = 0$). The trained MARL policy and the three baselines are each run for $N \geq 30$ Monte Carlo iterations with matched seeds. The acceptance criterion is twofold: (i) mean passenger waiting time no worse than EH (no statistically significant degradation at $p < 0.05$ with multiple-comparison correction), and ideally a statistically significant improvement; and (ii) a statistically significant reduction in headway coefficient of variation relative to NC. Under ideal conditions EH is already near-optimal, so parity with EH is an acceptable Stage A outcome. Outperforming EH is the target but not required to pass Stage A, since the main contribution of this study is the characterization of performance under disturbance in Stage B.
+\textbf{Stage A: Ideal-condition evaluation.} The weather and breakdown generators are disabled; demand and traffic-speed scaling are fixed at baseline means ($\eta = 0$). The trained MARL policy and the three baselines are each run for $N \geq 30$ Monte Carlo iterations with matched seeds. Under ideal conditions EH is already near-optimal, so parity with EH is an acceptable Stage A outcome. Outperforming EH is the target but not required to pass Stage A, since the main contribution of this study is the characterization of performance under disturbance in Stage B.
+
+\paragraph{Stage A acceptance criterion}
+\begin{itemize}
+\item[(i)] Mean passenger waiting time no worse than EH (no statistically significant degradation at $p < 0.05$ with multiple-comparison correction), and ideally a statistically significant improvement.
+\item[(ii)] A statistically significant reduction in headway coefficient of variation relative to NC.
+\end{itemize}
 
 \begin{figure}[htbp]
     \centering
@@ -589,7 +595,9 @@ For non-ideal disturbance levels, performance degradation is computed as the per
     \label{fig:stage-a-illustrative}
 \end{figure}
 
-\textbf{Stage B: Non-ideal-condition evaluation.} The trained MARL policy and the three baselines are evaluated across the swept disturbance range $\eta \in \{0.3, 0.6, 1.0, 1.3\}$, with the breakdown generator active at each level. For each $(\eta, \text{controller})$ cell, $N \geq 30$ Monte Carlo iterations are run with matched seeds. Reported outputs are: (a) mean waiting time, travel time, and headway CV as functions of $\eta$ for each controller; (b) percentage degradation at each $\eta$ relative to the controller's own ideal-condition result; (c) the disturbance level at which MARL's advantage over the best-performing baseline becomes statistically significant; and (d) the degradation slope, defined as the rate of waiting-time increase per unit increase in $\eta$, with smaller slopes indicating greater resilience. An ablation is also run with each disturbance enabled alone (demand-only, weather-only, breakdown-only) at $\eta = 1.0$ to attribute degradation to disturbance type. The MARL policy is reported as performing well under disturbance if its mean waiting time stays below that of the best-performing baseline across the full sweep, with statistical significance under the same correction.
+\textbf{Stage B: Non-ideal-condition evaluation.} The trained MARL policy and the three baselines are evaluated across the swept disturbance range $\eta \in \{0.3, 0.6, 1.0, 1.3\}$, with the breakdown generator active at each level. For each $(\eta, \text{controller})$ cell, $N \geq 30$ Monte Carlo iterations are run with matched seeds. Reported outputs are: (a) mean waiting time, travel time, and headway CV as functions of $\eta$ for each controller; (b) percentage degradation at each $\eta$ relative to the controller's own ideal-condition result; (c) the disturbance level at which MARL's advantage over the best-performing baseline becomes statistically significant; and (d) the degradation slope, defined as the rate of waiting-time increase per unit increase in $\eta$, with smaller slopes indicating greater resilience. An ablation is also run with each disturbance enabled alone (demand-only, weather-only, breakdown-only) at $\eta = 1.0$ to attribute degradation to disturbance type.
+
+\paragraph{Stage B acceptance criterion} The MARL policy is reported as performing well under disturbance if its mean waiting time stays below that of the best-performing baseline across the full sweep, with statistical significance under the same correction as Stage A.
 
 \begin{figure}[htbp]
     \centering
