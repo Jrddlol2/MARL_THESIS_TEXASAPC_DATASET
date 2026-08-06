@@ -216,7 +216,12 @@ There are TWO audit trail files, and every entry goes into BOTH:
   change without having to re-read the whole paragraph. Do not truncate
   quoted text with "..." — write out the actual relevant sentence(s) in
   full; ellipsis makes the reader guess what was cut instead of just
-  reading it. If several small
+  reading it. Do not narrate the edit ("that sentence stays, followed by
+  two new sentences," "a new paragraph was inserted right before that") —
+  show the actual resulting text as a direct quote, with the new/changed
+  part bolded inside it. The AFTER block should read like the real
+  sentence a reader would see in the manuscript, not a description of
+  what changed about it. If several small
   before/after pairs belong to one task (e.g. a callout sweep touching many
   sentences), a table with Before/After columns is fine instead of many
   blockquote pairs — pick whichever is more skimmable for that entry. This
