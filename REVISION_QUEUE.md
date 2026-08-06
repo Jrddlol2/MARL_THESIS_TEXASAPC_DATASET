@@ -1,9 +1,8 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-06
-# Panel tasks (RTC-requested): 22 | Done: 17 | In Progress: 0 | Pending: 5
+# Panel tasks (RTC-requested): 22 | Done: 18 | In Progress: 0 | Pending: 4
 # (E1C1/E2C5/E4C22 blocked — no dataset access; E3C17 blocked — needs group
-# input on presentation figures; E1C2 dataset-adjacent, not yet started —
-# see TRACKER.md for the confirm-before-starting note)
+# to supply which presentation figures/tables are missing from the manuscript)
 # Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
 
 ---
@@ -31,17 +30,14 @@ it's technically satisfiable with placeholder language alone.
 
 ---
 
-## [ ] E1C2 — Dataset to features mapping table
+## [x] E1C2 — Dataset to features mapping table
 **Examiner:** 1
 **Priority:** HIGH
-**Status:** NOT STARTED. Possibly dataset-adjacent like E1C1/E2C5/E4C22 —
-this maps "raw dataset field" to derived parameter/MARL component, which
-arguably requires knowing what fields the dataset actually has. Unlike
-E1C1/E2C5/E4C22, this could plausibly be done as a design-intent mapping
-(what SHOULD map to what, given the required fields already listed in
-3.2.5) rather than a description of the dataset itself — but that
-distinction is a judgment call. Confirm with the user before starting,
-given the prior revert on this exact topic.
+**Resolution:** Done as a design-intent mapping — connects the required
+fields already listed in 3.2.5 to the derived parameters and MARL
+components already defined elsewhere in Chapter 3, without describing
+the actual (unseen) dataset. User confirmed this distinction; see
+TRACKER.md for the full reasoning.
 **File:** methods.tex
 **Section:** 3.2.5 or 3.2.7
 **Instruction:** Add a table mapping each raw dataset field to its

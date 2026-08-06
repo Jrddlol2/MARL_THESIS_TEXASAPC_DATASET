@@ -456,4 +456,36 @@ Ten one-clause insertions, each adding a missing `\ref{}` to an existing sentenc
 
 ---
 
+## 2026-08-06 — E1C2 — methods.tex, Section 3.2.5 (end)
+**Commit:** not yet committed
+
+```diff
+  \end{itemize}
+
++ Table~\ref{tab:field-mapping} maps each required raw field to the parameter derived from it and the MARL component that parameter feeds into, connecting the data requirements above to the disturbance generators (Section~\ref{subsec:stochastic-vars}), the control-stop selection criteria (Section~\ref{subsec:control-stop-selection}), and the agent observation vector (Section~\ref{subsec:state-space}). The mapping reflects the study's design intent, not properties of a processed dataset; specific statistics remain \%TODO-DATA pending dataset acquisition.
++
++ \begin{table}[htbp]
++ \centering
++ \caption{Mapping of required raw dataset fields to derived parameters and their role in the MARL formulation.}
++ \label{tab:field-mapping}
++ ...
++ [6-row table: GPS location → travel-time distribution → SUMO calibration/
++ traffic-speed & weather generators; boarding events → demand rate →
++ demand-surge generator/observation feature; alighting events →
++ through-volume → control-stop selection criterion 3; occupancy → load
++ profile → observation feature/dwell-time estimation; operating speed →
++ cruising speed → GEH calibration/traffic-speed generator; dwell time →
++ dwell distribution → event-driven bus model]
++ ...
++ \end{table}
++
+  Severe-weather conditions are not estimated from operational data in this study but are injected as a controlled experimental variable...
+```
+
+Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "Control-Stop Selection" subsection, and fixed two cross-references that initially pointed at the wrong label (`subsec:data-pipeline`) before that label existed.
+
+**Why:** RTC comment 2 — map dataset fields to proposed features of the study. Judged safe to do without dataset access: connects two already-published specs (required fields in 3.2.5, MARL components in 3.2.6/3.2.7/3.2.2) rather than describing the actual dataset's contents, unlike the reverted E1C1/E2C5/E4C22 task. See TRACKER.md for the full reasoning.
+
+---
+
 *Nothing follows.*

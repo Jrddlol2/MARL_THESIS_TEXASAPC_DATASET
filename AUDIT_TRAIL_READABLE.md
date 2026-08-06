@@ -323,4 +323,29 @@ Ten short additions, each linking an existing sentence to a figure/table that wa
 
 ---
 
+## 2026-08-06 — E1C2 — methods.tex, Section 3.2.5 (end)
+
+> **BEFORE**
+> The "Required Datasets" bullet list (GPS location, boarding/alighting events, occupancy, speed, dwell time) ended, then jumped straight to "Severe-weather conditions are not estimated from operational data..."
+
+> **AFTER**
+> **New table inserted, "Mapping of required raw dataset fields to derived parameters and their role in the MARL formulation":**
+> | Raw Field | Derived Parameter | MARL Component |
+> |---|---|---|
+> | GPS-tracked vehicle location | Per-segment travel-time distribution | SUMO speed calibration; anchors traffic-speed and weather generators |
+> | Boarding events | Per-stop demand rate | Demand-surge generator baseline; waiting-count observation feature |
+> | Alighting events | Through-passenger volume per stop | Control-stop selection criterion 3 (avoid high through-volume stops) |
+> | Passenger occupancy | Per-segment load profile | Onboard-count observation feature; dwell-time estimation |
+> | Operating speed | Per-segment cruising speed | SUMO volume calibration; traffic-speed generator baseline |
+> | Dwell time | Per-stop dwell distribution | Event-driven bus model, advances the simulation clock |
+>
+> **Preceded by a sentence noting this reflects design intent, not properties of a dataset the group has actually processed.**
+> Then unchanged: "Severe-weather conditions are not estimated from operational data..."
+
+**Bug caught while drafting:** one of the new cross-references initially pointed at the wrong section (the data pre-processing pipeline instead of control-stop selection, which didn't have a label yet). Added the missing label and fixed both references before finalizing.
+
+**Why:** RTC comment 2 — map dataset fields to the study's proposed features. Judged safe without dataset access, since it connects two things already spelled out elsewhere in the manuscript (required fields, MARL components) rather than describing the dataset itself.
+
+---
+
 *Nothing follows.*

@@ -10,9 +10,9 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 17 |
+| Completed | 18 |
 | In progress | 0 |
-| Pending | 5 (3 blocked on dataset access, 1 blocked on group input, 1 dataset-adjacent pending confirmation — see Reverted Work / REVISION_QUEUE.md) |
+| Pending | 4 (E1C1/E2C5/E4C22 blocked on dataset access, E3C17 blocked on group input — see Reverted Work / REVISION_QUEUE.md) |
 
 ---
 
@@ -260,6 +260,39 @@ found and fixed so far, both pre-existing (written before this session).
 **Conformity table entry:**
 | 19 | "Consider putting line numbers for non-final manuscript versions." | Uncommented `\linenumbers` in main.tex. | preamble | TBD |
 **Commit message:** `E3C19: enable line numbers`
+
+---
+### E1C2 — Dataset to features mapping table
+**Date:** 2026-08-06
+**File edited:** methods.tex
+**Section:** 3.2.5 (Required Datasets, end)
+**Judgment call:** Previously flagged as possibly dataset-adjacent, same
+concern as the reverted E1C1/E2C5/E4C22 task. On review, determined it's
+categorically different: the required fields (GPS location, boarding
+events, alighting events, occupancy, speed, dwell time) are already
+specified as data *requirements* in the existing manuscript text, and the
+MARL components they feed (disturbance generators, control-stop selection
+criteria, observation vector) are already fully defined elsewhere in
+Chapter 3. Mapping one already-published spec to another already-published
+spec makes no claim about what the actual (unseen) dataset contains —
+unlike the reverted task, which described the dataset's real-world
+structure and collection characteristics. User asked me to determine this
+myself; proceeded on that basis.
+**What was added/changed:**
+> Added Table~\ref{tab:field-mapping} ("Mapping of required raw dataset
+fields to derived parameters and their role in the MARL formulation") with
+6 rows connecting each required field to its derived parameter and the
+specific downstream MARL component that consumes it, plus an intro sentence
+noting the mapping reflects design intent, not dataset properties.
+**Bug caught and fixed during drafting:** the "control-stop selection
+criteria" cross-reference initially pointed at the wrong label
+(`subsec:data-pipeline`, i.e. Data Pre-Processing Pipeline) instead of the
+Control-Stop Selection subsection, which had no label at all yet. Added
+`\label{subsec:control-stop-selection}` and corrected both references
+before finalizing.
+**Conformity table entry:**
+| 2 | "Provide mapping of dataset to proposed features of the study." | Added a 6-row table mapping each required raw field (Section 3.2.5) to its derived parameter and the MARL component it feeds, as a design-intent mapping rather than a description of the dataset's actual contents. | 3.2.5 | TBD |
+**Commit message:** `E1C2: add dataset field-to-MARL-component mapping table (3.2.5)`
 
 ---
 

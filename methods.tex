@@ -36,6 +36,7 @@ A pure-Python alternative without SUMO calibration was also considered but rejec
 As shown in Figure~\ref{fig:pipeline}, the pipeline proceeds in two phases. First, SUMO is calibrated against empirical bus data, and the resulting per-segment travel time, demand, and dwell time distributions are saved. Second, the Python environment loads these distributions and runs a lightweight event-based bus simulator for MARL training and evaluation. Because the Python environment draws from distributions extracted from the calibrated SUMO model, its statistical behavior matches SUMO at the level of per-segment travel time, demand, and dwell time. It does not reproduce SUMO's microscopic vehicle-to-vehicle interactions, but those interactions affect the reward function only through their aggregate effect on inter-stop bus travel time, which the calibrated distributions already capture. Rodriguez et al.~\cite{Rodriguez2023Cooperative} make the same argument: they trained in an event-based mesoscopic simulator parameterized by empirical corridor data.
 
 \subsection{Control-Stop Selection}
+\label{subsec:control-stop-selection}
 
 The study operates on a sub-corridor of the EDSA Carousel route. Within the chosen sub-corridor, only a subset of stops is designated as \textit{control stops} where MARL agents are permitted to act; the remainder are non-control stops that contribute stochastic dwell and delay behavior without agent intervention. Control stops are selected according to four criteria, following Rodriguez et al.~\cite{Rodriguez2023Cooperative} and the minimal-intervention principle of Wang and Sun~\cite{Wangsun}:
 
@@ -166,6 +167,53 @@ The MARL framework is trained and evaluated on a single stream of input data pre
 %A crowdsourced operational dataset of this form, for example, data collected from the EDSA Busway via the SafeTravelPH mobile application, provides a representative model of the required structure. Should bus-volume coverage prove insufficient for the GEH validation step, supplementary records may be requested from MMDA, DOTr, or the involved bus operators under the Freedom of Information process.
 
 \end{itemize}
+
+Table~\ref{tab:field-mapping} maps each required raw field to the parameter derived from it and the MARL component that parameter feeds into, connecting the data requirements above to the disturbance generators (Section~\ref{subsec:stochastic-vars}), the control-stop selection criteria (Section~\ref{subsec:control-stop-selection}), and the agent observation vector (Section~\ref{subsec:state-space}). The mapping reflects the study's design intent, not properties of a processed dataset; specific statistics remain \%TODO-DATA pending dataset acquisition.
+
+\begin{table}[htbp]
+\centering
+\caption{Mapping of required raw dataset fields to derived parameters and their role in the MARL formulation.}
+\label{tab:field-mapping}
+\small
+\renewcommand{\arraystretch}{1.25}
+
+\begin{tabularx}{\textwidth}{
+>{\RaggedRight\arraybackslash}p{0.19\textwidth}
+>{\RaggedRight\arraybackslash}p{0.28\textwidth}
+>{\RaggedRight\arraybackslash}X
+}
+
+\toprule
+\textbf{Raw Field} & \textbf{Derived Parameter} & \textbf{MARL Component} \\
+\midrule
+
+GPS-tracked vehicle location &
+Per-segment inter-stop travel time distribution ($\mu$, $\sigma$) &
+SUMO speed calibration (RMSE, Section~\ref{subsec:stochastic-vars}); anchors the traffic-speed generator ($\sigma_s$) and the weather generator's baseline mean ($\mu$) \\
+
+Boarding events &
+Per-(stop, time-of-day) baseline demand rate &
+Demand surge generator baseline ($\sigma_d$); waiting-passenger-count feature in the agent's local observation \\
+
+Alighting events &
+Through-passenger volume per stop &
+Control-stop selection criterion 3 (low through-volume preference, Section~\ref{subsec:control-stop-selection}) \\
+
+Passenger occupancy &
+Per-segment load profile &
+Onboard-passenger-count feature in the agent's local observation; dwell-time estimation \\
+
+Operating speed &
+Per-segment baseline cruising speed &
+SUMO bus-volume calibration (GEH); traffic-speed generator baseline ($\sigma_s$) \\
+
+Dwell time &
+Per-(stop, time-of-day) dwell time distribution &
+Event-driven bus model, used between control events to advance the simulation clock \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
 
 Severe-weather conditions are not estimated from operational data in this study but are injected as a controlled experimental variable, with disturbance magnitudes anchored to validated literature values rather than to a corridor-specific severe-weather sample.
 
