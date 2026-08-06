@@ -36,7 +36,8 @@ flat `.tex` file in the repo root, pulled in by `main.tex` via `\input{}`.
 ├── TRACKER.md           ← YOUR change log (you maintain this)
 ├── REVISION_QUEUE.md    ← list of pending tasks (you read this)
 ├── RTC_DECISION_LETTER.md  ← verbatim official RTC decision email (source of truth)
-└── AUDIT_TRAIL.md       ← historical before/after log of every substantive change (you append to this)
+├── AUDIT_TRAIL.md       ← before/after log, real LaTeX (you append to this)
+└── AUDIT_TRAIL_READABLE.md ← same log, plain-English/no-LaTeX version (you append to this too — see AUDIT TRAIL FORMAT below)
 ```
 
 `RTC_DECISION_LETTER.md` is the unedited official comment list from the
@@ -178,6 +179,26 @@ is enough; the detailed reasoning belongs in TRACKER.md, not here.
 
 Keep entries strictly about what changed IN THE MANUSCRIPT. No editorializing
 about the revision-tracking process itself.
+
+### Two versions, kept in sync
+
+There are TWO audit trail files, and every entry goes into BOTH:
+
+- **`AUDIT_TRAIL.md`** — the format above: real LaTeX in fenced ```latex
+  blocks, exact copy-paste syntax. This is the Overleaf-facing version —
+  what the source actually looks like.
+- **`AUDIT_TRAIL_READABLE.md`** — the same entries, same order, same dates,
+  but with LaTeX markup stripped into plain prose: `\cite{Key2024}` becomes
+  `(Author, Year)`, `\ref{tab:x}`/`\label{}` become a plain name like "the
+  parameter table," `\textbf{}`/`\textit{}` become plain text, math mode
+  becomes words or a described formula, tables become a markdown table or a
+  described list. This version is for reading, discussing, and rewriting
+  ideas without LaTeX noise in the way — it should read like normal English.
+
+Write the `AUDIT_TRAIL.md` entry first (from the real diff), then translate
+it into the readable version — don't write the readable version from memory
+of what you intended; translate the actual before/after text so the two
+stay factually identical, just differently formatted.
 
 ---
 
