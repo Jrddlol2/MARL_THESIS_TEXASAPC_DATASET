@@ -10,9 +10,9 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 18 |
+| Completed | 19 |
 | In progress | 0 |
-| Pending | 4 (E1C1/E2C5/E4C22 blocked on dataset access, E3C17 blocked on group input — see Reverted Work / REVISION_QUEUE.md) |
+| Pending | 3 (E1C1/E2C5/E4C22, all blocked on dataset access — see Reverted Work / REVISION_QUEUE.md) |
 
 ---
 
@@ -293,6 +293,44 @@ before finalizing.
 **Conformity table entry:**
 | 2 | "Provide mapping of dataset to proposed features of the study." | Added a 6-row table mapping each required raw field (Section 3.2.5) to its derived parameter and the MARL component it feeds, as a design-intent mapping rather than a description of the dataset's actual contents. | 3.2.5 | TBD |
 **Commit message:** `E1C2: add dataset field-to-MARL-component mapping table (3.2.5)`
+
+---
+### E3C17 — Add presentation-only figures/tables
+**Date:** 2026-08-06
+**Files edited:** introduction.tex, methods.tex
+**Section:** Background of the Study (intro), Weather-Induced Anomalies (methods)
+**Process:** User supplied `B3-Final-Defense.pdf` (58 slides, 62MB — too
+large for a single read, split into 8-page chunks via pypdf and read
+through all of them). Kept the PDF local/gitignored, same policy as `RRL/`
+— not pushed to GitHub.
+**Findings:** Most slide content (SARL vs MARL diagram, CTDE diagram,
+baseline controller formulas, key parameter notation, training-vs-execution
+protocol, SUMO calibration) duplicates content already in the manuscript
+as prose/figures — adding it again would just repeat existing material.
+Two items were genuinely missing:
+1. **EDSA Carousel corridor map** — an actual route map (Monumento to
+   PITX) with a public-transport-mode legend, extracted from slide 47 of
+   the deck (rendered the page at 3x via PyMuPDF, cropped to just the map
+   graphic, saved as `Figures/bg_fig3_edsa_corridor_map.pdf`). This
+   matches the RTC letter's own example of what might be missing from
+   the manuscript.
+2. **η disturbance-intensity basis table** — the slide "Why These
+   Disturbance Intensities?" presents as a table what `methods.tex`
+   already explains in prose (why $\eta \in \{0.0, 0.3, 0.6, 1.0, 1.3\}$).
+   Added the table alongside the existing prose (not replacing it, per R4).
+**Judged out of scope** (not added): Work Plan Gantt charts (Phase 1–3B —
+project timeline, not manuscript content) and the software/tools appendix
+(SUMO, PettingZoo, PyTorch, etc. — implementation detail that belongs in
+an actual appendix once implementation starts, not in this revision round).
+**Important process note:** this repo has no `Figures/` directory at all
+— the existing `\includegraphics{Figures/...}` references in the
+manuscript point to images that only exist on Overleaf, not in this local
+folder/git repo. Created `Figures/` locally to save the new map image, but
+**the user needs to also upload `bg_fig3_edsa_corridor_map.pdf` to the
+Overleaf project's Figures folder**, or the new figure won't compile there.
+**Conformity table entry:**
+| 17 | "Include other figures/tables from the presentation that should also be in the manuscript." | Reviewed all 58 defense slides; added the EDSA corridor map (compiles as Figure 1.2, inserted after the ridership figure — this shifts all subsequent Chapter 1 figure numbers by one, handled automatically since nothing in the manuscript hardcodes figure numbers) and an η-basis table, the two items not already covered by existing manuscript content. | Background of the Study; Weather-Induced Anomalies | TBD |
+**Commit message:** `E3C17: add EDSA corridor map and eta-basis table from defense presentation`
 
 ---
 

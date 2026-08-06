@@ -1,8 +1,8 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-06
-# Panel tasks (RTC-requested): 22 | Done: 18 | In Progress: 0 | Pending: 4
-# (E1C1/E2C5/E4C22 blocked — no dataset access; E3C17 blocked — needs group
-# to supply which presentation figures/tables are missing from the manuscript)
+# Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 0 | Pending: 3
+# (E1C1/E2C5/E4C22 blocked — no dataset access. Everything else unblocked
+# is done. N1 self-identified notice (reward mechanics) also still pending.)
 # Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
 
 ---
@@ -245,16 +245,22 @@ the content shown.
 
 ---
 
-## [ ] E3C17 — Add presentation-only figures/tables
+## [x] E3C17 — Add presentation-only figures/tables
 **Examiner:** 3-Other
 **Priority:** LOW
-**File:** to be determined by group
-**Section:** to be determined
-**Instruction:** Group members must identify which figures/tables
-were shown during the defense but are not in the manuscript.
-Claude Code will add them once the group provides the content.
-**Constraint:** BLOCKED — needs group input first.
-%TODO-FIG: Group to provide list of missing presentation figures
+**Resolution:** User supplied the actual defense deck (B3-Final-Defense.pdf,
+58 slides, kept local/gitignored — not pushed, same policy as RRL/ PDFs).
+Reviewed all 58 slides against the manuscript. Most slide content was
+already present in the manuscript as prose/figures/tables (SARL vs MARL,
+CTDE, calibration, baseline formulas, parameter notation, training vs
+execution protocol) — adding those again would just duplicate existing
+content. Two genuinely missing items were added: the EDSA corridor map
+(introduction.tex, matches the RTC letter's own example of what might be
+missing) and a table version of the η disturbance-intensity basis
+(methods.tex, alongside the existing prose, not replacing it). Work-plan
+Gantt charts and the software/tools appendix from the slides were judged
+out of scope for the manuscript body (project-timeline and implementation
+detail, not RTC-requested content) — see TRACKER.md for full reasoning.
 
 ---
 

@@ -368,7 +368,33 @@ The lognormal shape and scale parameters follow the method-of-moments derivation
 
 Travel time is drawn as $T \sim \text{LogNormal}(\mu_{ln}, \sigma_{ln})$. Patil et al.~\cite{Patil2025Conformal} tested this parameterization by generating SUMO-simulated travel times under the same CV-driven lognormal recipe --- with time windows and mean travel times anchored to INRIX historical data for an urban arterial corridor, not a freeway --- and confirming via the Kolmogorov-Smirnov test that the simulated distribution matches the assumed log-normal shape, reporting a close fit at the highest variability level they tested ($KS = 0.036$, $p = 0.94$ at $CV = 1.0$).
 
-The disturbance intensity $\eta$ is swept across five values, $\eta \in \{0.0, 0.3, 0.6, 1.0, 1.3\}$, chosen to span and slightly exceed the empirically validated CV range of Patil et al.~\cite{Patil2025Conformal}, who evaluate scenarios at $CV \in \{0.1, 0.3, 0.5, 0.7, 1.0\}$. The basis for each swept value is as follows. $\eta = 0$ disables the generator and recovers the ideal condition. $\eta \in \{0.3, 0.6\}$ fall inside the validated range, representing moderate travel-time variability. $\eta = 1.0$ corresponds to the upper end of Patil et al.'s validated range and is adopted here as the nominal severe-disturbance operating point. $\eta = 1.3$ extends beyond the validated range as an extrapolated stress test; results at this level are interpreted as a probe of controller behavior under extreme conditions rather than as a calibrated scenario.
+The disturbance intensity $\eta$ is swept across five values, $\eta \in \{0.0, 0.3, 0.6, 1.0, 1.3\}$, chosen to span and slightly exceed the empirically validated CV range of Patil et al.~\cite{Patil2025Conformal}, who evaluate scenarios at $CV \in \{0.1, 0.3, 0.5, 0.7, 1.0\}$. The basis for each swept value is as follows. $\eta = 0$ disables the generator and recovers the ideal condition. $\eta \in \{0.3, 0.6\}$ fall inside the validated range, representing moderate travel-time variability. $\eta = 1.0$ corresponds to the upper end of Patil et al.'s validated range and is adopted here as the nominal severe-disturbance operating point. $\eta = 1.3$ extends beyond the validated range as an extrapolated stress test; results at this level are interpreted as a probe of controller behavior under extreme conditions rather than as a calibrated scenario. Table~\ref{tab:eta-basis} summarizes this reasoning.
+
+\begin{table}[htbp]
+\centering
+\caption{Basis for each swept weather-disturbance intensity value.}
+\label{tab:eta-basis}
+\small
+\renewcommand{\arraystretch}{1.25}
+
+\begin{tabularx}{\textwidth}{
+>{\Centering\arraybackslash}p{0.08\textwidth}
+X
+}
+
+\toprule
+\textbf{$\eta$} & \textbf{Basis} \\
+\midrule
+
+0.0 & Generator off --- recovers the ideal baseline \\
+0.3 & Inside Patil et al.'s validated range --- moderate variability \\
+0.6 & Inside Patil et al.'s validated range --- moderate variability \\
+1.0 & Top of Patil et al.'s validated range --- nominal severe operating point \\
+1.3 & Beyond the validated range --- deliberate extrapolated stress test \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
 
 The mapping from $\eta$ to a specific named weather severity (e.g.\ ``moderate rain'' versus ``typhoon-grade'') is not established by Patil et al., whose CV values are not labeled by weather category. The $\eta$ sweep should therefore be read as a span of travel-time variability magnitudes rather than as calibrated meteorological intensities. Reporting controller performance across this sweep characterizes degradation as a function of disturbance magnitude, which is methodologically stronger than evaluating at a single point.
 

@@ -349,4 +349,20 @@ Then unchanged: "Severe-weather conditions are not estimated from operational da
 
 ---
 
+## 2026-08-06 — E3C17 — introduction.tex (Background), methods.tex (Weather-Induced Anomalies)
+
+**BEFORE**
+The corridor was described in prose only, with no map figure. The Introduction had two figures (ridership, rainfall impact). The η disturbance-intensity sweep values were explained in prose only, no table.
+
+**AFTER**
+**Added a new figure right after the ridership figure: the EDSA Carousel corridor map** (Monumento to PITX route with jeepney/MRT/LRT/tricycle/UV-FX transport-mode legend at each stop), extracted from the group's defense presentation. **Added a new table right after the existing η-sweep prose in methods.tex**, listing each η value (0.0, 0.3, 0.6, 1.0, 1.3) alongside its basis (generator off / inside Patil et al.'s validated range / top of validated range / extrapolated stress test) — the existing prose explaining this was kept unchanged, the table just gives readers a quick-reference version.
+
+**Why:** RTC comment 17 — include figures/tables shown in the defense but missing from the manuscript. All 58 slides of the defense deck were reviewed against the manuscript; most content (SARL vs MARL, CTDE, calibration formulas, parameter notation, training-vs-execution protocol) duplicated what's already written — adding it again would just repeat existing material. These two were the genuinely new items. The corridor map specifically matches the example the RTC letter itself gave for what might be missing.
+
+**Judged out of scope, not added:** Work Plan Gantt charts (project timeline, not manuscript content) and a software/tools appendix (SUMO, PettingZoo, PyTorch, etc. — implementation detail for later, not this revision round).
+
+**Important:** this repo doesn't have a `Figures/` folder for any of the existing images — they live only on Overleaf. A `Figures/` folder was created locally just to hold the new map image. **The user needs to upload `bg_fig3_edsa_corridor_map.pdf` to Overleaf's Figures folder too**, or the new figure won't show up when compiled there.
+
+---
+
 *Nothing follows.*

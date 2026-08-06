@@ -488,4 +488,53 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 
 ---
 
+## 2026-08-06 — E3C17 — introduction.tex (Background), methods.tex (Weather-Induced Anomalies)
+**Commit:** not yet committed
+
+```diff
+  (introduction.tex, after the ridership figure)
+      \label{fig:bg-ridership}
+  \end{figure}
+  %%
+
++ Figure~\ref{fig:bg-corridor-map} shows the EDSA Carousel Southbound route from Monumento to PITX, the corridor this study is grounded in, together with the other public transport modes (jeepney, MRT, LRT, tricycle, UV/FX) that intersect it at each major stop.
++
++ \begin{figure}[htbp]
++     \centering
++     \includegraphics[width=0.75\textwidth]{Figures/bg_fig3_edsa_corridor_map.pdf}
++     \caption[EDSA Carousel corridor map]{EDSA Carousel Southbound route
++     (Monumento to PITX) with intersecting public transport modes at each
++     stop. Authors' illustration, adapted from the group's defense
++     presentation.}
++     \label{fig:bg-corridor-map}
++ \end{figure}
++
+  Despite the gradual increase in demand,
+```
+
+```diff
+  (methods.tex, Weather-Induced Anomalies subsubsection)
+  ...results at this level are interpreted as a probe of controller behavior under extreme conditions rather than as a calibrated scenario.
++ Table~\ref{tab:eta-basis} summarizes this reasoning.
++
++ \begin{table}[htbp]
++ \centering
++ \caption{Basis for each swept weather-disturbance intensity value.}
++ \label{tab:eta-basis}
++ ...
++ [5-row table: η=0.0 generator off; η=0.3/0.6 inside Patil et al.'s
++ validated range; η=1.0 top of validated range (nominal severe point);
++ η=1.3 beyond validated range (extrapolated stress test)]
++ ...
++ \end{table}
+
+  The mapping from $\eta$ to a specific named weather severity...
+```
+
+**Why:** RTC comment 17 — include figures/tables shown in the defense but missing from the manuscript. Reviewed all 58 slides of the group's defense deck against the manuscript; most slide content duplicated existing prose/figures. These two were genuinely new: the corridor map (matches the RTC letter's own example of what might be missing) and the η-basis table (existing prose converted to table form, prose kept unchanged). See TRACKER.md for full reasoning on what was judged out of scope (Work Plan Gantt charts, software/tools appendix).
+
+**Process note:** the corridor map image was extracted from slide 47 of `B3-Final-Defense.pdf` (rendered at 3x resolution via PyMuPDF, cropped to the map graphic, saved as `Figures/bg_fig3_edsa_corridor_map.pdf`). This repo has no `Figures/` directory otherwise — existing `\includegraphics` calls reference images that live only on Overleaf. The user needs to upload this new file to Overleaf's Figures folder for the manuscript to compile there.
+
+---
+
 *Nothing follows.*

@@ -13,3 +13,7 @@
 # RRL source papers: copyrighted publisher PDFs, kept local for citation
 # verification only (see RRL/sources.md). Never push these to GitHub.
 RRL/*.pdf
+
+# Defense presentation: large source file (62MB), kept local for
+# extracting figures/content only. Not pushed to GitHub.
+B3-Final-Defense.pdf
