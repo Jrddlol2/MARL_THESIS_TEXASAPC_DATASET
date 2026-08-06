@@ -207,12 +207,16 @@ There are TWO audit trail files, and every entry goes into BOTH:
     [the old, unchanged part in plain text, with the new/added clause
     wrapped in **bold** so it stands out inside the paragraph]
 
-  The BEFORE/AFTER labels are bold on their own line with a blank line
-  after, then the paragraph follows as ordinary text (no `>` blockquote
-  markers). Within the AFTER paragraph, bold only the part that's actually
-  new/different — leave unchanged surrounding text plain, so the eye goes
-  straight to the change without having to re-read the whole paragraph. If
-  several small
+  The BEFORE/AFTER labels are bold on their own line, THEN A BLANK LINE,
+  THEN the paragraph as ordinary text (no `>` blockquote markers) — the
+  blank line is required, not optional, or markdown renders the label and
+  paragraph as one merged line instead of a separate subtitle. Within the
+  AFTER paragraph, bold only the part that's actually new/different —
+  leave unchanged surrounding text plain, so the eye goes straight to the
+  change without having to re-read the whole paragraph. Do not truncate
+  quoted text with "..." — write out the actual relevant sentence(s) in
+  full; ellipsis makes the reader guess what was cut instead of just
+  reading it. If several small
   before/after pairs belong to one task (e.g. a callout sweep touching many
   sentences), a table with Before/After columns is fine instead of many
   blockquote pairs — pick whichever is more skimmable for that entry. This
