@@ -27,7 +27,7 @@ The Research Gap paragraph ended with: "It cannot be determined whether reported
 
 **AFTER**
 
-That sentence stays, followed by two new sentences: **"The weather-disturbance class (W) in particular was identified through the literature survey conducted earlier in this study (the 'MARL Applied to Bus Scheduling' section), which found that no prior MARL bus-scheduling paper models heavy-tailed weather-induced travel-time delays (see the W column of the MARL literature table). Its operational relevance to the EDSA corridor is established by the rainfall-driven reductions in average speed and free-flow capacity documented in Section 1.1 (TSSP Rain 2018) and by the typhoon-related service suspensions on record for the corridor (DOTr 2020). The lognormal parameterization for this disturbance class follows the Kolmogorov-Smirnov-validated form from Patil et al., introduced here to address the resulting lack of temporally aligned, corridor-specific anomaly data (the 'Disturbance Gap' section)."**
+"It cannot be determined whether reported MARL gains persist, degrade gracefully, or collapse under realistic operating disturbances, which in turn blocks the transition of MARL bus scheduling from simulation to real urban transit deployment. **The weather-disturbance class (W) in particular was identified through the literature survey conducted earlier in this study (the 'MARL Applied to Bus Scheduling' section), which found that no prior MARL bus-scheduling paper models heavy-tailed weather-induced travel-time delays (see the W column of the MARL literature table). Its operational relevance to the EDSA corridor is established by the rainfall-driven reductions in average speed and free-flow capacity documented in Section 1.1 (TSSP Rain 2018) and by the typhoon-related service suspensions on record for the corridor (DOTr 2020). The lognormal parameterization for this disturbance class follows the Kolmogorov-Smirnov-validated form from Patil et al., introduced here to address the resulting lack of temporally aligned, corridor-specific anomaly data (the 'Disturbance Gap' section).**"
 
 **Why:** RTC comment 3 — the research gap section should explain how the weather disturbance column was arrived at.
 
@@ -41,7 +41,7 @@ That sentence stays, followed by two new sentences: **"The weather-disturbance c
 
 **AFTER (introduction.tex)**
 
-Same opening and closing sentence, with this inserted between them: **"Under the specific non-ideal conditions this study targets, the failure modes differ by control strategy. A fixed timetable has no feedback mechanism at all, so once bunching begins nothing in the schedule corrects it. A local reactive rule that holds a bus based only on the gap to the bus ahead can partially correct bunching under ordinary congestion, but has no way to respond to a breakdown, since it observes only the forward gap and not the enlarged gap a failed bus leaves behind it. A more globally aware reactive rule that accounts for both the forward and backward gap improves on this, but still follows a fixed, pre-specified rule rather than a learned response, so it cannot adapt its behavior to the heavier-tailed delays that severe weather introduces."**
+"Allowing small headway perturbations to amplify into bunching (Daganzo 2009). Static schedules therefore remain mathematically inadequate for stochastic traffic environments, where the governing quantities are random variables rather than deterministic constants. **Under the specific non-ideal conditions this study targets, the failure modes differ by control strategy. A fixed timetable has no feedback mechanism at all, so once bunching begins nothing in the schedule corrects it. A local reactive rule that holds a bus based only on the gap to the bus ahead can partially correct bunching under ordinary congestion, but has no way to respond to a breakdown, since it observes only the forward gap and not the enlarged gap a failed bus leaves behind it. A more globally aware reactive rule that accounts for both the forward and backward gap improves on this, but still follows a fixed, pre-specified rule rather than a learned response, so it cannot adapt its behavior to the heavier-tailed delays that severe weather introduces.** These limitations motivated the transition toward more adaptive and data-driven scheduling methodologies."
 
 **BEFORE (methods.tex, No Control subsection, excerpt)**
 
@@ -49,7 +49,7 @@ Same opening and closing sentence, with this inserted between them: **"Under the
 
 **AFTER (methods.tex, No Control subsection, excerpt)**
 
-Same sentence, followed by: **"Under non-ideal conditions, NC has no corrective mechanism whatsoever, so demand surges, weather-induced delays, and breakdowns are expected to compound directly into bunching with no attenuation."**
+"NC also provides the reference point for measuring the severity of bus bunching. **Under non-ideal conditions, NC has no corrective mechanism whatsoever, so demand surges, weather-induced delays, and breakdowns are expected to compound directly into bunching with no attenuation.**"
 
 Similar one-sentence additions were made to Forward Headway and Even Headway's subsections — FH can't see the backward gap a breakdown creates; EH has no way to anticipate weather's heavy-tailed delays.
 
@@ -79,7 +79,7 @@ Nothing existed between Figure 1.3's caption and the next paragraph, which start
 
 **AFTER**
 
-**A new paragraph inserted right before that: "In both panels of Figure 1.3, the per-bus state (the same thing methods.tex calls s_i,t in its formal notation, shown in the figure as the local observation o_i) encodes the bus's current position, forward and backward headways, onboard load, and queue length at its current stop, as defined in full in the State Space section. The action is the holding-strength and stop-skipping decision the controller emits for that bus, defined in the Action Space section. In the SARL panel (a), a single centralized network ingests all N per-bus state vectors concatenated into one global state and outputs all N actions simultaneously; in the MARL panel (b), the same shared network weights instead process each bus's local state independently, so each agent acts on only its own observation rather than the concatenated global one."** The existing "Multi-Agent Reinforcement Learning (MARL) addresses the three limitations above" paragraph follows right after it, unchanged.
+**"In both panels of Figure 1.3, the per-bus state (the same thing methods.tex calls s_i,t in its formal notation, shown in the figure as the local observation o_i) encodes the bus's current position, forward and backward headways, onboard load, and queue length at its current stop, as defined in full in the State Space section. The action is the holding-strength and stop-skipping decision the controller emits for that bus, defined in the Action Space section. In the SARL panel (a), a single centralized network ingests all N per-bus state vectors concatenated into one global state and outputs all N actions simultaneously; in the MARL panel (b), the same shared network weights instead process each bus's local state independently, so each agent acts on only its own observation rather than the concatenated global one."** "Multi-Agent Reinforcement Learning (MARL) addresses the three limitations above by decomposing decision-making across multiple agents that share the environment."
 
 **Why:** RTC comment 12 — explain the concepts in Figure 1.3 (bus states and actions).
 
@@ -93,7 +93,7 @@ Nothing existed between Figure 1.3's caption and the next paragraph, which start
 
 **AFTER (introduction.tex)**
 
-Same sentence, followed by: **"This rainfall-impact evidence is drawn from a 2018 study of the North Luzon Expressway rather than the EDSA Busway, and is used here only as contextual motivation that weather materially affects Philippine road-traffic operations; the weather-disturbance generator in this study does not adopt this study's specific speed-reduction percentages, and EDSA-specific travel-time behavior is independently calibrated through the GEH/RMSE procedure described in Section 3.2.3."**
+"Empirical studies on Philippine expressways show that increasing rainfall intensity significantly reduces average traffic speed and free-flow capacity (TSSP Rain 2018). **This rainfall-impact evidence is drawn from a 2018 study of the North Luzon Expressway rather than the EDSA Busway, and is used here only as contextual motivation that weather materially affects Philippine road-traffic operations; the weather-disturbance generator in this study does not adopt this study's specific speed-reduction percentages, and EDSA-specific travel-time behavior is independently calibrated through the GEH/RMSE procedure described in Section 3.2.3.**"
 
 **BEFORE (methods.tex, Environment Model Validation opening)**
 
@@ -101,7 +101,7 @@ Same sentence, followed by: **"This rainfall-impact evidence is drawn from a 201
 
 **AFTER (methods.tex, Environment Model Validation opening)**
 
-Same sentence, followed by: **"This GEH/RMSE procedure calibrates EDSA-specific parameters directly from EDSA operational data and does not depend on the North Luzon Expressway rainfall-impact figures cited as motivating evidence in Section 1.1; that citation establishes only that weather materially affects Philippine road-traffic operations in general, not any EDSA-specific speed or capacity value used in this calibration."**
+"The calibration is restricted to the bus corridor itself, since the agents' state and reward depend only on bus dynamics; surrounding mixed-traffic flows do not enter the Python environment. **This GEH/RMSE procedure calibrates EDSA-specific parameters directly from EDSA operational data and does not depend on the North Luzon Expressway rainfall-impact figures cited as motivating evidence in Section 1.1; that citation establishes only that weather materially affects Philippine road-traffic operations in general, not any EDSA-specific speed or capacity value used in this calibration.**"
 
 **Why:** RTC comment 13 — Reference [10] is both dated (2018) and a different corridor (North Luzon Expressway, not EDSA); clarify whether its data was adopted or independently tuned for EDSA. This version fixes an earlier draft that only addressed the corridor-mismatch half, missing the "not quite new" recency half — caught during the cross-check against the verbatim RTC letter.
 
@@ -287,7 +287,7 @@ The paragraph right before the Table 1.2 summary jumped straight into: "Table 1.
 
 **AFTER**
 
-**A new paragraph was added right before that: "Only Shi et al. carries a breakdown (B) entry in Table 1.2. Cao et al., who also model discrete vehicle failures, are deliberately excluded from this count: their MARL application is to train rescheduling, not bus scheduling, so they don't belong in a table scoped to MARL bus-control literature. Verbich and El-Geneidy likewise model breakdowns but use heuristic, non-MARL control (see the new ML/SARL table), so they're excluded for the same reason. Among MARL bus-scheduling studies specifically, Shi et al. remains the only one to model discrete breakdowns."** The existing "Table 1.2 summarizes what each study evaluated" sentence follows right after it, unchanged.
+**"Only Shi et al. carries a breakdown (B) entry in Table 1.2. Cao et al., who also model discrete vehicle failures, are deliberately excluded from this count: their MARL application is to train rescheduling, not bus scheduling, so they don't belong in a table scoped to MARL bus-control literature. Verbich and El-Geneidy likewise model breakdowns but use heuristic, non-MARL control (see the new ML/SARL table), so they're excluded for the same reason. Among MARL bus-scheduling studies specifically, Shi et al. remains the only one to model discrete breakdowns."** "Table 1.2 summarizes what each study evaluated, what disturbances it modeled, and what it reported."
 
 **Why:** RTC comment 10 — the table shows only one breakdown paper but the presentation reportedly showed two. Could not confirm what was actually shown, since there was no slide access at the time, so used the RTC letter's own suggested fallback: explain why the two "candidate" second papers are correctly excluded, rather than guessing at an unverified row.
 
@@ -365,7 +365,7 @@ The "Required Datasets" bullet list (GPS location, boarding events, alighting ev
 
 **AFTER**
 
-**A new table was inserted, "Mapping of required raw dataset fields to derived parameters and their role in the MARL formulation":**
+**"Table 3.2 maps each required raw field to the parameter derived from it and the MARL component that parameter feeds into, connecting the data requirements above to the disturbance generators, the control-stop selection criteria, and the agent observation vector. The mapping reflects the study's design intent, not properties of a processed dataset; specific statistics remain TODO-DATA pending dataset acquisition."**
 
 | Raw Field | Derived Parameter | MARL Component |
 |---|---|---|
@@ -376,7 +376,7 @@ The "Required Datasets" bullet list (GPS location, boarding events, alighting ev
 | Operating speed | Per-segment cruising speed | SUMO volume calibration; traffic-speed generator baseline |
 | Dwell time | Per-stop dwell distribution | Event-driven bus model, advances the simulation clock |
 
-**Preceded by a sentence noting this reflects design intent, not properties of a dataset the group has actually processed.** The existing "Severe-weather conditions are not estimated from operational data in this study" sentence follows right after the table, unchanged.
+"Severe-weather conditions are not estimated from operational data in this study but are injected as a controlled experimental variable, with disturbance magnitudes anchored to validated literature values rather than to a corridor-specific severe-weather sample."
 
 **Bug caught while drafting:** one of the new cross-references initially pointed at the wrong section — the data pre-processing pipeline instead of control-stop selection, which didn't have a label yet. Added the missing label and fixed both references before finalizing.
 
@@ -410,7 +410,11 @@ The Reward Function subsection ended with: "This study defines the reward struct
 
 **AFTER**
 
-Same ending, followed by two new additions. **First: "The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's local observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time."** **Second, a formula showing the three priorities combine as a weighted sum of penalty terms** (headway irregularity, waiting time, and skip-degeneracy, each multiplied by a weight left as a placeholder to be tuned later), **with a closing sentence explaining that each term is a penalty, so the agent maximizes its return by minimizing all three at once — and that this sign convention, not the exact formulas or weights, is what's being fixed here.**
+"This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized. **The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's local observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms:**
+
+**r(i, t+k) = −w₁ · (headway-irregularity term) − w₂ · (waiting-time term) − w₃ · (skip-degeneracy term)**
+
+**with weights w₁, w₂, w₃ left as placeholders to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.**"
 
 **Why:** self-identified gap, not an RTC comment. The existing text explained the reward's *priorities* and said the *weighting* is deferred to implementation, but never said whether the reward is individual or shared, how the priorities combine into one number, or the sign convention. Added those three things without touching the existing structure/weighting distinction or specifying any coefficient value.
 
