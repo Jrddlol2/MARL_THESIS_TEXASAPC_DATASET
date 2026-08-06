@@ -10,9 +10,9 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 14 |
+| Completed | 17 |
 | In progress | 0 |
-| Pending | 8 (3 blocked on dataset access, 1 blocked on group input — see Reverted Work / REVISION_QUEUE.md) |
+| Pending | 5 (3 blocked on dataset access, 1 blocked on group input, 1 dataset-adjacent pending confirmation — see Reverted Work / REVISION_QUEUE.md) |
 
 ---
 
@@ -227,6 +227,39 @@ found and fixed so far, both pre-existing (written before this session).
 **Conformity table entry:**
 | 14 | "Explain the justification why the minor roads leading to the corridor are no longer considered." | Expanded Delimitation (a) to explicitly justify feeder-road exclusion via the barrier-separated busway argument and the calibrated-demand-distribution argument. | 2.5 (Scope and Limitations) | TBD |
 **Commit message:** `E3C14: justify minor feeder-road exclusion in Delimitations`
+
+---
+### E3C16 — Figure and table callout sweep
+**Date:** 2026-08-06
+**File edited:** introduction.tex, methods.tex
+**Section:** throughout both chapters
+**What was added/changed:**
+> Swept all 15 figures/tables (7 in introduction.tex, 8 in methods.tex) for an explicit `\ref{}` callout in surrounding prose. Found 10 with zero references anywhere despite adjacent topical discussion (Figures 1.1, 1.2, 1.4, 3.1–3.5, and Tables tab:sim-parameters, tab:observation-features). Added one short inline reference to each — e.g. "(Figure~\ref{fig:bg-ridership})", "illustrated in Figure~\ref{fig:ctde}", "Table~\ref{tab:sim-parameters} therefore serves as..." — without altering the existing discussion content itself. Confirmed Table 3.1 (tab:notation), the RTC's specific example of a too-thin callout ("Table 3.1 collects the symbols"), is in fact substantially discussed at 5 separate points elsewhere in the chapter where individual symbols are used in context, so no further fix was needed there beyond what already existed.
+**Conformity table entry:**
+| 16 | "When putting figures and tables, they should also be called and discussed in the paragraphs." | Added explicit `\ref{}` callouts to 10 previously-unreferenced figures/tables, tying each to its existing surrounding discussion. | throughout | TBD |
+**Commit message:** `E3C16: add missing figure/table callouts throughout`
+
+---
+### E3C18 — Apply 1.5 line spacing
+**Date:** 2026-08-06
+**File edited:** main.tex
+**Section:** preamble and start of document
+**What was added/changed:**
+> Added `\usepackage{setspace}` to the preamble (it was not previously loaded) and `\onehalfspacing` immediately after `\begin{document}`, applying 1.5 line spacing to the whole manuscript. Applied last, per CLAUDE.md's own guidance, after all content edits in this revision round were complete.
+**Conformity table entry:**
+| 18 | "Consider using 1.5 line spacing for easier readability." | Added setspace package and \onehalfspacing to main.tex. | preamble | TBD |
+**Commit message:** `E3C18: apply 1.5 line spacing`
+
+---
+### E3C19 — Add line numbers
+**Date:** 2026-08-06
+**File edited:** main.tex
+**Section:** preamble (near table of contents)
+**What was added/changed:**
+> The `lineno` package was already loaded; only `\linenumbers` itself was commented out. Uncommented it. Applied last, alongside E3C18, for the same reason.
+**Conformity table entry:**
+| 19 | "Consider putting line numbers for non-final manuscript versions." | Uncommented `\linenumbers` in main.tex. | preamble | TBD |
+**Commit message:** `E3C19: enable line numbers`
 
 ---
 

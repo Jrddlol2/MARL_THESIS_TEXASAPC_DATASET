@@ -25,6 +25,7 @@
 \usepackage{booktabs}
 \usepackage{ragged2e}
 \usepackage{totalcount}
+\usepackage{setspace}
 
 \newcommand{\automatedwordcount}{%
   \immediate\write18{cat introduction.tex problem.tex methods.tex | texcount -1 -sum -q - > word_count.sum}%
@@ -141,6 +142,7 @@
 %TC:ignore
 \begin{document}
 %TC:ignore
+\onehalfspacing
 \input{title.tex} % Putting the title page
 
 % ------------------------------- ABSTRACT ---------------------------------
@@ -225,7 +227,7 @@ AI tools were employed strictly as editorial, organizational, and formatting ass
 
 % --------------------------------------------------------------------------------
 % Start line numbering
-%\linenumbers
+\linenumbers
 
 % NOTE: Remove this line for the final, revised manuscript
 

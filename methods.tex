@@ -33,7 +33,7 @@ A pure-Python alternative without SUMO calibration was also considered but rejec
 
 
 
-The pipeline proceeds in two phases. First, SUMO is calibrated against empirical bus data, and the resulting per-segment travel time, demand, and dwell time distributions are saved. Second, the Python environment loads these distributions and runs a lightweight event-based bus simulator for MARL training and evaluation. Because the Python environment draws from distributions extracted from the calibrated SUMO model, its statistical behavior matches SUMO at the level of per-segment travel time, demand, and dwell time. It does not reproduce SUMO's microscopic vehicle-to-vehicle interactions, but those interactions affect the reward function only through their aggregate effect on inter-stop bus travel time, which the calibrated distributions already capture. Rodriguez et al.~\cite{Rodriguez2023Cooperative} make the same argument: they trained in an event-based mesoscopic simulator parameterized by empirical corridor data.
+As shown in Figure~\ref{fig:pipeline}, the pipeline proceeds in two phases. First, SUMO is calibrated against empirical bus data, and the resulting per-segment travel time, demand, and dwell time distributions are saved. Second, the Python environment loads these distributions and runs a lightweight event-based bus simulator for MARL training and evaluation. Because the Python environment draws from distributions extracted from the calibrated SUMO model, its statistical behavior matches SUMO at the level of per-segment travel time, demand, and dwell time. It does not reproduce SUMO's microscopic vehicle-to-vehicle interactions, but those interactions affect the reward function only through their aggregate effect on inter-stop bus travel time, which the calibrated distributions already capture. Rodriguez et al.~\cite{Rodriguez2023Cooperative} make the same argument: they trained in an event-based mesoscopic simulator parameterized by empirical corridor data.
 
 \subsection{Control-Stop Selection}
 
@@ -66,7 +66,7 @@ Before MARL training begins, the SUMO calibration layer is statistically verifie
 
 \subsubsection{Bus Volume Validation via GEH Statistic}
 
-The GEH statistic, introduced for traffic-modelling acceptance testing in the UK Design Manual for Roads and Bridges \cite{DMRBV12}, measures the discrepancy between simulated and observed hourly bus volumes on individual corridor segments:
+The GEH statistic, introduced for traffic-modelling acceptance testing in the UK Design Manual for Roads and Bridges \cite{DMRBV12}, measures the discrepancy between simulated and observed hourly bus volumes on individual corridor segments, illustrated in panel (a) of Figure~\ref{fig:calibration-illustrative}:
 
 \begin{equation} GEH = \sqrt{\frac{2(M - C)^2}{M + C}} \label{eq:geh} \end{equation}
 
@@ -74,7 +74,7 @@ where $M$ is the hourly bus volume from the simulation and $C$ is the observed h
 
 \subsubsection{Speed Trajectory Calibration via RMSE}
 
-Volume calibration alone does not guarantee that buses move realistically. RMSE evaluates how closely simulated bus speed trajectories match empirical observations:
+Volume calibration alone does not guarantee that buses move realistically. RMSE evaluates how closely simulated bus speed trajectories match empirical observations, illustrated in panel (b) of Figure~\ref{fig:calibration-illustrative}:
 
 \begin{equation} RMSE = \sqrt{\frac{\sum_{i=1}^{n}(x_{obs} - x_{model})^2}{n}} \label{eq:rmse} \end{equation}
 
@@ -151,7 +151,7 @@ Lognormal location parameter & $\mu_{ln}$ & $\ln(\mu) - \sigma_{ln}^2/2$ (Eq.~\r
 \end{tabularx}
 \end{table}
 
-Parameters marked \%TODO-VAL are to be confirmed during the implementation phase upon receipt of the operational dataset and DOTr schedule records; parameters marked \%TODO-DATA will be computed during the SUMO calibration phase described in Section~3.2.3. The stop count ($M=24$) and fleet-size range ($N \approx 12$--$30$) are carried over from the state-space dimensionality discussion in Section~1.2.2 and are not new values introduced here.
+Table~\ref{tab:sim-parameters} therefore serves as the single reference point for every parameter used across this chapter. Parameters marked \%TODO-VAL are to be confirmed during the implementation phase upon receipt of the operational dataset and DOTr schedule records; parameters marked \%TODO-DATA will be computed during the SUMO calibration phase described in Section~3.2.3. The stop count ($M=24$) and fleet-size range ($N \approx 12$--$30$) are carried over from the state-space dimensionality discussion in Section~1.2.2 and are not new values introduced here.
 
 \subsection{Data Processing}
 
@@ -410,7 +410,7 @@ Downstream incident / breakdown flag & $b$ (binary) & Incident management system
 \end{tabularx}
 \end{table}
 
-In simulation, all observation features are generated synthetically by the Python environment at each control event by querying the analytical bus model and the active stochastic generators; no real sensor data is consumed during training or evaluation.
+As Table~\ref{tab:observation-features} shows, in simulation all observation features are generated synthetically by the Python environment at each control event by querying the analytical bus model and the active stochastic generators; no real sensor data is consumed during training or evaluation.
 
 \subsubsection{Action Space ($A_i$)}
 \label{subsec:action-space}
@@ -474,7 +474,7 @@ Three properties make DDQN appropriate for this study. First, the discrete actio
 
 \subsubsection{Training and Execution Protocol}
 
-The learning process follows the standard reinforcement-learning feedback loop under the asynchronous, event-driven bus-control setting and the CTDE scheme described above. The loop, repeated at every control event during training, proceeds as follows:
+The learning process follows the standard reinforcement-learning feedback loop under the asynchronous, event-driven bus-control setting and the CTDE scheme described above, illustrated in Figure~\ref{fig:aec-training}. The loop, repeated at every control event during training, proceeds as follows:
 
 \begin{enumerate}
 \item \textbf{Observe.} When bus agent $i$ arrives at a control stop, the Python environment assembles its local observation $s_{i,t}$ (Section~\ref{subsec:state-space}) from the analytical bus model and the active stochastic generators.
@@ -574,7 +574,7 @@ For non-ideal disturbance levels, performance degradation is computed as the per
 
 
 
-\textbf{Stage A: Ideal-condition evaluation.} The weather and breakdown generators are disabled; demand and traffic-speed scaling are fixed at baseline means ($\eta = 0$). The trained MARL policy and the three baselines are each run for $N \geq 30$ Monte Carlo iterations with matched seeds. Under ideal conditions EH is already near-optimal, so parity with EH is an acceptable Stage A outcome. Outperforming EH is the target but not required to pass Stage A, since the main contribution of this study is the characterization of performance under disturbance in Stage B.
+\textbf{Stage A: Ideal-condition evaluation.} The weather and breakdown generators are disabled; demand and traffic-speed scaling are fixed at baseline means ($\eta = 0$). The trained MARL policy and the three baselines are each run for $N \geq 30$ Monte Carlo iterations with matched seeds, reported in the format shown in Figure~\ref{fig:stage-a-illustrative}. Under ideal conditions EH is already near-optimal, so parity with EH is an acceptable Stage A outcome. Outperforming EH is the target but not required to pass Stage A, since the main contribution of this study is the characterization of performance under disturbance in Stage B.
 
 \paragraph{Stage A acceptance criterion}
 \begin{itemize}
@@ -595,7 +595,7 @@ For non-ideal disturbance levels, performance degradation is computed as the per
     \label{fig:stage-a-illustrative}
 \end{figure}
 
-\textbf{Stage B: Non-ideal-condition evaluation.} The trained MARL policy and the three baselines are evaluated across the swept disturbance range $\eta \in \{0.3, 0.6, 1.0, 1.3\}$, with the breakdown generator active at each level. For each $(\eta, \text{controller})$ cell, $N \geq 30$ Monte Carlo iterations are run with matched seeds. Reported outputs are: (a) mean waiting time, travel time, and headway CV as functions of $\eta$ for each controller; (b) percentage degradation at each $\eta$ relative to the controller's own ideal-condition result; (c) the disturbance level at which MARL's advantage over the best-performing baseline becomes statistically significant; and (d) the degradation slope, defined as the rate of waiting-time increase per unit increase in $\eta$, with smaller slopes indicating greater resilience. An ablation is also run with each disturbance enabled alone (demand-only, weather-only, breakdown-only) at $\eta = 1.0$ to attribute degradation to disturbance type.
+\textbf{Stage B: Non-ideal-condition evaluation.} The trained MARL policy and the three baselines are evaluated across the swept disturbance range $\eta \in \{0.3, 0.6, 1.0, 1.3\}$, with the breakdown generator active at each level, using the Monte Carlo evaluation procedure illustrated in Figure~\ref{fig:aec-eval}. For each $(\eta, \text{controller})$ cell, $N \geq 30$ Monte Carlo iterations are run with matched seeds. Reported outputs are: (a) mean waiting time, travel time, and headway CV as functions of $\eta$ for each controller; (b) percentage degradation at each $\eta$ relative to the controller's own ideal-condition result; (c) the disturbance level at which MARL's advantage over the best-performing baseline becomes statistically significant; and (d) the degradation slope, defined as the rate of waiting-time increase per unit increase in $\eta$, with smaller slopes indicating greater resilience. An ablation is also run with each disturbance enabled alone (demand-only, weather-only, breakdown-only) at $\eta = 1.0$ to attribute degradation to disturbance type.
 
 \paragraph{Stage B acceptance criterion} The MARL policy is reported as performing well under disturbance if its mean waiting time stays below that of the best-performing baseline across the full sweep, with statistical significance under the same correction as Stage A.
 

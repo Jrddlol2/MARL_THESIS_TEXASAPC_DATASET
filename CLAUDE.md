@@ -159,23 +159,26 @@ one), append a dated entry:
   ## YYYY-MM-DD — [Task ID(s)] — [file.tex, Section X.X]
   **Commit:** `[hash]` (fill in once committed)
 
-  **Before:**
-  ```latex
-  [the exact old LaTeX — copy-paste real syntax, not a paraphrase]
-  ```
-
-  **After:**
-  ```latex
-  [the exact new LaTeX — copy-paste real syntax, including the added
-  \begin{table}...\end{table} or \item lines etc. in full, not summarized]
+  ```diff
+  - [the exact old LaTeX line(s), prefixed with a minus — copy-paste real
+  -  syntax, not a paraphrase]
+  + [the exact new LaTeX line(s), prefixed with a plus]
+    [unchanged lines get no prefix, used as context so the reader can see
+    where the change sits — include a line or two of surrounding text,
+    not the whole surrounding paragraph]
   ```
 
   **Why:** one line — the RTC comment number or user instruction driving it.
 
-For a revert, show the same **Before** (pre-edit LaTeX) and note the
-**After** is identical to **Before** — i.e. net zero change to the file —
-rather than narrating the back-and-forth. One line on why it was reverted
-is enough; the detailed reasoning belongs in TRACKER.md, not here.
+Use a single ```diff fence per entry (GitHub renders `-` lines red and `+`
+lines green, so the change is visually obvious at a glance — this is the
+whole point of the format, don't fall back to separate Before/After prose
+blocks). For a large insertion with no removed text, every new line is a
+`+` line with a line or two of unchanged context (no prefix) before/after
+so the reader can locate it in the file. For a revert, show the ADD as a
+diff (`-`/`+` from original to drafted version) and then a second diff
+showing the REVERT (`-`/`+` from drafted version back to original) — don't
+just say "no net change," show both hops so the false start is visible.
 
 Keep entries strictly about what changed IN THE MANUSCRIPT. No editorializing
 about the revision-tracking process itself.
@@ -184,16 +187,35 @@ about the revision-tracking process itself.
 
 There are TWO audit trail files, and every entry goes into BOTH:
 
-- **`AUDIT_TRAIL.md`** — the format above: real LaTeX in fenced ```latex
-  blocks, exact copy-paste syntax. This is the Overleaf-facing version —
-  what the source actually looks like.
+- **`AUDIT_TRAIL.md`** — the format above: real LaTeX in fenced ```diff
+  blocks (`-`/`+` prefixed, real copy-paste syntax). This is the
+  Overleaf-facing version — what the source actually looks like, and GitHub
+  renders the diff lines in red/green so the change jumps out visually.
 - **`AUDIT_TRAIL_READABLE.md`** — the same entries, same order, same dates,
   but with LaTeX markup stripped into plain prose: `\cite{Key2024}` becomes
   `(Author, Year)`, `\ref{tab:x}`/`\label{}` become a plain name like "the
   parameter table," `\textbf{}`/`\textit{}` become plain text, math mode
   becomes words or a described formula, tables become a markdown table or a
-  described list. This version is for reading, discussing, and rewriting
-  ideas without LaTeX noise in the way — it should read like normal English.
+  described list. Use clearly separated, blockquoted BEFORE/AFTER blocks —
+  not one merged paragraph — so the reader can skim the labels alone to
+  see where something changed, then read the block for what changed:
+
+    > **BEFORE**
+    > [the old sentence/paragraph in plain English]
+
+    > **AFTER**
+    > [the old, unchanged part in plain text, with the new/added clause
+    > wrapped in **bold** so it stands out inside the block]
+
+  Within the AFTER block, bold only the part that's actually new/different
+  — leave unchanged surrounding text plain, so the eye goes straight to the
+  change without having to re-read the whole block. If several small
+  before/after pairs belong to one task (e.g. a callout sweep touching many
+  sentences), a table with Before/After columns is fine instead of many
+  blockquote pairs — pick whichever is more skimmable for that entry. This
+  version is for reading, discussing, and rewriting ideas — it should read
+  like normal English, and the BEFORE/AFTER separation should be visually
+  obvious before you even read a word of either block.
 
 Write the `AUDIT_TRAIL.md` entry first (from the real diff), then translate
 it into the readable version — don't write the readable version from memory

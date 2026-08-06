@@ -1,9 +1,9 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-06
-# Panel tasks (RTC-requested): 22 | Done: 14 | In Progress: 0 | Pending: 8
+# Panel tasks (RTC-requested): 22 | Done: 17 | In Progress: 0 | Pending: 5
 # (E1C1/E2C5/E4C22 blocked — no dataset access; E3C17 blocked — needs group
 # input on presentation figures; E1C2 dataset-adjacent, not yet started —
-# see TRACKER.md; E3C16/E3C18/E3C19 not yet started, E3C18/19 deliberately last)
+# see TRACKER.md for the confirm-before-starting note)
 # Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
 
 ---
@@ -235,7 +235,7 @@ Do not fabricate specific numbers.
 
 ---
 
-## [ ] E3C16 — Figure and table callout sweep
+## [x] E3C16 — Figure and table callout sweep
 **Examiner:** 3-Other
 **Priority:** MEDIUM
 **File:** all chapter files (introduction.tex, problem.tex, methods.tex)
@@ -262,7 +262,7 @@ Claude Code will add them once the group provides the content.
 
 ---
 
-## [ ] E3C18 — Apply 1.5 line spacing
+## [x] E3C18 — Apply 1.5 line spacing
 **Examiner:** 3-Other
 **Priority:** LOW (do LAST)
 **File:** main.tex
@@ -275,7 +275,7 @@ references in TRACKER.md.
 
 ---
 
-## [ ] E3C19 — Add line numbers
+## [x] E3C19 — Add line numbers
 **Examiner:** 3-Other
 **Priority:** LOW (do LAST)
 **File:** main.tex
