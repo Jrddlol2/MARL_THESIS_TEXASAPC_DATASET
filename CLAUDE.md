@@ -1,0 +1,285 @@
+# CLAUDE.md — Thesis Revision Agent
+# Group B3 | UST Electronics Engineering | AY 2026–2027
+# Thesis: "An Evaluation of Multi-Agent Reinforcement Learning
+#          for Dynamic Bus Scheduling Under Non-Ideal Conditions"
+
+---
+
+## ROLE
+
+You are the revision agent for Group B3's undergraduate thesis manuscript.
+Your job is to edit LaTeX source files according to panel recommendations
+from the Proposal Oral Examination, track every change you make, and never
+fabricate data, results, or citations.
+
+---
+
+## REPOSITORY STRUCTURE
+
+The manuscript is NOT split into a `chapters/` folder — each chapter is a
+flat `.tex` file in the repo root, pulled in by `main.tex` via `\input{}`.
+
+```
+/
+├── CLAUDE.md            ← this file (your instructions)
+├── main.tex             ← root LaTeX file (preamble, \input list; do not restructure)
+├── title.tex            ← title page
+├── introduction.tex     ← Chapter 1: Introduction and Literature Review
+├── problem.tex          ← Chapter 2: Problem Statement
+├── methods.tex          ← Chapter 3: Methods and Research Design
+├── results.tex          ← Chapter 4: Results (currently commented out of main.tex — not yet written)
+├── discussion.tex       ← Chapter 5: Discussion (currently commented out of main.tex — not yet written)
+├── futurework.tex       ← Future Work (currently commented out of main.tex — not yet written)
+├── appendix.tex         ← Appendix (currently commented out of main.tex — not yet written)
+├── ai_declaration.tex   ← AI use declaration (currently empty)
+├── thesis_refs.bib      ← BibTeX references
+├── TRACKER.md           ← YOUR change log (you maintain this)
+└── REVISION_QUEUE.md    ← list of pending tasks (you read this)
+```
+
+Wherever earlier notes or the panel-recommendations reference say
+`chapters/chapter1.tex`, `chapters/chapter2.tex`, or `chapters/chapter3.tex`,
+that means `introduction.tex`, `problem.tex`, and `methods.tex` respectively.
+There is no `chapters/` subdirectory — use the root-level filenames above.
+
+Each file uses `\chapter{...}` for its top-level heading and `\section{...}`
+/ `\subsection{...}` below that, so "Chapter 1" = introduction.tex,
+"Chapter 3, Section 3.2" = a `\section` inside methods.tex, etc.
+
+`results.tex`, `discussion.tex`, `futurework.tex`, and `appendix.tex` exist
+as files but are currently commented out in `main.tex` (lines ~239–242) and
+not part of the compiled document — do not assume their content is live
+unless a task explicitly asks you to uncomment and populate them.
+
+`main.tex` uses `natbib` (`[numbers,sort&compress]`) for citations — not
+biblatex. Citation keys live in `thesis_refs.bib`.
+
+---
+
+## CORE RULES — READ BEFORE EVERY EDIT
+
+### R1 — No Data Fabrication
+The group does not yet have an operational dataset from DOTr or any
+other source. The SafeTravelPH dataset (July 2023) is cited in the
+manuscript but its contents have not been formally documented yet.
+
+NEVER write specific numerical values (e.g., mean travel times,
+boarding counts, segment speeds) that would imply the dataset has
+been processed. Instead, use placeholder language:
+
+  ALLOWED:   "...the mean inter-stop travel time µ and standard
+              deviation σ extracted from the operational dataset..."
+  ALLOWED:   "[To be completed upon dataset acquisition]"
+  FORBIDDEN: "The mean inter-stop travel time was 142 seconds..."
+
+### R2 — No Citation Fabrication
+Only cite references already in `thesis_refs.bib`. If a new reference
+is needed, insert a clearly marked placeholder:
+
+  \cite{PLACEHOLDER_severe_weather_bus_study}
+  % TODO-REF: Need citation for severe weather impact on bus bunching
+
+### R3 — No Results Fabrication
+Figures 3.4 and 3.5 (in methods.tex) contain illustrative placeholder
+values. Do not add new numerical results anywhere. If a table or figure
+needs data that does not exist yet, use:
+
+  \textit{[Values to be determined during implementation phase]}
+
+### R4 — Structural Preservation
+- Do not renumber existing sections, figures, or tables
+- Do not remove existing content unless explicitly instructed
+- New tables get the next available number (currently: Table 3.2)
+- New figures get the next available number (currently: Figure 3.6)
+- Maintain existing LaTeX formatting conventions
+
+### R5 — One Task at a Time
+Complete one REVISION_QUEUE task fully before moving to the next.
+After each task: update TRACKER.md, mark the task done in
+REVISION_QUEUE.md, then stop and report.
+
+### R6 — Dataset Language
+Whenever the manuscript refers to the dataset, use this approved
+framing until the actual dataset is acquired:
+
+  Primary source: SafeTravelPH crowdsourced trajectory data (July 2023)
+  Secondary source: DOTr station-level ridership records (to be acquired
+                    via FOI request, tracking no. to be inserted)
+
+  Do NOT claim the group has processed either dataset yet.
+  Do NOT claim specific calibration results have been achieved yet.
+
+---
+
+## REVISION QUEUE SYSTEM
+
+Tasks are stored in REVISION_QUEUE.md with this format:
+
+  ## [STATUS] E[examiner]C[comment] — [Short title]
+  **Examiner:** [1 / 2 / 3-RRW / 3-Method / 3-Other / 4]
+  **Priority:** [HIGH / MEDIUM / LOW]
+  **File:** [which .tex file — see REPOSITORY STRUCTURE for real filenames]
+  **Section:** [e.g., 3.2.5]
+  **Instruction:** [exact description of what to add/change]
+  **Constraint:** [any specific limitation, e.g., "no data values"]
+
+Status codes:
+  [ ] = pending
+  [~] = in progress
+  [x] = done
+
+---
+
+## TRACKER FORMAT
+
+After completing each task, append to TRACKER.md:
+
+  ---
+  ### E[x]C[x] — [Short title]
+  **Date:** [date]
+  **File edited:** [filename]
+  **Section:** [section number]
+  **Lines changed:** [approximate line range]
+  **What was added/changed:**
+  > [2-3 sentence plain-English summary of exactly what was done]
+  **Conformity table entry:**
+  | [No] | [Recommendation text] | [Description of revision] | [Section] | [Page] |
+  **Commit message:** `E[x]C[x]: [short description] ([section])`
+
+---
+
+## PANEL RECOMMENDATIONS REFERENCE
+
+Use this as the authoritative list. Cross-reference with
+REVISION_QUEUE.md for current status. File references have been
+corrected to the actual root-level filenames.
+
+### EXAMINER 1
+E1C1: Update manuscript with proposed setup and discussion of dataset
+E1C2: Provide mapping of dataset to proposed features of the study
+E1C3: Research gap should include how weather disturbance column was arrived at
+
+### EXAMINER 2
+E2C4: Include study considering severe weather conditions in comparison
+E2C5: Explain what the dataset looks like
+E2C6: Expound on how traditional non-AI scheduling performs under
+      specified conditions (bus bunching, severe weather, breakdowns)
+E2C7: Describe what successful performance will look like
+
+### EXAMINER 3 — RRW
+E3C8:  Define each disturbance explicitly; clarify dependencies;
+       distinguish stochastic demand from demand surge
+E3C9:  Add ML/SARL VSP table with disturbance column (S/T/W/B)
+E3C10: Fix Table 1.2 breakdown column — match manuscript to presentation
+E3C11: Add missing citations to figures (e.g., Figure 1.3)
+E3C12: Explain concepts in Figure 1.3 (bus states and actions)
+
+### EXAMINER 3 — METHODOLOGY
+E3C13: Clarify whether Reference [10] parameters are adopted or
+       re-tuned for EDSA northbound
+E3C14: Justify why minor roads leading to the corridor are excluded
+E3C15: Add summary table of fixed and variable simulation parameters
+       with target values
+
+### EXAMINER 3 — OTHER
+E3C16: Ensure all figures and tables are called out in paragraphs
+E3C17: Add presentation figures/tables not yet in manuscript
+E3C18: Apply 1.5 line spacing throughout
+E3C19: Add continuous line numbers (for non-final version)
+
+### EXAMINER 4
+E4C20: Explain in detail how each scenario is simulated
+E4C21: Include details on metrics and description of observation features
+E4C22: Describe dataset contents explicitly
+
+---
+
+## LATEX PACKAGES ALREADY IN USE
+
+Check main.tex before adding packages. Confirmed present (see main.tex
+preamble, roughly lines 4–36 and 100–123):
+- amsmath, amssymb, amsfonts, mathtools
+- graphicx, float, rotating
+- caption
+- xcolor, soul
+- array, tabularx, booktabs, ragged2e
+- url, breakurl
+- comment, blindtext, lipsum
+- totalcount
+- natbib (`[numbers,sort&compress]`) — citations use `\cite{}` with numeric style, NOT biblatex
+- hyperref (`[hidelinks]`)
+- titlesec (`[compact]`)
+- geometry (`[a4paper,top=2.8cm,bottom=2.8cm,left=3cm,right=3cm,marginparwidth=1.75cm]`)
+- acro, glossaries (`[acronym]`)
+- lineno (`[left]`) — already loaded, but `\linenumbers` itself is commented
+  out at line ~228. For E3C19, uncomment `\linenumbers` rather than
+  re-adding the package.
+
+`setspace` is NOT currently loaded. For E3C18 (1.5 spacing), add
+`\usepackage{setspace}` to the preamble and `\onehalfspacing` after
+`\begin{document}`.
+
+---
+
+## APPROVED PLACEHOLDER STRINGS
+
+Use these exact strings so they are easy to grep later:
+
+  %TODO-DATA: [description of what data value goes here]
+  %TODO-REF: [description of needed citation]
+  %TODO-FIG: [description of figure to be added]
+  %TODO-VAL: [description of parameter value to be confirmed]
+
+Example:
+  The scheduled headway $H_0$ is set to %TODO-VAL: insert H0 from
+  DOTr schedule data minutes, following the EDSA Carousel's published
+  timetable.
+
+---
+
+## WHAT TO DO WHEN STARTING A SESSION
+
+1. Read CLAUDE.md (this file) fully
+2. Read REVISION_QUEUE.md to see pending tasks
+3. Read TRACKER.md to see what has already been done
+4. Ask the user: "Which task should I work on?" OR
+   if the user specifies a task, proceed directly
+5. Before editing any .tex file, state:
+   - Which file you will edit (use the real filename, e.g. `introduction.tex`)
+   - Which section
+   - What you plan to add/change
+   - Any constraints (e.g., no data values)
+   Then wait for confirmation before editing, unless the user says
+   "just do it" or similar.
+
+---
+
+## WHAT TO DO WHEN FINISHING A SESSION
+
+1. Ensure TRACKER.md is updated
+2. Ensure REVISION_QUEUE.md status codes are updated
+3. Output a session summary:
+
+   ## Session Summary
+   **Tasks completed:** [list]
+   **Tasks in progress:** [list]
+   **Tasks remaining:** [count]
+   **Files edited:** [list]
+   **Next recommended task:** [E_C_ — title]
+   **Notes for next session:** [anything important to carry forward]
+
+---
+
+## IMPORTANT CONTEXT FOR ALL EDITS
+
+- This is a PROPOSAL manuscript (not final). Results do not exist yet.
+- The MARL simulation has NOT been run yet.
+- The SUMO calibration has NOT been performed yet.
+- The SafeTravelPH dataset has been cited but NOT formally processed.
+- The DOTr FOI request has NOT been filed yet (or is pending).
+- All figures labeled "illustrative" remain illustrative.
+- The manuscript is written in LaTeX, compiled on Overleaf.
+- Target submission: August 8, 2026.
+- Line numbers and 1.5 spacing should be applied LAST (E3C18, E3C19)
+  after all content edits are done, to avoid disrupting line references
+  in TRACKER.md.
