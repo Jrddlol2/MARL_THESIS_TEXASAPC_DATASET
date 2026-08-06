@@ -39,13 +39,12 @@
 | Cai2024Multiairport | Multiairport Departure Scheduling via Multiagent Reinforcement Learning | Multiairport_Departure_Scheduling_via_Multiagent_Reinforcement_Learning.pdf | CONFIRMED |
 | Barrera2025Optimization | Optimization of Bus Dispatching in Public Transportation Through a Heuristic Approach Based on Passenger Demand Forecasting | Optimization of Bus Dispatching in Public Transportation Through a Heuristic Approach Based on Passenger Demand Forecasting.pdf | CONFIRMED |
 | Cao2022Train | Train rescheduling method based on multi-agent reinforcement learning | Train_rescheduling_method_based_on_multi-agent_reinforcement_learning.pdf | CONFIRMED |
-| Ranpura2025Calibration | Development of Mixed Traffic Microsimulation Model Calibration for Signalized Intersections | ijgi-13-00050-v2.pdf | TENTATIVE (MDPI IJGI-style filename, plausible venue, not opened to confirm) |
+| Ranpura2025Calibration | Development of Mixed Traffic Microsimulation Model Calibration for Signalized Intersections | 1-s2.0-S2352146524005258-main.pdf | **CONFIRMED (2026-08-06)** — opened and verified: Ranpura, Gujar, Singh, *Transportation Research Procedia* 82 (2025) 2898-2910, WCTR 2023 Montreal, VISSIM calibration of two Ahmedabad intersections via GEH/RMSPE. Matches bib title exactly. This corrects the earlier TENTATIVE guess below — `ijgi-13-00050-v2.pdf` is NOT this paper. |
 | Spatio2026 | Spatiotemporal analysis of traffic accidents...Waze Traffic Data | TSSP2024-04-Revised-Paper.pdf | TENTATIVE (TSSP-conference-style filename, plausible venue, not opened to confirm) |
 | Tiglao2025 or EDSApolicy2023 | (EDSA busway policy papers) | sustainability-15-15018.pdf | TENTATIVE (MDPI Sustainability-style filename, not opened to confirm which key) |
-| Wang2020Holding | Dynamic Holding Control to Avoid Bus Bunching: A MARL Framework | Reducing bus bunching with asynchronous multiagent.pdf | TENTATIVE (title doesn't closely match filename, needs manual check) |
-| ??? | ??? | 1-s2.0-S2352146524005258-main.pdf | UNMATCHED (Elsevier DOI filename, not identified) |
-| ??? | ??? | 1-s2.0-S2772424725000654-main.pdf | UNMATCHED (Elsevier DOI filename, not identified) |
-| ??? | ??? | 7_593-Sun_Final.pdf | UNMATCHED (author "Sun" — possibly a Wang & Sun draft, not identified) |
+| Wang2020Holding | Dynamic Holding Control to Avoid Bus Bunching: A MARL Framework | Reducing bus bunching with asynchronous multiagent.pdf | **MISMATCHED (confirmed 2026-08-06)** — this PDF is actually Wang & Sun's *"Reducing Bus Bunching with Asynchronous Multi-Agent Reinforcement Learning"* (IJCAI-21, the CAAC paper), a different paper by the same authors. It is reference [9] cited *inside* the Wangsun/IQNC-M paper, not the TR-C 2020 paper this bib key names. Confirmed by reading the PDF's own title page and its reference list, which separately cites "Wang and Sun, 2020, ... Transportation Research Part C ..., 116:102661" as distinct prior work — matching the bib entry exactly (journal/vol/page/year/DOI all confirmed), meaning the *bib entry* is correctly specified but the *cached PDF* is the wrong file. No PDF of the actual TR-C 2020 paper is currently in this folder. |
+| N/A — not cited | Scalable and reliable multi-agent reinforcement learning for traffic assignment (Wang, Duan, Lyu, et al.) | 1-s2.0-S2772424725000654-main.pdf | **IDENTIFIED, not in thesis_refs.bib (2026-08-06)** — Communications in Transportation Research 5 (2025) 100225. MARL for network-wide traffic *assignment* (OD-pair routing), not bus scheduling/holding; no weather modeling. Appears to be background reading, not an actual citation in the manuscript. |
+| N/A — not cited | Analysis and Dynamic Prediction of Bus Dwell Time Under Rainfall Conditions (Sun, Yang, Dong, Lu, Wang) | 7_593-Sun_Final.pdf | **IDENTIFIED, not in thesis_refs.bib (2026-08-06)** — *Promet – Traffic&Transportation* 37(1):105-121, 2025, DOI 10.7307/ptt.v37i1.593. Empirical study of bus dwell time under rainfall in Shenyang (BP/GA-BP neural-net prediction, not RL/control). Directly on-topic for the weather (W) disturbance motivation but currently uncited — see TRACKER.md citation-verification entry for discussion. |
 | ??? | ??? | A deep reinforcement learning model for dynamic job-shop scheduling.pdf | UNMATCHED — no corresponding bib title found; may be background reading not cited in the manuscript |
 | ??? | ??? | An Approach to Model a Traffic Environment by Addressing Sparsity in VehicleCount Data.pdf | UNMATCHED — not cited in the manuscript as far as identified |
 | ??? | ??? | Enhancing SUMO simulator for simulation based testing and validation of autonomous vehicles.pdf | UNMATCHED — not cited in the manuscript as far as identified |
@@ -74,6 +73,17 @@
   fixed one error: manuscript attributed a $[1,3]$ demand-surge clip to Wang &
   Sun, but their Eq. 22 actually clips to $[1,10]$; the manuscript's specific
   bound and its justifying narrative weren't in the source. See AUDIT_TRAIL.md.
+
+- **Wang2020Holding** — checked 2026-08-06, at user's request to re-verify a
+  disputed weather-coverage claim. The bib entry itself is correct (TR-C 2020,
+  vol 116, p. 102661 — confirmed against the DOI and against how the CAAC
+  paper's own reference list cites it). However, the PDF filed under this key
+  is the wrong paper (see MISMATCHED row above) — the actual TR-C 2020 paper
+  has not been opened. The manuscript's characterization of Wang2020Holding
+  at introduction.tex:229 ("cooperative MARL framework ... single-line
+  corridor ... outperform classical headway-equalization rules under
+  idealized stochastic demand") is therefore **still unverified against the
+  real source**, though it is not contradicted by anything found so far.
 
 All other CONFIRMED-filename sources below have NOT yet had their specific
 manuscript claims checked — filename matching only establishes which PDF

@@ -173,6 +173,87 @@ found and fixed so far, both pre-existing (written before this session).
 **Fix:** Removed the fabricated continuous-vs-discrete comparison. Reframed the $|A_i|=10$ design as this study's own choice (broader than Rodriguez's), correctly described Rodriguez's actual 6-action mutually-exclusive space, and kept the citation only for what's verifiably true: the matching $\Omega$ holding-strength values, and the driver-compliance argument (Rodriguez models non-compliant drivers executing 60-80% of instructed holding time — confirmed against Section 6.3 "Driver compliance"). Did NOT change the study's own $|A_i|=10$ design, since that value is load-bearing elsewhere (Table 3.1 notation, the SARL state/action-space dimensionality discussion in introduction.tex, and the ~960-run computational budget in Methodological Challenges) and correcting the citation doesn't require touching it.
 **Commit message:** `Fix Rodriguez2023Cooperative citation: remove unsupported continuous-vs-discrete claim, correct action-space description`
 
+### Wang2020Holding — cached PDF is the wrong paper (unresolved)
+**Date:** 2026-08-06
+**File edited:** None yet — no manuscript text has been found wrong; this is
+a verification gap, not a confirmed citation error. Logged here per the same
+fact-checking process as the entries above, at user's request to double-check
+the "no MARL bus paper models weather" claim underpinning the whole thesis
+gap.
+**Section:** RRL/sources.md (index only)
+**What was checked:** Whether the manuscript's cited MARL bus-holding papers
+(Wangsun/IQNC-M, and by extension Wang2020Holding) secretly cover weather
+disturbances, which would undercut the Research Gap in problem.tex. Verified
+Wangsun/IQNC-M directly against its arXiv/IEEE T-ITS source (fetched
+2026-08-06): its only disturbances are Gaussian speed-scaling and
+Gaussian demand-scaling, plus two "anomaly" tests (a manual speed drop
+framed as a traffic accident, and a demand spike framed as a concert
+letting out) — no rain, no weather, no heavy-tailed distribution anywhere
+in the paper. The weather-coverage claim holds for this source.
+**What was found instead (side finding):** The local PDF cached under bib
+key `Wang2020Holding` (`Reducing bus bunching with asynchronous
+multiagent.pdf`) is not the paper that key names. The bib entry correctly
+specifies Wang & Sun's *"Dynamic Holding Control to Avoid Bus Bunching"*
+(Transportation Research Part C, 2020, vol. 116, p. 102661) — confirmed
+correct because the cached PDF's own reference list separately cites that
+exact TR-C 2020 paper (same journal/volume/page/year) as distinct prior
+work. The cached PDF is actually Wang & Sun's *later* paper, "Reducing Bus
+Bunching with Asynchronous Multi-Agent Reinforcement Learning" (IJCAI-21,
+the CAAC framework) — itself cited as reference [9] inside the Wangsun/
+IQNC-M paper already used in this thesis. Both papers are by the same
+authors and cover similar ground (bus holding, MARL, headway-based
+reward), which is presumably how the mismatch happened.
+**Why this doesn't break the thesis's weather claim:** The CAAC/IJCAI-21
+paper's own disturbance model is a simple uniform speed randomization
+(`v × U(0.6, 1.2)`) — also no weather. So the "no MARL paper models
+weather" claim is not contradicted by this file either way.
+**What remains open:** introduction.tex:229 describes `Wang2020Holding` as
+showing "a cooperative MARL framework could learn an effective bus-holding
+policy on a single-line corridor and outperform classical
+headway-equalization rules under idealized stochastic demand." This
+description has **not** been verified against the real TR-C 2020 paper,
+because that PDF isn't in RRL/. Nothing found so far contradicts it, but it
+should be treated as unverified rather than confirmed until the correct PDF
+is obtained and checked.
+**Action needed:** Source the actual TR-C 2020 PDF (DOI
+10.1016/j.trc.2020.102661) and re-verify the introduction.tex:229
+description against it. No manuscript edit is warranted until then.
+
+---
+
+### Sun et al. (2025) — relevant uncited paper found during weather-claim re-check
+**Date:** 2026-08-06
+**File edited:** None — this is a citation-gap finding, not an error fix.
+No manuscript text is currently wrong; nothing was added to thesis_refs.bib
+or any .tex file. Logged for the user's awareness; adding this citation
+would need a separate go-ahead per the R2 (no citation fabrication) process.
+**What was found:** While re-verifying the weather-disturbance literature
+gap, located a directly on-topic paper not present in thesis_refs.bib:
+Sun, Yang, Dong, Lu, and Wang, "Analysis and Dynamic Prediction of Bus
+Dwell Time Under Rainfall Conditions," *Promet – Traffic&Transportation*
+37(1):105-121, 2025 (DOI 10.7307/ptt.v37i1.593). It uses real Shenyang
+bus-stop field data (409 samples, 288 under rain) to show rainfall level
+correlates with bus dwell time, and builds a BP/GA-BP neural-network
+predictor for it.
+**Why it doesn't threaten the thesis's gap claim:** The paper is a
+predictive regression model, not a control policy and not MARL — it
+belongs in the same "ML-assisted, not closed-loop control" category the
+manuscript's own Table 1.1 (control-paradigm progression) already
+describes. It does not evaluate any bus-scheduling controller under
+weather, so the "no MARL bus-scheduling study models weather" claim in
+the Research Gap stands.
+**Why it might still be worth citing:** The manuscript's current
+real-world evidence for the weather (W) disturbance's relevance rests on
+`TSSP_Rain2018` (a general expressway-speed study, not buses, not EDSA)
+and `Patil2025Conformal` (a US arterial corridor, not buses, not EDSA).
+This Sun et al. paper is bus-specific and rainfall-specific field data,
+which could be a stronger empirical anchor for the W disturbance's
+motivation than either existing citation, if the group wants to add it.
+**Action needed:** User decision on whether to add this citation. No
+manuscript edit made.
+
+---
+
 ### Wangsun — demand-surge clip range mismatch
 **Date:** 2026-08-06
 **File edited:** methods.tex
