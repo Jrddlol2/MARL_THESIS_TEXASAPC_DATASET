@@ -422,4 +422,22 @@ The Reward Function subsection ended with: "This study defines the reward struct
 
 ---
 
+## 2026-08-06 — N1 rewrite (user-provided prose) — methods.tex, Section 3.2.7
+
+**BEFORE**
+
+"This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized. The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms: [equation] with weights left as placeholders to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation."
+
+**AFTER**
+
+**"This study establishes the overall reward structure for the hybrid action space by defining the three reward components and their additive formulation, while treating the corresponding weighting coefficients, together with their sensitivity analysis, as the implementation-phase deliverable under Expected Output 2.1. Although the component structure is fixed at this stage, the coefficients remain as placeholders to be determined during implementation through experimental evaluation.**
+
+**The reward is computed independently for each agent at every control event rather than as a shared team-level objective. Accordingly, r_i,t represents the reward assigned to agent i and is stored as that agent's transition in the shared replay buffer. Each bus is therefore evaluated based on the consequences of its own action, even though all agents learn from a common shared network. Since the reward is derived from locally observable quantities already contained in the agent's observation, particularly the forward and backward headway measurements, the resulting signal remains aligned with corridor-wide service regularity without requiring a centralized reward computation during execution.**
+
+**The overall reward function is expressed as the weighted sum of three penalty terms:** [same equation as before, unchanged] **where w₁, w₂, and w₃ denote the weighting coefficients to be determined through the Expected Output 2.1 sensitivity analysis. Each component is formulated as a non-positive penalty, allowing the agent to maximize its cumulative return by minimizing headway irregularity, passenger waiting time, and unnecessary stop-skipping behavior. Consequently, this chapter establishes the reward formulation and its optimization objective, while the specific mathematical expressions and coefficient values are reserved for the implementation and evaluation phase.**"
+
+**Why:** the user supplied polished replacement prose for the N1 addition and asked that it be applied directly. The equation itself is unchanged — only the surrounding explanatory prose was rewritten, folding the "additive formulation" idea earlier into the structure paragraph and restating the mechanics/sign-convention explanation in the user's own words. The TODO-VAL placeholder tag on the coefficients was kept even though the user's text didn't include it, since CLAUDE.md's convention requires it so unresolved values stay greppable.
+
+---
+
 *Nothing follows.*

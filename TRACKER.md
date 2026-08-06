@@ -346,6 +346,8 @@ Overleaf project's Figures folder**, or the new figure won't compile there.
 **Note:** This is a self-identified gap, not an RTC panel comment — do not add a row for this in the conformity-of-revisions table.
 **Commit message:** `N1: clarify reward mechanics (per-agent computation, combination form, sign convention) in 3.2.7`
 
+**Update 2026-08-06 (same day):** user supplied polished replacement prose for this addition and asked that it be applied verbatim (converted to LaTeX, with the `%TODO-VAL` tag kept on the coefficients per CLAUDE.md convention). The equation is unchanged; only the surrounding explanatory prose was rewritten. See AUDIT_TRAIL.md / AUDIT_TRAIL_READABLE.md for the before/after diff.
+
 ---
 
 *Nothing follows.*

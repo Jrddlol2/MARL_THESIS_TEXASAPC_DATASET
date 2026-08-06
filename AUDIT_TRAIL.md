@@ -557,4 +557,31 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 
 ---
 
+## 2026-08-06 — N1 rewrite (user-provided prose) — methods.tex, Section 3.2.7
+**Commit:** not yet committed
+
+```diff
+  ...Existing MARL bus-control reward formulations span a range of trade-offs among these priorities, from headway-coefficient-of-variation forms for holding-only action spaces \cite{Wangsun,Wang2023MultiObj} to passenger-time forms for combined holding-and-skipping action spaces \cite{Rodriguez2023Cooperative}.
+- This study defines the reward \textit{structure} for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized.
+-
+- The reward is computed individually for each agent at every control event, not as a shared team-level signal: $r_{i,t}$ is agent $i$'s own entry in the transition $(s_{i,t}, a_{i,t}, r_{i,t}, s_{i,t'})$ written to the shared replay buffer (Training and Execution Protocol, step 4), so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in $s_{i,t}$, principally the forward and backward headway components $h^-$ and $\hat{h}^+$, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms,
++ This study establishes the overall reward structure for the hybrid action space by defining the three reward components and their additive formulation, while treating the corresponding weighting coefficients, together with their sensitivity analysis, as the implementation-phase deliverable under Expected Output 2.1. Although the component structure is fixed at this stage, the coefficients remain as placeholders to be determined during implementation through experimental evaluation.
++
++ The reward is computed independently for each agent at every control event rather than as a shared team-level objective. Accordingly, $r_{i,t}$ represents the reward assigned to agent $i$ and is stored as that agent's transition in the shared replay buffer (Training and Execution Protocol, step 4). Each bus is therefore evaluated based on the consequences of its own action, even though all agents learn from a common shared network. Since the reward is derived from locally observable quantities already contained in the agent's observation, particularly the forward and backward headway measurements, the resulting signal remains aligned with corridor-wide service regularity without requiring a centralized reward computation during execution.
++
++ The overall reward function is expressed as the weighted sum of three penalty terms:
+
+  \begin{equation}
+  r_{i,t+k} = -w_1 \cdot (\text{headway-irregularity term}) - w_2 \cdot (\text{waiting-time term}) - w_3 \cdot (\text{skip-degeneracy term}),
+  \label{eq:reward-form}
+  \end{equation}
+
+- with weights $w_1, w_2, w_3$ \%TODO-VAL: to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return in Eq.~\eqref{eq:bellman} by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.
++ where $w_1$, $w_2$, and $w_3$ denote the weighting coefficients (\%TODO-VAL) to be determined through the Expected Output 2.1 sensitivity analysis. Each component is formulated as a non-positive penalty, allowing the agent to maximize its cumulative return in Eq.~\eqref{eq:bellman} by minimizing headway irregularity, passenger waiting time, and unnecessary stop-skipping behavior. Consequently, this chapter establishes the reward formulation and its optimization objective, while the specific mathematical expressions and coefficient values are reserved for the implementation and evaluation phase.
+```
+
+**Why:** the user supplied polished replacement prose for N1's content and asked that it be applied. The equation itself (Eq. eq:reward-form) is unchanged; the surrounding prose was rewritten for tone/flow, folding "additive formulation" language earlier into the structure paragraph and restating the mechanics/sign-convention paragraph in the user's own wording. Kept the `%TODO-VAL` placeholder tag on the weighting coefficients (the user's text didn't include it, but CLAUDE.md's placeholder convention requires it for greppability) and the existing citations/priority list in the untouched first half of the structure paragraph.
+
+---
+
 *Nothing follows.*
