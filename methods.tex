@@ -22,7 +22,7 @@ PettingZoo's AEC API is chosen over three alternatives. First, the single-agent 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Figures/fig_3_1_pipeline (2).pdf}
-    \caption[Two-phase simulation pipeline]{The two-phase simulation architecture.}
+    \caption[Two-phase simulation pipeline]{The two-phase simulation architecture. Authors' illustration.}
     \label{fig:pipeline}
 \end{figure}
 
@@ -60,7 +60,7 @@ Before MARL training begins, the SUMO calibration layer is statistically verifie
     acceptance threshold of $\mathrm{GEH} < 5$; the corridor is accepted when at
     least 85\% of segments fall below the line. (b) Simulated bus-speed
     trajectory against the empirical observation used in the RMSE minimization
-    step. Values shown are illustrative only.}
+    step. Values shown are illustrative only. Authors' illustration.}
     \label{fig:calibration-illustrative}
 \end{figure}
 
@@ -497,8 +497,8 @@ The protocol is split into a training phase and an execution (evaluation) phase:
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Figures/fig_3_2_aec_training.pdf}
-    \caption[Agent--environment cycle (training)]{The asynchronous agent--environment 
-    cycle during training.}
+    \caption[Agent--environment cycle (training)]{The asynchronous agent--environment
+    cycle during training. Authors' illustration.}
     \label{fig:aec-training}
 \end{figure}
  
@@ -591,7 +591,7 @@ For non-ideal disturbance levels, performance degradation is computed as the per
     (b) mean total travel time, and (c) headway coefficient of variation. Error
     bars represent 95\% confidence intervals over $N \geq 30$ Monte Carlo runs
     with matched seeds. Numerical values shown are illustrative and do not
-    reflect measured results.}
+    reflect measured results. Authors' illustration.}
     \label{fig:stage-a-illustrative}
 \end{figure}
 
@@ -602,7 +602,7 @@ For non-ideal disturbance levels, performance degradation is computed as the per
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\textwidth]{Figures/fig_3_2b_aec_evaluation.pdf}
-    \caption[Monte Carlo evaluation layer]{The Monte Carlo evaluation layer. The frozen policy $\theta$ selects the highest-valued action at each control stop without exploration or weight updates. Matched seeds ensure that every controller faces the same disturbance realization, so performance differences reflect the control strategy alone. Three response variables are recorded per run: mean passenger waiting time, mean total travel time, and headway coefficient of variation.}
+    \caption[Monte Carlo evaluation layer]{The Monte Carlo evaluation layer. The frozen policy $\theta$ selects the highest-valued action at each control stop without exploration or weight updates. Matched seeds ensure that every controller faces the same disturbance realization, so performance differences reflect the control strategy alone. Three response variables are recorded per run: mean passenger waiting time, mean total travel time, and headway coefficient of variation. Authors' illustration.}
     \label{fig:aec-eval}
 \end{figure}
 

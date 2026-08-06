@@ -10,9 +10,9 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 4 |
+| Completed | 14 |
 | In progress | 0 |
-| Pending | 18 (3 BLOCKED — no dataset access; see Reverted Work below) |
+| Pending | 8 (3 blocked on dataset access, 1 blocked on group input — see Reverted Work / REVISION_QUEUE.md) |
 
 ---
 
@@ -46,6 +46,59 @@ though the task is technically satisfiable with placeholder-only language.
 ---
 
 ## Completed Changes
+
+---
+### E1C3 — Weather disturbance derivation in research gap
+**Date:** 2026-08-06 (entry backfilled — task was completed and pushed in commit `34017d3` but its TRACKER.md entry was missed at the time)
+**File edited:** problem.tex
+**Section:** 2.2 (Research Gap)
+**What was added/changed:**
+> Added two sentences after the existing gap statement tracing the weather (W) disturbance class's derivation: identified through the MARL-applied-to-bus-scheduling literature survey (cross-referenced via new `\label{subsec:marl-applied}`), motivated by the rainfall and typhoon-suspension evidence in Section 1.1, and addressed via Patil et al.'s lognormal parameterization (cross-referenced via new `\label{subsec:disturbance-gap}`).
+**Conformity table entry:**
+| 3 | "Research gap should include how you arrived at the column of sudden weather disturbance." | Added derivation trail for the W disturbance class to Section 2.2, linking the literature-survey gap, the EDSA operational evidence, and the lognormal parameterization source. | 2.2 | TBD |
+**Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
+
+---
+### E2C6 — Traditional method performance under disturbances
+**Date:** 2026-08-06 (entry backfilled, same commit as above)
+**File edited:** introduction.tex (1.2.1), methods.tex (Baseline Controllers subsection)
+**What was added/changed:**
+> introduction.tex: added a paragraph after the Daganzo citation describing, in general conceptual terms (no forward-reference to FH/EH acronyms not yet defined at that point), why fixed timetables have no corrective mechanism, why local reactive control handles congestion but not breakdowns, and why global reactive control still can't adapt to weather's heavy tails. methods.tex: added one sentence to each of NC/FH/EH's subsubsections stating its expected failure mode under non-ideal conditions.
+**Conformity table entry:**
+| 6 | "Expound on how traditional, non-AI scheduling systems perform under the conditions you have specified." | Added a paragraph in 1.2.1 explaining static/local/global reactive control's disturbance failure modes conceptually, plus one failure-mode sentence per baseline (NC/FH/EH) in Section 3.2.8. | 1.2.1, 3.2.8 | TBD |
+**Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
+
+---
+### E2C7 — Explicit success criteria
+**Date:** 2026-08-06 (entry backfilled, same commit as above)
+**File edited:** methods.tex
+**Section:** 3.2.10 (Evaluation Methods)
+**What was added/changed:**
+> Pulled the existing Stage A and Stage B acceptance criteria out of paragraph prose into dedicated `\paragraph{}` callouts (Stage A as an itemized two-part list, Stage B as a standalone paragraph), without changing or inventing any threshold values.
+**Conformity table entry:**
+| 7 | "Can you describe what a successful performance will look like?" | Made the existing Stage A/B acceptance criteria visually prominent via dedicated callouts, no new thresholds introduced. | 3.2.10 | TBD |
+**Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
+
+---
+### E3C12 — Explain Figure 1.3 concepts in text
+**Date:** 2026-08-06 (entry backfilled, same commit as above)
+**File edited:** introduction.tex
+**Section:** 1.2.3 (Multi-Agent Reinforcement Learning), after Figure 1.3
+**What was added/changed:**
+> Added a paragraph after Figure 1.3 explaining what the per-bus state and action mean in bus-control terms, tying the figure's $o_i$ notation to the formal $s_{i,t}$ notation defined in methods.tex's State Space subsection, and explaining the SARL-vs-MARL panel difference (concatenated global state vs. independent local processing).
+**Conformity table entry:**
+| 12 | "Explain the concepts in Figure 1.3, like the bus states and actions." | Added explanatory paragraph after Figure 1.3 tying its notation to the formal state/action-space definitions in Chapter 3. | 1.2.3 | TBD |
+**Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
+
+---
+### E3C13 — Clarify Reference [10] scope
+**Date:** 2026-08-06 (entry backfilled, same commit as above)
+**File edited:** introduction.tex (1.1), methods.tex (3.2.3)
+**What was added/changed:**
+> introduction.tex: added a sentence after the TSSP_Rain2018 citation noting it's a 2018 North Luzon Expressway study, used only as general contextual motivation, not EDSA-specific calibration. methods.tex: added a sentence at the start of Environment Model Validation (3.2.3) clarifying that GEH/RMSE calibration is independent of that motivating citation. Addresses both halves of the RTC comment (recency AND corridor mismatch), per the earlier cross-check against RTC_DECISION_LETTER.md that caught the original queue entry only covering the corridor half.
+**Conformity table entry:**
+| 13 | "Reference 10 is not quite new and simulates a different corridor. Will you adopt the same information or tune for EDSA northbound?" | Clarified in Section 1.1 that [10]/TSSP_Rain2018 (2018, North Luzon Expressway) is contextual motivation only; clarified in Section 3.2.3 that EDSA calibration is independently derived via GEH/RMSE, not adopted from [10]. | 1.1, 3.2.3 | TBD |
+**Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
 
 ---
 ### E3C8 — Disturbance definitions and independence
@@ -127,6 +180,53 @@ found and fixed so far, both pre-existing (written before this session).
 **What was wrong:** Text claimed the demand-surge scaling factor is "clipped to $[1,3]$, following Wang and Sun." Checked against the actual paper (Eq. 22): their scaling factor $p_d \sim \mathcal{N}(1,\sigma_d^2)$ is clipped to $[1, 10]$, not $[1,3]$. The manuscript's follow-up justification ("upper bound of 3 corresponds to roughly a tripling... spanning the range observed during major event let-outs and severe-weather mode shifts") also does not appear anywhere in the source — it reads as an invented rationale for a number that was never Wang & Sun's.
 **Fix:** Kept the study's own $[1,3]$ clip value (changing it to match $[1,10]$ would be a substantive experimental redesign, outside the scope of a citation fix) but stopped attributing the specific bound to Wang & Sun — cited them only for the general Gaussian-clipped scaling mechanism, and reframed $[1,3]$ explicitly as this study's own choice with a %TODO-VAL flag to revisit it against the wider literature range during implementation.
 **Commit message:** `Fix Wangsun citation: correct demand-surge clip attribution, flag [1,3] as study's own choice not Wang & Sun's`
+
+---
+
+### E3C9 + E2C4 — ML/SARL disturbance table + severe-weather comparison study
+**Date:** 2026-08-06
+**File edited:** introduction.tex
+**Section:** end of 1.2.2 (Single-Agent RL and Its Limitations), before 1.2.3 (Multi-Agent RL)
+**What was added/changed:**
+> Added Table~\ref{tab:ml_sarl_coverage} ("Disturbance coverage across ML and SARL vehicle-scheduling studies"), a 5-row companion to Table 1.2 covering Wang2017 (ML), Barrera2025Optimization (ML-assisted), Zhao2022STDH (SARL), Zhang2025SADRL (SARL), and verbich2021 (heuristic, non-MARL — the severe-weather-and-breakdown study E2C4 asked for). Added a discussion paragraph connecting the new table to Table 1.2, explaining that no ML/SARL study covers W or B, and that Verbich & El-Geneidy's coverage of both is explicitly non-MARL, sharpening the stated gap. Also folded in a sentence distinguishing Patil et al.'s role (lognormal parameterization source, not a bus-control baseline).
+**Citation caution:** Only Barrera2025Optimization has a local PDF to verify against (RRL/, confirmed). The other four sources' D/S/T/W/B classifications are attributed to the RTC panel's own characterization (verbatim in RTC_DECISION_LETTER.md comment 9), flagged as such in the table footnote rather than presented as independently verified.
+**Conformity table entry:**
+| 9, 4 | "Consider adding an ML/SARL VSP table showing the disturbance column." / "Include study that considers severe weather conditions in your comparison." | Added a 5-row ML/SARL disturbance-coverage table after the SARL subsection, including Verbich & El-Geneidy (severe weather + breakdowns, heuristic control) as the E2C4-requested comparison study, with a discussion paragraph sharpening the stated gap. | 1.2.2/1.2.3 boundary | TBD |
+**Commit message:** `E3C9+E2C4: add ML/SARL disturbance coverage table incl. severe-weather study`
+
+---
+### E3C10 — Fix Table 1.2 breakdown column
+**Date:** 2026-08-06
+**File edited:** introduction.tex
+**Section:** immediately before the "Table~\ref{tab:marl_performance} summarizes..." paragraph
+**What was added/changed:**
+> Added a clarifying paragraph stating Shi et al. is the only B-entry in Table 1.2, and explicitly excluding Cao et al. (train rescheduling, not bus — confirmed via bib title) and Verbich & El-Geneidy (heuristic, non-MARL — now in the new Table~\ref{tab:ml_sarl_coverage}) with the reasons why each doesn't belong in a MARL-bus-scoped table.
+**Judgment call:** Could not verify what the group's presentation actually showed (no slide access), so used the RTC letter's own suggested fallback (a clarifying footnote) instead of guessing at adding an unverified second B-row.
+**Conformity table entry:**
+| 10 | "In the MARL VSP table (table 1.2), there is only 1 paper that has B disturbance. But in the presentation, there were two. Make sure to update the manuscript to the accurate information." | Added a paragraph before Table 1.2's summary clarifying that Shi et al. is the sole MARL-bus B-entry, with explicit reasoning for excluding Cao et al. (train) and Verbich & El-Geneidy (non-MARL). | 1.2.4 (before Table 1.2 discussion) | TBD |
+**Commit message:** `E3C10: clarify Table 1.2 breakdown-column scope (exclude train/non-MARL papers)`
+
+---
+### E3C11 — Add missing figure citations
+**Date:** 2026-08-06
+**File edited:** introduction.tex, methods.tex
+**Section:** 7 figure captions across both files
+**What was added/changed:**
+> Added "Authors' illustration." to the captions of introduction.tex Figures 1.3 (SARL vs MARL) and 1.4 (CTDE) — the two the RTC named explicitly — and to methods.tex Figures 3.1–3.5 (pipeline, calibration, AEC training, Stage A, Monte Carlo evaluation), all of which are original diagrams with no prior attribution. Figures 1.1 and 1.2 already carried citations and were left unchanged.
+**Conformity table entry:**
+| 11 | "Some figures do not have citations (e.g., Figure 1.3)." | Added "Authors' illustration" to all 7 previously-unattributed original figure captions across Chapters 1 and 3. | 1.2.3, 1.2.3(fig1.4), 3.1–3.10 (various) | TBD |
+**Commit message:** `E3C11: add "authors' illustration" attribution to 7 original figure captions`
+
+---
+### E3C14 — Justify minor road exclusion
+**Date:** 2026-08-06
+**File edited:** problem.tex
+**Section:** Scope and Limitations, Delimitations item (a)
+**What was added/changed:**
+> Expanded delimitation (a) to explicitly name and justify the minor-feeder-road exclusion (previously only the sub-corridor restriction was justified): ties both restrictions to the barrier-protected busway fact, explains the agents' state/reward depends only on in-lane bus dynamics, and notes feeder-road effects are already captured through calibrated per-stop demand distributions.
+**Conformity table entry:**
+| 14 | "Explain the justification why the minor roads leading to the corridor are no longer considered." | Expanded Delimitation (a) to explicitly justify feeder-road exclusion via the barrier-separated busway argument and the calibrated-demand-distribution argument. | 2.5 (Scope and Limitations) | TBD |
+**Commit message:** `E3C14: justify minor feeder-road exclusion in Delimitations`
 
 ---
 

@@ -6,6 +6,130 @@
 
 ---
 
+## 2026-08-06 — E1C3 — problem.tex, Section 2.2 (Research Gap)
+**Commit:** `34017d3` (entry backfilled — missed at the time)
+
+**Before:**
+```latex
+Without this characterization, it cannot be determined whether reported MARL gains persist, degrade gracefully, or collapse under realistic operating disturbances, which in turn blocks the transition of MARL bus scheduling from simulation to real urban transit deployment.
+```
+
+**After:**
+```latex
+Without this characterization, it cannot be determined whether reported MARL gains persist, degrade gracefully, or collapse under realistic operating disturbances, which in turn blocks the transition of MARL bus scheduling from simulation to real urban transit deployment.
+
+The weather-disturbance class (W) in particular was identified through the literature survey conducted earlier in this study (Section~\ref{subsec:marl-applied}), which found that no prior MARL bus-scheduling paper models heavy-tailed weather-induced travel-time delays (Table~\ref{tab:marl_performance}, column W). Its operational relevance to the EDSA corridor is established by the rainfall-driven reductions in average speed and free-flow capacity documented in Section~1.1 \cite{TSSP_Rain2018} and by the typhoon-related service suspensions recorded for the corridor \cite{DOTr2020Suspension}. The lognormal parameterization adopted for this disturbance class follows the Kolmogorov--Smirnov-validated form of Patil et al.~\cite{Patil2025Conformal}, introduced in this study to address the resulting lack of temporally aligned, corridor-specific anomaly data (Section~\ref{subsec:disturbance-gap}).
+```
+
+**Why:** RTC comment 3 — research gap should include how the weather disturbance column was arrived at.
+
+---
+
+## 2026-08-06 — E2C6 — introduction.tex 1.2.1, methods.tex Baseline Controllers
+**Commit:** `34017d3` (entry backfilled)
+
+**Before (introduction.tex):**
+```latex
+...allowing small headway perturbations to amplify into bunching \cite{Daganzo2009}. Static schedules therefore remain mathematically inadequate for stochastic traffic environments, where the governing quantities are random variables rather than deterministic constants. These limitations motivated the transition toward more adaptive and data-driven scheduling methodologies.
+```
+
+**After (introduction.tex):**
+```latex
+...allowing small headway perturbations to amplify into bunching \cite{Daganzo2009}. Static schedules therefore remain mathematically inadequate for stochastic traffic environments, where the governing quantities are random variables rather than deterministic constants. Under the specific non-ideal conditions this study targets, the failure modes differ by control strategy. A fixed timetable has no feedback mechanism at all, so once bunching begins nothing in the schedule corrects it. A local reactive rule that holds a bus based only on the gap to the bus ahead can partially correct bunching under ordinary congestion, but has no way to respond to a breakdown, since it observes only the forward gap and not the enlarged gap a failed bus leaves behind it. A more globally aware reactive rule that accounts for both the forward and backward gap improves on this, but still follows a fixed, pre-specified rule rather than a learned response, so it cannot adapt its behavior to the heavier-tailed delays that severe weather introduces. These limitations motivated the transition toward more adaptive and data-driven scheduling methodologies.
+```
+
+**Before (methods.tex, NC subsubsection, excerpt):**
+```latex
+...NC also provides the reference point for measuring the severity of bus bunching.
+```
+
+**After (methods.tex, NC subsubsection, excerpt):**
+```latex
+...NC also provides the reference point for measuring the severity of bus bunching. Under non-ideal conditions, NC has no corrective mechanism whatsoever, so demand surges, weather-induced delays, and breakdowns are expected to compound directly into bunching with no attenuation.
+```
+
+(Equivalent one-sentence additions were made to the FH and EH subsubsections describing their expected failure modes — FH: can't observe the backward gap a breakdown creates; EH: no mechanism to anticipate weather's heavy tails.)
+
+**Why:** RTC comment 6 — expound on how traditional non-AI scheduling performs under bunching/weather/breakdowns.
+
+---
+
+## 2026-08-06 — E2C7 — methods.tex, Section 3.2.10
+**Commit:** `34017d3` (entry backfilled)
+
+**Before:**
+```latex
+\textbf{Stage A: Ideal-condition evaluation.} ...The acceptance criterion is twofold: (i) mean passenger waiting time no worse than EH (no statistically significant degradation at $p < 0.05$ with multiple-comparison correction), and ideally a statistically significant improvement; and (ii) a statistically significant reduction in headway coefficient of variation relative to NC. Under ideal conditions EH is already near-optimal...
+```
+
+**After:**
+```latex
+\textbf{Stage A: Ideal-condition evaluation.} ...Under ideal conditions EH is already near-optimal, so parity with EH is an acceptable Stage A outcome. Outperforming EH is the target but not required to pass Stage A...
+
+\paragraph{Stage A acceptance criterion}
+\begin{itemize}
+\item[(i)] Mean passenger waiting time no worse than EH (no statistically significant degradation at $p < 0.05$ with multiple-comparison correction), and ideally a statistically significant improvement.
+\item[(ii)] A statistically significant reduction in headway coefficient of variation relative to NC.
+\end{itemize}
+```
+(Stage B's criterion sentence was similarly pulled into a `\paragraph{Stage B acceptance criterion}` callout, unchanged in substance.)
+
+**Why:** RTC comment 7 — describe what successful performance will look like, more visually prominent.
+
+---
+
+## 2026-08-06 — E3C12 — introduction.tex, Section 1.2.3 (after Figure 1.3)
+**Commit:** `34017d3` (entry backfilled)
+
+**Before:**
+```latex
+    \label{fig:sarl-vs-marl}
+\end{figure}
+
+Multi-Agent Reinforcement Learning (MARL) addresses the three limitations above
+```
+
+**After:**
+```latex
+    \label{fig:sarl-vs-marl}
+\end{figure}
+
+In both panels of Figure~\ref{fig:sarl-vs-marl}, the per-bus state (denoted $s_{i,t}$ in the formal MDP notation of Section~\ref{subsec:state-space}, and shown in the figure as the local observation $o_i$) encodes the bus's current position, forward and backward headways, onboard load, and queue length at its current stop, as defined in full in Section~\ref{subsec:state-space}. The action $a_{i,t}$ is the holding-strength and stop-skipping decision the controller emits for that bus, defined in Section~\ref{subsec:action-space}. In the SARL panel (a), a single centralized network ingests all $N$ per-bus state vectors concatenated into one global state $s \in \mathbb{R}^{N \cdot d}$ and outputs all $N$ actions simultaneously; in the MARL panel (b), the same shared network weights $\theta$ instead process each bus's local state independently, so each agent acts on only its own observation rather than the concatenated global one.
+
+Multi-Agent Reinforcement Learning (MARL) addresses the three limitations above
+```
+
+**Why:** RTC comment 12 — explain the concepts in Figure 1.3 (bus states and actions).
+
+---
+
+## 2026-08-06 — E3C13 — introduction.tex Section 1.1, methods.tex Section 3.2.3
+**Commit:** `34017d3` (entry backfilled)
+
+**Before (introduction.tex):**
+```latex
+...empirical studies on Philippine expressways show that increasing rainfall intensity significantly reduces average traffic speed and free-flow capacity \cite{TSSP_Rain2018}.
+```
+
+**After (introduction.tex):**
+```latex
+...empirical studies on Philippine expressways show that increasing rainfall intensity significantly reduces average traffic speed and free-flow capacity \cite{TSSP_Rain2018}. This rainfall-impact evidence is drawn from a 2018 study of the North Luzon Expressway rather than the EDSA Busway, and is used here only as contextual motivation that weather materially affects Philippine road-traffic operations; the weather-disturbance generator in this study (Section~3.2.6) does not adopt this study's specific speed-reduction percentages, and EDSA-specific travel-time behavior is independently calibrated through the GEH/RMSE procedure described in Section~3.2.3.
+```
+
+**Before (methods.tex, Environment Model Validation opening):**
+```latex
+...The calibration is restricted to the bus corridor itself, since the agents' state and reward depend only on bus dynamics; surrounding mixed-traffic flows do not enter the Python environment.
+```
+
+**After (methods.tex, Environment Model Validation opening):**
+```latex
+...The calibration is restricted to the bus corridor itself, since the agents' state and reward depend only on bus dynamics; surrounding mixed-traffic flows do not enter the Python environment. This GEH/RMSE procedure calibrates EDSA-specific parameters directly from EDSA operational data and does not depend on the North Luzon Expressway rainfall-impact figures cited as motivating evidence in Section~1.1 \cite{TSSP_Rain2018}; that citation establishes only that weather materially affects Philippine road-traffic operations in general, not any EDSA-specific speed or capacity value used in this calibration.
+```
+
+**Why:** RTC comment 13 — Reference [10] is both dated (2018) and a different corridor (North Luzon Expressway); clarify whether adopted or independently tuned for EDSA. (This is the corrected version of the task — the original queue entry only covered the corridor-mismatch half until cross-checked against RTC_DECISION_LETTER.md.)
+
+---
+
 ## 2026-08-06 — E3C8 — methods.tex, Section 3.2.6
 **Commit:** `01c49bf`
 
@@ -319,6 +443,96 @@ The baseline empirical transit demand is perturbed each episode by a scaling fac
 ```
 
 **Why:** Verified against the actual PDF (RRL/Robust_Dynamic_Bus_Control...pdf). Their Eq. 22 clips the demand scaling factor to $[1,10]$, not $[1,3]$ — the manuscript's specific bound and its "event let-outs" justification were not supported by the source.
+
+---
+
+## 2026-08-06 — E3C9 + E2C4 — introduction.tex, after Section 1.2.2 (SARL)
+**Commit:** not yet committed
+
+**Before:**
+```latex
+...which motivates the MARL choice here while acknowledging this caveat.
+
+\subsection{Multi-Agent Reinforcement Learning}
+```
+
+**After:**
+```latex
+...which motivates the MARL choice here while acknowledging this caveat.
+
+To situate the MARL literature reviewed in the next subsection within the broader ML and SARL landscape, Table~\ref{tab:ml_sarl_coverage} extends the paradigm comparison of Table~\ref{tab:control_paradigms} with a disturbance-coverage column, using the same D/S/T/W/B notation as Table~\ref{tab:marl_performance}.
+
+\begin{table}[htbp]
+\centering
+\caption{Disturbance coverage across ML and SARL vehicle-scheduling studies, preceding the MARL-specific comparison in Table~\ref{tab:marl_performance}.}
+\label{tab:ml_sarl_coverage}
+...
+[5-row table: Wang2017 (ML, D), Barrera2025Optimization (ML-assisted, D),
+Zhao2022STDH (SARL, D+T), Zhang2025SADRL (SARL, D+T), verbich2021 (heuristic, W+B)]
+...
+\end{table}
+
+The funnel is now complete: no ML or SARL study covers W or B, and among MARL studies (Table~\ref{tab:marl_performance}), only Verbich and El-Geneidy's heuristic controller~\cite{verbich2021} addresses both --- and it is explicitly non-MARL. Patil et al.~\cite{Patil2025Conformal} similarly validate weather-induced travel-time distributions but do not address bus control at all; their contribution to this study is the lognormal parameterization used by the weather-disturbance generator (Section~3.2.6), not a bus-control baseline. No prior study, ML, SARL, or MARL, combines W and B coverage with an actual MARL bus-scheduling controller, which is the specific gap this study fills.
+
+\subsection{Multi-Agent Reinforcement Learning}
+```
+
+**Why:** RTC comment 9 (ML/SARL disturbance table) and comment 4 (severe-weather comparison study) — satisfied together via a companion table rather than adding Verbich as a Table 1.2 row (the RTC letter offered both as valid options). Disturbance-coverage classifications for the four sources without a local PDF (Wang2017, Zhao2022STDH, Zhang2025SADRL, verbich2021) are attributed to the panel's own characterization in a table footnote, not presented as independently verified — Barrera2025Optimization's classification was checked against its local PDF.
+
+---
+
+## 2026-08-06 — E3C10 — introduction.tex, before Table 1.2 discussion
+**Commit:** not yet committed
+
+**Before:**
+```latex
+Table~\ref{tab:marl_performance} summarizes what each study evaluated, what disturbances it modeled, and what it reported.
+```
+
+**After:**
+```latex
+Only Shi et al.~\cite{Shi2022DistDRL} carries a B (breakdown) entry in Table~\ref{tab:marl_performance}. Cao et al.~\cite{Cao2022Train}, which also models discrete vehicle failures, is deliberately excluded from this count: their MARL application is to \textit{train} rescheduling, not bus scheduling, so it does not belong in a table scoped to MARL bus-control literature. Verbich and El-Geneidy~\cite{verbich2021} likewise model breakdowns but use heuristic, non-MARL control (Table~\ref{tab:ml_sarl_coverage}), so they are excluded for the same reason. Among MARL bus-scheduling studies specifically, Shi et al. remains the only one to model discrete breakdowns.
+
+Table~\ref{tab:marl_performance} summarizes what each study evaluated, what disturbances it modeled, and what it reported.
+```
+
+**Why:** RTC comment 10 — Table 1.2 shows only one B-paper (Shi et al.) but the presentation reportedly showed two; verify and clarify. Could not confirm what was actually shown in the presentation (no access to slides), so applied the RTC letter's own conservative fallback: a clarifying footnote explaining why Cao et al. (a train paper, confirmed via its bib title) and Verbich & El-Geneidy (non-MARL) are correctly excluded from this specifically-MARL-bus-scoped table, rather than guessing at an unverified second row.
+
+---
+
+## 2026-08-06 — E3C11 — figure caption attribution (introduction.tex, methods.tex)
+**Commit:** not yet committed
+
+**Before (7 captions, one example — introduction.tex Figure 1.3):**
+```latex
+    across $N$ agents, each acting on its own local observation $o_i$.}
+    \label{fig:sarl-vs-marl}
+```
+
+**After:**
+```latex
+    across $N$ agents, each acting on its own local observation $o_i$. Authors' illustration.}
+    \label{fig:sarl-vs-marl}
+```
+
+**Why:** RTC comment 11 — some figures lack citations; Figures 1.3 and 1.4 are original diagrams needing an "authors' illustration" note rather than a citation. Applied the same note to methods.tex Figures 3.1 (pipeline), 3.2 (calibration), 3.3 (AEC training), 3.4 (Stage A), and 3.5 (Monte Carlo evaluation) for consistency, since those are also original and previously had no attribution — flagged as in-scope by this task's own instruction in REVISION_QUEUE.md ("3.1–3.5 appear original"). Figures 1.1 and 1.2 already had citations (`DOTr2025Ridership`, `TSSP_Rain2018`) and were left unchanged.
+
+---
+
+## 2026-08-06 — E3C14 — problem.tex, Delimitations (a)
+**Commit:** not yet committed
+
+**Before:**
+```latex
+\textbf{Delimitations.} (a) Due to computational constraints, the simulation is restricted to a defined operational sub-segment of the EDSA Carousel corridor rather than the entire metropolitan road network. The restriction is justified by the need to preserve 1:1 empirical traffic volumes for GEH calibration without resorting to flow scaling; corresponding GEH calibration statistics are reported in Chapter~4.
+```
+
+**After:**
+```latex
+\textbf{Delimitations.} (a) Due to computational constraints, the simulation is restricted to a defined operational sub-segment of the EDSA Carousel corridor rather than the entire metropolitan road network, and minor feeder roads leading into the corridor are not modeled. Both restrictions are justified by the same structural fact: the EDSA Carousel operates on a physically separated, barrier-protected busway \cite{Chua2026}, so the agents' state and reward depend only on bus dynamics within the dedicated lane, specifically headways, dwell times, and onboard loads, none of which are directly observed by or computed from feeder-road traffic. Feeder roads affect the corridor only indirectly, through the passenger arrival rates they produce at each stop, and that effect is already captured by the calibrated per-stop demand distributions (Section~3.2.5) without needing to simulate the feeder network itself. Modeling feeder roads in SUMO would add computational cost without adding any new information the agents' observation or reward could use, since the sub-corridor restriction also preserves 1:1 empirical traffic volumes for GEH calibration without resorting to flow scaling; corresponding GEH calibration statistics are reported in Chapter~4.
+```
+
+**Why:** RTC comment 14 — justify why minor roads leading to the corridor are no longer considered.
 
 ---
 

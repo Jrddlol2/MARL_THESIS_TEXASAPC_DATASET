@@ -1,6 +1,9 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-06
-# Panel tasks (RTC-requested): 22 | Done: 4 | In Progress: 0 | Pending: 18 (3 of which are BLOCKED — no dataset access)
+# Panel tasks (RTC-requested): 22 | Done: 14 | In Progress: 0 | Pending: 8
+# (E1C1/E2C5/E4C22 blocked — no dataset access; E3C17 blocked — needs group
+# input on presentation figures; E1C2 dataset-adjacent, not yet started —
+# see TRACKER.md; E3C16/E3C18/E3C19 not yet started, E3C18/19 deliberately last)
 # Self-identified notices (not RTC-requested): 1 | Done: 0 | Pending: 1
 
 ---
@@ -31,6 +34,14 @@ it's technically satisfiable with placeholder language alone.
 ## [ ] E1C2 — Dataset to features mapping table
 **Examiner:** 1
 **Priority:** HIGH
+**Status:** NOT STARTED. Possibly dataset-adjacent like E1C1/E2C5/E4C22 —
+this maps "raw dataset field" to derived parameter/MARL component, which
+arguably requires knowing what fields the dataset actually has. Unlike
+E1C1/E2C5/E4C22, this could plausibly be done as a design-intent mapping
+(what SHOULD map to what, given the required fields already listed in
+3.2.5) rather than a description of the dataset itself — but that
+distinction is a judgment call. Confirm with the user before starting,
+given the prior revert on this exact topic.
 **File:** methods.tex
 **Section:** 3.2.5 or 3.2.7
 **Instruction:** Add a table mapping each raw dataset field to its
@@ -40,7 +51,7 @@ Columns: Raw Field | Derived Parameter | MARL Component
 
 ---
 
-## [ ] E1C3 — Weather disturbance derivation in research gap
+## [x] E1C3 — Weather disturbance derivation in research gap
 **Examiner:** 1
 **Priority:** HIGH
 **File:** problem.tex
@@ -53,7 +64,7 @@ parameterization of Patil et al. [50].
 
 ---
 
-## [ ] E2C4 — Severe weather study in comparison table
+## [x] E2C4 — Severe weather study in comparison table
 **Examiner:** 2
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -80,7 +91,7 @@ all three comments (E1C1, E2C5, E4C22) in a single revision.
 
 ---
 
-## [ ] E2C6 — Traditional method performance under disturbances
+## [x] E2C6 — Traditional method performance under disturbances
 **Examiner:** 2
 **Priority:** HIGH
 **File:** introduction.tex
@@ -95,7 +106,7 @@ defined in methods.tex under "Baseline Controllers for Comparison".)
 
 ---
 
-## [ ] E2C7 — Explicit success criteria
+## [x] E2C7 — Explicit success criteria
 **Examiner:** 2
 **Priority:** MEDIUM
 **File:** methods.tex
@@ -121,7 +132,7 @@ distinguishing stochastic baseline demand (D) from demand surge (S).
 
 ---
 
-## [ ] E3C9 — ML/SARL disturbance coverage table
+## [x] E3C9 — ML/SARL disturbance coverage table
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** introduction.tex
@@ -134,7 +145,7 @@ Zheng [30], Verbich and El-Geneidy [25].
 
 ---
 
-## [ ] E3C10 — Fix Table 1.2 breakdown column
+## [x] E3C10 — Fix Table 1.2 breakdown column
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** introduction.tex
@@ -147,7 +158,7 @@ explaining why Cao et al. [39] (train, not bus) is excluded.
 
 ---
 
-## [ ] E3C11 — Add missing figure citations
+## [x] E3C11 — Add missing figure citations
 **Examiner:** 3-RRW
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -159,7 +170,7 @@ figure captions for consistent attribution.
 
 ---
 
-## [ ] E3C12 — Explain Figure 1.3 concepts in text
+## [x] E3C12 — Explain Figure 1.3 concepts in text
 **Examiner:** 3-RRW
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -172,7 +183,7 @@ bus-control terms within the SARL vs MARL comparison.
 
 ---
 
-## [ ] E3C13 — Clarify Reference [10] scope
+## [x] E3C13 — Clarify Reference [10] scope
 **Examiner:** 3-Method
 **Priority:** MEDIUM
 **File:** introduction.tex and methods.tex
@@ -195,7 +206,7 @@ for the verbatim examiner wording.
 
 ---
 
-## [ ] E3C14 — Justify minor road exclusion
+## [x] E3C14 — Justify minor road exclusion
 **Examiner:** 3-Method
 **Priority:** MEDIUM
 **File:** problem.tex and/or methods.tex

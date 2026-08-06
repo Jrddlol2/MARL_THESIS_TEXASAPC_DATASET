@@ -114,6 +114,63 @@ Recent SARL-for-bus-control work that competes successfully against MARL baselin
 
 We note a counter-position. Zhang and Zheng~\cite{Zhang2025SADRL} report SA-DRL matching or exceeding MARL baselines on bidirectional timetabled lines, attributing this to data-imbalance issues in MARL when some agents see few episodes. The EDSA Carousel sub-corridor studied here is operated as a high-frequency BRT service along a defined directional segment, closer to the single-direction loop-line assumptions where MARL has been shown to excel, which motivates the MARL choice here while acknowledging this caveat.
 
+To situate the MARL literature reviewed in the next subsection within the broader ML and SARL landscape, Table~\ref{tab:ml_sarl_coverage} extends the paradigm comparison of Table~\ref{tab:control_paradigms} with a disturbance-coverage column, using the same D/S/T/W/B notation as Table~\ref{tab:marl_performance}.
+
+\begin{table}[htbp]
+\centering
+\caption{Disturbance coverage across ML and SARL vehicle-scheduling studies, preceding the MARL-specific comparison in Table~\ref{tab:marl_performance}.}
+\label{tab:ml_sarl_coverage}
+
+\footnotesize
+\renewcommand{\arraystretch}{1.3}
+
+\begin{tabularx}{\textwidth}{
+>{\RaggedRight\arraybackslash}p{2.6cm}
+>{\RaggedRight\arraybackslash}p{2.0cm}
+>{\RaggedRight\arraybackslash}X
+>{\Centering\arraybackslash}p{1.6cm}
+}
+
+\toprule
+\textbf{Paper} &
+\textbf{Paradigm} &
+\textbf{Method} &
+\textbf{Disturbances} \\
+\midrule
+
+Wang et al.~\cite{Wang2017} &
+ML (data-driven) &
+Bus scheduling model incorporating time-dependent traffic and demand &
+D \\
+
+Barrera Hernandez et al.~\cite{Barrera2025Optimization} &
+ML-assisted (heuristic dispatcher) &
+Passenger-demand forecasting supporting a heuristic dispatcher &
+D \\
+
+Zhao et al.~\cite{Zhao2022STDH} &
+SARL &
+STDH-DQN; self-attention state encoder over spatial-temporal AVL features &
+D, T \\
+
+Zhang and Zheng~\cite{Zhang2025SADRL} &
+SARL &
+SA-DRL; categorical identity features (vehicle, station, trip ID) &
+D, T \\
+
+Verbich and El-Geneidy~\cite{verbich2021} &
+Heuristic (non-MARL) &
+Dynamic transit control under severe weather and vehicle breakdowns &
+W, B \\
+
+\bottomrule
+\addlinespace[2pt]
+\multicolumn{4}{@{}p{\textwidth}@{}}{\footnotesize D~=~stochastic demand, S~=~demand surges, T~=~traffic-speed perturbation, W~=~weather-induced heavy-tail delay, B~=~discrete vehicle breakdown. Disturbance coverage for the ML/SARL rows follows the characterization given by the RTC panel during the proposal review; unlike Table~\ref{tab:marl_performance}, these classifications have not been independently re-verified against each paper's full text.} \\
+\end{tabularx}
+\end{table}
+
+The funnel is now complete: no ML or SARL study covers W or B, and among MARL studies (Table~\ref{tab:marl_performance}), only Verbich and El-Geneidy's heuristic controller~\cite{verbich2021} addresses both --- and it is explicitly non-MARL. Patil et al.~\cite{Patil2025Conformal} similarly validate weather-induced travel-time distributions but do not address bus control at all; their contribution to this study is the lognormal parameterization used by the weather-disturbance generator (Section~3.2.6), not a bus-control baseline. No prior study, ML, SARL, or MARL, combines W and B coverage with an actual MARL bus-scheduling controller, which is the specific gap this study fills.
+
 \subsection{Multi-Agent Reinforcement Learning}
 
 \begin{figure}[htbp]
@@ -124,7 +181,7 @@ We note a counter-position. Zhang and Zheng~\cite{Zhang2025SADRL} report SA-DRL 
     policy $\pi_\theta(s)$ consumes the concatenated global state
     $s \in \mathbb{R}^{N \cdot d}$ and outputs a joint action covering every bus.
     (b) MARL with parameter sharing: a single set of weights $\theta$ is shared
-    across $N$ agents, each acting on its own local observation $o_i$.}
+    across $N$ agents, each acting on its own local observation $o_i$. Authors' illustration.}
     \label{fig:sarl-vs-marl}
 \end{figure}
 
@@ -145,7 +202,7 @@ To address this, most modern formulations use \textbf{Centralized Training with 
     signal and one set of policy weights $\theta$, which are updated centrally
     using joint-state information. (b) At deployment, the weights are frozen and
     each bus runs an identical copy of $\pi_\theta$ on its own local observation
-    $o_i$ alone, so no centralized real-time controller is required.}
+    $o_i$ alone, so no centralized real-time controller is required. Authors' illustration.}
     \label{fig:ctde}
 \end{figure}
 
@@ -250,6 +307,8 @@ Integrated control gains \\
 \end{table}
 
 \clearpage
+Only Shi et al.~\cite{Shi2022DistDRL} carries a B (breakdown) entry in Table~\ref{tab:marl_performance}. Cao et al.~\cite{Cao2022Train}, which also models discrete vehicle failures, is deliberately excluded from this count: their MARL application is to \textit{train} rescheduling, not bus scheduling, so it does not belong in a table scoped to MARL bus-control literature. Verbich and El-Geneidy~\cite{verbich2021} likewise model breakdowns but use heuristic, non-MARL control (Table~\ref{tab:ml_sarl_coverage}), so they are excluded for the same reason. Among MARL bus-scheduling studies specifically, Shi et al. remains the only one to model discrete breakdowns.
+
 Table~\ref{tab:marl_performance} summarizes what each study evaluated, what disturbances it modeled, and what it reported. No prior MARL bus paper has evaluated controller performance under a framework that incorporates all four disturbance classes documented in the EDSA corridor's operational profile such as demand surges, traffic-speed variability, heavy-tailed weather-induced travel-time delays, and discrete breakdowns in a calibrated real-corridor microsimulation. Of these four, weather-induced heavy-tailed delays and discrete breakdowns are the two that no prior MARL bus-scheduling study has modeled at all; their combination with demand surges and a calibrated traffic-speed baseline is the specific disturbance profile introduced here. The algorithmic choice this study adopts to address that combined-disturbance setting, DDQN with parameter sharing under CTDE is justified in detail in Chapter~3 (Section~\ref{subsec:proposed-algorithm}), alongside the rationale for not using actor-critic or distributional alternatives. The action space the agents operate on is correspondingly small and discrete: at each control event, an agent selects a holding strength from a five-bin discretization $\alpha \in \{0.0, 0.1, 0.2, 0.3, 0.4\}$ (multiplied by a maximum holding duration to yield seconds held) combined with a binary decision to skip the next stop, giving $|A_i| = 10$ actions per event. The full action-space rationale, including why discretization is preferred over a continuous holding parameter, is given in Chapter~3 (Section~\ref{subsec:action-space}).
 
 
