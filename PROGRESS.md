@@ -10,19 +10,16 @@
 
 | Workstream | Done | In progress | Pending | Interpretation |
 |---|---:|---:|---:|---|
-| RTC-requested items | 19 | 3 | 0 | The dataset-dependent and internal-consistency revisions are now implemented |
+| RTC-requested items | 22 | 0 | 0 | All requested proposal-text revisions are implemented |
 | Self-identified notices | 2 | 0 | 0 | Reward and CTDE descriptions are aligned |
 
-The audit is **substantially addressed, but not fully closed**. The three open
-RTC items require source evidence or parameter decisions that the public APC and
-weather files cannot supply:
-
-1. E2C4 — independently verify the claimed weather/breakdown classification of
-   Verbich and El-Geneidy against the intended paper.
-2. E3C10 — obtain the defense-deck citations for the two breakdown studies and
-   reconcile them with Table 1.2.
-3. E3C15 — approve or source unresolved numeric targets, including fleet size,
-   scheduled headway, vehicle capacity, and disturbance intensities.
+The RTC audit is **closed at the proposal-text level**. The final source review
+removed an unsupported Verbich record, corrected Shi et al. from breakdown to
+demand/travel-time uncertainty, added verified weather and adjacent breakdown
+evidence, and made the parameter-table placeholders explicit. This does not
+mean the simulation is empirically complete: historical operations inputs,
+scenario choices, calibration, training, and results remain implementation
+gates and are still stated as such in the manuscript.
 
 ## Completed on the Texas Branch
 
@@ -51,6 +48,11 @@ weather files cannot supply:
 - Reframed Chapters 1–3 and the title around the CapMetro case; aligned the
   disturbance matrix, CTDE description, calibration claims, parameter table,
   and empirical-versus-synthetic boundaries.
+- Corrected the RTC literature evidence: Sun et al. (2025) now supplies verified
+  W-only rainfall evidence; Cao et al. (2022) and Guedes and Borenstein (2018)
+  are explicitly labeled adjacent B evidence; Shi et al. (2022) is D,T, not B.
+- Corrected Chapter 1 so W composes with the always-active empirical T baseline,
+  matching Chapters 2 and 3 and the evaluation activation matrix.
 - Updated the revision queue, tracker, audit trails, repository guidance, data
   documentation, and team handoff report.
 
@@ -79,6 +81,7 @@ No checkpoint has been overwritten. Existing checkpoints are under:
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-201254_baseline_before_texas_implementation`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-205643_pre_manuscript_after_public_data_pipeline`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-212903_final_post_commit_pre_push`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-213632_before_rtc_tex_repairs`
 
 The final checkpoint contains a verified all-ref Git bundle, a committed-source
 archive, the original manuscript PDF, and a compressed copy of the actual raw
@@ -89,17 +92,15 @@ inside the checkpoint folder.
 
 1. Acquire a contemporaneous 2021 CapMetro GTFS archive and a defensible fleet
    or vehicle-capacity source; keep current direction code 6 unlabeled until then.
-2. Resolve E3C15 numeric targets and replace the remaining `TODO-DATA`/
+2. Resolve the implementation-stage numeric targets and replace the remaining `TODO-DATA`/
    `TODO-VAL` placeholders only with sourced values or declared scenario inputs.
-3. Verify E2C4 against the source paper and reconcile E3C10 against the defense
-   deck.
-4. Implement the SUMO network and chronological calibration/validation split,
+3. Implement the SUMO network and chronological calibration/validation split,
    then document its goodness-of-fit before training any controller.
-5. Estimate an adjusted ordinary-rain effect; do not promote the pooled 204 s
+4. Estimate an adjusted ordinary-rain effect; do not promote the pooled 204 s
    versus 212 s medians into a causal multiplier.
-6. Run NC/FH/EH/SARL/MARL experiments only after calibration passes, then report
+5. Run NC/FH/EH/SARL/MARL experiments only after calibration passes, then report
    the actual seeds, run counts, confidence intervals, and failures.
-7. Compile and visually inspect the full manuscript in Overleaf before the next
+6. Compile and visually inspect the full manuscript in Overleaf before the next
    PDF is circulated.
 
 ## Validation and Publication Record

@@ -579,4 +579,33 @@ performance and does not fabricate a simulation result.
 
 ---
 
+## 2026-08-23 — Final RTC source and parameter close-out
+
+### What changed
+
+- Removed the unsupported Verbich weather-and-breakdown citation instead of
+  treating it as verified.
+- Added Sun et al. (2025) as verified rainfall evidence. It predicts bus dwell
+  time under rain; the paper now says clearly that it is not a controller.
+- Corrected Shi et al. from “demand + breakdown” to “demand + uncertain travel
+  time,” and corrected its bibliography author names and DOI.
+- Added the two defensible breakdown comparisons as adjacent evidence: Cao et
+  al. is MARL but for trains, while Guedes and Borenstein addresses bus/public-
+  transit failures but uses heuristic rescheduling. Neither is presented as an
+  earlier MARL bus controller.
+- Fixed the Chapter 1 contradiction about weather: weather stress is layered on
+  the always-active empirical travel-time baseline; it does not replace it.
+- Kept visible placeholders for parameters that still need sources or team
+  decisions. The breakdown rate is explicitly a synthetic scenario choice
+  because APC has no breakdown records.
+
+### Why
+
+These corrections address the RTC request using verified evidence while
+avoiding invented papers, disturbance classifications, or parameter values.
+All 22 RTC proposal-text items are now closed. The simulation is still not
+claimed to be calibrated, trained, or evaluated.
+
+---
+
 *Nothing follows.*

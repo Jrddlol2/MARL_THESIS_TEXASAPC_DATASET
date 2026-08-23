@@ -717,4 +717,45 @@ The same static pass removed an incomplete `\includeonly[` command from
 
 ---
 
+## 2026-08-23 — Final RTC source and parameter close-out (E2C4, E3C10, E3C15)
+
+**Branch:** `dataset/texas-capmetro-801`
+
+**Files:** `introduction.tex`, `methods.tex`, `thesis_refs.bib`,
+`RRL/sources.md`
+
+```diff
+- Verbich and El-Geneidy ... W, B
++ Sun et al. ... W (empirical/ML rainfall prediction; non-control)
+
+- Shi et al. ... D, B
++ Shi et al. ... D, T
+
++ Cao et al. ... B (MARL train rescheduling; adjacent evidence)
++ Guedes and Borenstein ... B (heuristic bus rescheduling; adjacent evidence)
+
+- W replaces T under non-ideal evaluation.
++ D and empirical T remain active; W composes multiplicatively with T.
+```
+
+The `verbich2021` record and its claims were removed because exact-title,
+author, journal-volume, and page checks did not locate the cited paper. The
+replacement Sun et al. record was verified against the full local article. Shi
+et al.'s author list, DOI, and D,T classification were corrected against the
+publisher record. Cao et al. was checked against its full local paper, and the
+Guedes--Borenstein record was checked against the publisher record. Table 1.2
+now separates adjacent breakdown evidence from MARL bus-control studies.
+
+Table 3.2 retains `%TODO-VAL` and `%TODO-DATA` wherever the current evidence
+cannot support a number. In particular, the breakdown rate is a declared
+synthetic scenario input rather than something calibrated from APC, which has
+no failure-event field. This closes the RTC text request without fabricating an
+empirical target.
+
+**Re-audit result:** 22 of 22 RTC proposal-text items resolved. Historical
+operations inputs, parameter selection, calibration, experiments, and results
+remain implementation gates.
+
+---
+
 *Nothing follows.*

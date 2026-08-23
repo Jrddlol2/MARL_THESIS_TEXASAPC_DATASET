@@ -135,10 +135,10 @@ X
 \multicolumn{4}{l}{\textit{Fixed simulation parameters}} \\
 \midrule
 
-Simulation horizon & --- & Single simulated operating day (\%TODO-VAL: exact start/end hours) & Section~3.1 \\
+Simulation horizon & --- & Single observed Route 801 service window (\texttt{\%TODO-DATA}: select start/end after historical schedule and timestamp-basis validation) & Section~3.1 \\
 Total distinct stop IDs (direction code 6) & $M$ & 29 & Reproduced CapMetro APC audit \\
 Fleet size (active buses) & $N$ & \%TODO-DATA: derive from concurrent Route 801 vehicle activity and verified schedule & CapMetro APC + historical GTFS \\
-Control stop count & --- & \%TODO-VAL: determined by criteria in Section~3.2.2 once dataset is processed & Section~3.2.2 \\
+Control stop count & --- & \texttt{\%TODO-VAL}: select from 29 observed stop IDs using Section~3.2.2 criteria after calibration/validation & Section~3.2.2 \\
 Scheduled headway & $H_0$ & \%TODO-DATA: 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
 Bus passenger capacity & --- & \%TODO-DATA: verified vehicle/fleet specification & CapMetro fleet specification \\
 Maximum holding duration & $\Delta T$ & \%TODO-VAL: to be set during implementation & Section~3.2.7 (Action Space) \\
@@ -154,10 +154,10 @@ Discount / event-based discount & $\gamma$, $\beta$ & \%TODO-VAL: tuned during i
 Synthetic severe-weather intensity & $\eta$ & $\{0.0, 0.3, 0.6, 1.0, 1.3\}$; values above observed support are stress tests & Section~3.2.6 \\
 Demand-surge scale & $f_d$ & $\mathcal{N}(1,\sigma_d^2)$ with \%TODO-VAL $\sigma_d$ and support clipped to $[1,3]$ & Section~3.2.6 \\
 Traffic-speed stress scale & $f_s$ & $\mathcal{N}(1,\sigma_s^2)$ with \%TODO-VAL $\sigma_s$ and support clipped to $[0.8,1.2]$ & Section~3.2.6 \\
-Breakdown rate & $\lambda$ & \%TODO-VAL: calibrated during implementation (events/hour) & Section~3.2.6 \\
+Breakdown rate & $\lambda$ & \texttt{\%TODO-VAL}: declared scenario rate (events per bus-hour); APC contains no failure events & Section~3.2.6 \\
 
 \midrule
-\multicolumn{4}{l}{\textit{Derived parameters (from SUMO calibration)}} \\
+\multicolumn{4}{l}{\textit{Derived empirical/calibration parameters}} \\
 \midrule
 
 Baseline inter-stop travel time & $\mu$ & Per-segment, time-of-day, and day-type bin, to be computed & CapMetro \texttt{rev\_seconds} \\
@@ -170,7 +170,7 @@ Lognormal unit-mean factor location & $\mu_{ln}$ & $-\sigma_{ln}^2/2$ (Eq.~\ref{
 \end{tabularx}
 \end{table}
 
-Table~\ref{tab:sim-parameters} is the parameter reference for this chapter. A \%TODO-VAL is a design value still requiring experimental selection; a \%TODO-DATA is a value blocked on an external source or unfinished empirical derivation. The 29-stop count is reproduced from the clean direction-code 6 subset. The demand and speed clip supports are not standard deviations: $\sigma_d$ and $\sigma_s$ remain separate distribution parameters and cannot be replaced by their clip bounds.
+Table~\ref{tab:sim-parameters} is the parameter reference for this chapter. A \texttt{\%TODO-VAL} is a design value still requiring an explicitly justified experimental choice; a \texttt{\%TODO-DATA} is a value blocked on an external source or unfinished empirical derivation. These visible RTC-compliant placeholders prevent unsupported target values from being mistaken for observed CapMetro quantities. The 29-stop count is reproduced from the clean direction-code 6 subset. The demand and speed clip supports are not standard deviations: $\sigma_d$ and $\sigma_s$ remain separate distribution parameters and cannot be replaced by their clip bounds.
 
 \subsection{Data Processing}
 
@@ -465,7 +465,7 @@ The mapping from $\eta$ to named weather severity is not established. The sweep 
 
 \subsubsection{Bus Breakdowns}
 
-Unlike the perturbations above, a bus breakdown is a \textit{discrete event} that removes a bus from active simulation \cite{Cao2022Train,Shi2022DistDRL}. Breakdowns are triggered at random times sampled from a Poisson process with a configurable rate $\lambda$ (Table~\ref{tab:notation}). In implementation, at each discrete simulation timestep of length $dt$, a Bernoulli trial with probability $\lambda \cdot dt$ is evaluated independently for each active bus; a success removes that bus from the active agent set for the remainder of the simulated day. When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set, leaving an enlarged headway between the trailing bus $b_{k-1}$ and the leading bus $b_{k+1}$. The passengers that $b_k$ would have served accumulate at the stops ahead of $b_{k-1}$, so the trailing bus inherits this residual demand as it advances.
+Unlike the perturbations above, a bus breakdown is a \textit{discrete event} that removes a vehicle from active simulation. Cao et al.~\cite{Cao2022Train} model Poisson train malfunctions in an adjacent MARL rescheduling setting, while Guedes and Borenstein~\cite{Guedes2018Rescheduling} model serious public-transit vehicle failures in heuristic real-time rescheduling. These sources support the event/removal semantics, not an empirical CapMetro failure rate; the APC data contain no breakdown field. Breakdowns are therefore a labeled synthetic stressor triggered at random times from a Poisson process with a configurable scenario rate $\lambda$ (Table~\ref{tab:notation}). In implementation, at each discrete simulation timestep of length $dt$, a Bernoulli trial with probability $\lambda \cdot dt$ is evaluated independently for each active bus; a success removes that bus from the active agent set for the remainder of the simulated day. When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set, leaving an enlarged headway between the trailing bus $b_{k-1}$ and the leading bus $b_{k+1}$. The passengers that $b_k$ would have served accumulate at the stops ahead of $b_{k-1}$, so the trailing bus inherits this residual demand as it advances.
 
 A breakdown does not override any surviving agent's policy; it changes the state and reward landscape. Removing $b_k$ enlarges the gap between the trailing and leading buses, and passengers that would have boarded $b_k$ continue accumulating in the simulated queues. A trailing agent may choose to hold less or skip a stop to close the gap, but a skipped stop serves neither boarding nor alighting passengers in that event and therefore incurs the waiting/skip penalty. The environment never injects a recovery action: every hold/skip decision originates from $\pi_\theta$.
 

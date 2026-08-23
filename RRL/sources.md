@@ -44,7 +44,7 @@
 | Tiglao2025 or EDSApolicy2023 | (EDSA busway policy papers) | sustainability-15-15018.pdf | TENTATIVE (MDPI Sustainability-style filename, not opened to confirm which key) |
 | Wang2020Holding | Dynamic Holding Control to Avoid Bus Bunching: A MARL Framework | Reducing bus bunching with asynchronous multiagent.pdf | **MISMATCHED (confirmed 2026-08-06)** — this PDF is actually Wang & Sun's *"Reducing Bus Bunching with Asynchronous Multi-Agent Reinforcement Learning"* (IJCAI-21, the CAAC paper), a different paper by the same authors. It is reference [9] cited *inside* the Wangsun/IQNC-M paper, not the TR-C 2020 paper this bib key names. Confirmed by reading the PDF's own title page and its reference list, which separately cites "Wang and Sun, 2020, ... Transportation Research Part C ..., 116:102661" as distinct prior work — matching the bib entry exactly (journal/vol/page/year/DOI all confirmed), meaning the *bib entry* is correctly specified but the *cached PDF* is the wrong file. No PDF of the actual TR-C 2020 paper is currently in this folder. |
 | N/A — not cited | Scalable and reliable multi-agent reinforcement learning for traffic assignment (Wang, Duan, Lyu, et al.) | 1-s2.0-S2772424725000654-main.pdf | **IDENTIFIED, not in thesis_refs.bib (2026-08-06)** — Communications in Transportation Research 5 (2025) 100225. MARL for network-wide traffic *assignment* (OD-pair routing), not bus scheduling/holding; no weather modeling. Appears to be background reading, not an actual citation in the manuscript. |
-| N/A — not cited | Analysis and Dynamic Prediction of Bus Dwell Time Under Rainfall Conditions (Sun, Yang, Dong, Lu, Wang) | 7_593-Sun_Final.pdf | **IDENTIFIED, not in thesis_refs.bib (2026-08-06)** — *Promet – Traffic&Transportation* 37(1):105-121, 2025, DOI 10.7307/ptt.v37i1.593. Empirical study of bus dwell time under rainfall in Shenyang (BP/GA-BP neural-net prediction, not RL/control). Directly on-topic for the weather (W) disturbance motivation but currently uncited — see TRACKER.md citation-verification entry for discussion. |
+| SunRain2025 | Analysis and Dynamic Prediction of Bus Dwell Time Under Rainfall Conditions (Sun, Yang, Dong, Lu, Wang) | 7_593-Sun_Final.pdf | **CONTENT-VERIFIED AND CITED (2026-08-23)** — *Promet – Traffic&Transportation* 37(1):105-121, 2025, DOI 10.7307/ptt.v37i1.593. Empirical Shenyang study of bus dwell time under measured rainfall using SVM, KNN, BP, and GA-BP prediction. Used only as adjacent W evidence; it is not RL or a bus-control baseline. |
 | ??? | ??? | A deep reinforcement learning model for dynamic job-shop scheduling.pdf | UNMATCHED — no corresponding bib title found; may be background reading not cited in the manuscript |
 | ??? | ??? | An Approach to Model a Traffic Environment by Addressing Sparsity in VehicleCount Data.pdf | UNMATCHED — not cited in the manuscript as far as identified |
 | ??? | ??? | Enhancing SUMO simulator for simulation based testing and validation of autonomous vehicles.pdf | UNMATCHED — not cited in the manuscript as far as identified |
@@ -90,8 +90,9 @@ manuscript claims checked — filename matching only establishes which PDF
 corresponds to which key, not that every citation is accurate.
 
 ## Cited keys with NO PDF in this folder (verify against .bib metadata only)
-TSSP_Rain2018, DOTr2020Suspension, DOTr2025Ridership, Daganzo2009, verbich2021,
+TSSP_Rain2018, DOTr2020Suspension, DOTr2025Ridership, Daganzo2009,
 Christianos2021PS, Ollero2024EDSA, Zhang2025SADRL, Zhao2022STDH, Shi2022DistDRL,
+Guedes2018Rescheduling,
 Chen2016MARLBus, and most background/methods citations (Bellman1957, Littman1994,
 vanHasselt2016DDQN, Mnih2015DQN, etc. — standard RL/stats references, lower
 verification priority than corridor- and disturbance-specific claims).

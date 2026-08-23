@@ -99,7 +99,7 @@ This section surveys prior work on data-driven bus and traffic scheduling using 
 
 Machine Learning (ML) techniques subsequently emerged as important tools for improving operational responsiveness in transportation systems through demand estimation, traffic forecasting, predictive dispatching, and adaptive holding strategies \cite{huang2019,patil2025}. Unlike static scheduling approaches, ML-assisted frameworks incorporate continuously updated operational information to improve short-term decision support under uncertain traffic conditions \cite{huang2019}. Recent applications to transit operations have demonstrated measurable operational gains. Barrera Hernandez et al. applied passenger-demand forecasting to support a heuristic dispatcher for bus operations in Bogotá, reporting reductions in passenger waiting time and operational cost relative to fixed timetables \cite{Barrera2025Optimization}. Similarly, Usman et al. utilized ML-based density estimation to improve real-time responsiveness in public transit systems \cite{Usman2025ML}. These studies demonstrate the growing role of ML-assisted methodologies in adaptive transit scheduling and operational planning.
 
-Despite these advances, many ML-assisted transit-control frameworks still rely heavily on manually engineered intervention logic and externally designed dispatch heuristics \cite{alexandre2023}. In several predictive-control and heuristic-dispatch systems, forecasting components improve operational visibility, but the resulting operational responses are still governed by manually specified holding rules, threshold conditions, or predefined intervention strategies \cite{pang2019,verbich2021}. In the framework proposed by Barrera Hernandez et al., for example, the forecasting model informs the dispatcher but does not autonomously determine operational actions such as holding duration, dispatch timing, or stop-skipping behavior \cite{Barrera2025Optimization}. Consequently, while ML-assisted scheduling frameworks improve anticipatory planning and adaptive responsiveness, many existing implementations still stop short of establishing a fully integrated closed-loop control framework capable of autonomously optimizing sequential dispatch decisions over time.
+Despite these advances, many ML-assisted transit-control frameworks still rely heavily on manually engineered intervention logic and externally designed dispatch heuristics \cite{alexandre2023}. In several predictive-control and heuristic-dispatch systems, forecasting components improve operational visibility, but the resulting operational responses are still governed by manually specified holding rules, threshold conditions, or predefined intervention strategies \cite{pang2019,Barrera2025Optimization}. In the framework proposed by Barrera Hernandez et al., for example, the forecasting model informs the dispatcher but does not autonomously determine operational actions such as holding duration, dispatch timing, or stop-skipping behavior \cite{Barrera2025Optimization}. Consequently, while ML-assisted scheduling frameworks improve anticipatory planning and adaptive responsiveness, many existing implementations still stop short of establishing a fully integrated closed-loop control framework capable of autonomously optimizing sequential dispatch decisions over time.
 
 \begin{table}[htbp]
 \centering
@@ -166,7 +166,7 @@ To situate the MARL literature reviewed in the next subsection within the broade
 
 \begin{table}[htbp]
 \centering
-\caption{Disturbance coverage across ML and SARL vehicle-scheduling studies, preceding the MARL-specific comparison in Table~\ref{tab:marl_performance}.}
+\caption{Disturbance coverage across ML and SARL vehicle-scheduling studies and adjacent weather evidence, preceding the MARL-specific comparison in Table~\ref{tab:marl_performance}.}
 \label{tab:ml_sarl_coverage}
 
 \footnotesize
@@ -206,18 +206,18 @@ SARL &
 SA-DRL; categorical identity features (vehicle, station, trip ID) &
 D, T \\
 
-Verbich and El-Geneidy~\cite{verbich2021} &
-Heuristic (non-MARL) &
-Dynamic transit control under severe weather and vehicle breakdowns &
-W, B \\
+Sun et al.~\cite{SunRain2025} &
+ML prediction (non-control) &
+SVM, KNN, BP, and GA-BP prediction of bus dwell time under measured rainfall &
+W \\
 
 \bottomrule
 \addlinespace[2pt]
-\multicolumn{4}{@{}p{\textwidth}@{}}{\footnotesize D~=~stochastic demand, S~=~demand surges, T~=~traffic-speed perturbation, W~=~weather-induced heavy-tail delay, B~=~discrete vehicle breakdown. Disturbance coverage for the ML/SARL rows follows the characterization given by the RTC panel during the proposal review; unlike Table~\ref{tab:marl_performance}, these classifications have not been independently re-verified against each paper's full text.} \\
+\multicolumn{4}{@{}p{\textwidth}@{}}{\footnotesize D~=~stochastic demand, S~=~demand surges, T~=~traffic-speed perturbation, W~=~weather exposure or weather-induced travel-time variability, B~=~discrete vehicle breakdown. Sun et al. provide empirical and predictive weather evidence, not a bus-control or reinforcement-learning baseline.} \\
 \end{tabularx}
 \end{table}
 
-The funnel is now complete: no ML or SARL study covers W or B, and among MARL studies (Table~\ref{tab:marl_performance}), only Verbich and El-Geneidy's heuristic controller~\cite{verbich2021} addresses both --- and it is explicitly non-MARL. Patil et al.~\cite{Patil2025Conformal} similarly validate weather-induced travel-time distributions but do not address bus control at all; their contribution to this study is the lognormal parameterization used by the weather-disturbance generator (Section~3.2.6), not a bus-control baseline. No prior study, ML, SARL, or MARL, combines W and B coverage with an actual MARL bus-scheduling controller, which is the specific gap this study fills.
+The comparison separates evidence by function. Sun et al.~\cite{SunRain2025} empirically analyze and predict bus dwell time under measured rainfall, so they support the relevance of W but do not provide a controller baseline. Patil et al.~\cite{Patil2025Conformal} validate a lognormal travel-time form for simulated arterial scenarios, which supplies the distributional form used by the synthetic weather-stress generator (Section~3.2.6), not a bus-control result. The breakdown evidence reviewed below is likewise adjacent rather than prior MARL bus control. Within the reviewed set, no MARL bus-scheduling study evaluates both W and B, which is the narrower gap tested by this study.
 
 \subsection{Multi-Agent Reinforcement Learning}
 
@@ -266,13 +266,13 @@ The foundational result is due to Wang and Sun~\cite{Wang2020Holding}, who showe
 
 Subsequent work enriched the formulation along two axes. Rodriguez et al.~\cite{Rodriguez2023Cooperative} extended the action space by combining holding with stop-skipping in a cooperative DDQN framework on a simulated transit corridor with Poisson-distributed passenger arrivals and Gaussian inter-stop travel times, reporting reductions in average passenger waiting time relative to an even-headway holding baseline. Wang and Sun~\cite{Wang2023MultiObj} extended the objective space, scaling MARL to multi-line services with a shared corridor and jointly optimizing headway regularity against operational cost under controlled simulated demand and travel-time profiles.
 
-Recent work has increasingly examined policy behavior under disturbance. Wang and Sun's IQNC-M~\cite{Wangsun} introduced implicit quantile networks and meta-learning for risk-sensitive bus holding, evaluating performance under demand surges and traffic-speed perturbations but not under weather-induced heavy-tailed delays or discrete vehicle breakdowns. In adjacent settings, Katzilieris et al.~\cite{Katzilieris2026MARL} integrated MADDPG-based traffic signal control with dynamic bus lane access management on a simulated arterial network with deterministic signal cycles; Liu et al.~\cite{Liu2023DRLHolding} reported DRL-based holding control under stochastic travel time and demand; and Shi et al.~\cite{Shi2022DistDRL} reported a distributed DRL bus control system in a connected environment with breakdown events modeled but without weather effects.
+Recent work has increasingly examined policy behavior under disturbance. Wang and Sun's IQNC-M~\cite{Wangsun} introduced implicit quantile networks and meta-learning for risk-sensitive bus holding, evaluating performance under demand surges and traffic-speed perturbations but not under weather-induced heavy-tailed delays or discrete vehicle breakdowns. In adjacent settings, Katzilieris et al.~\cite{Katzilieris2026MARL} integrated MADDPG-based traffic signal control with dynamic bus lane access management on a simulated arterial network with deterministic signal cycles; Liu et al.~\cite{Liu2023DRLHolding} reported DRL-based holding control under stochastic travel time and demand; and Shi et al.~\cite{Shi2022DistDRL} reported a distributed DRL bus control system under uncertain interstation travel time and passenger demand, without modeling vehicle breakdowns or weather effects.
 
 Across this trajectory, the simulation environments often assume stationary Poisson passenger arrivals, symmetric inter-stop travel times, and a failure-free fleet. Reported gains are therefore conditional on those assumptions. The CapMetro APC data permit empirical, stop- and time-specific demand, dwell, load, and segment travel-time baselines, while the verified NOAA join supplies observed ordinary-weather exposure. The APC source contains no breakdown field and does not by itself establish an extreme-weather tail, so those two conditions are introduced only as labeled synthetic stressors. A controller calibrated to the public data still requires explicit robustness testing before its gains can be generalized beyond ordinary observed operation.
 
 \begin{table}[htbp]
 \centering
-\caption{Disturbance coverage across MARL bus-scheduling literature.}
+\caption{Disturbance coverage across MARL bus-scheduling literature and adjacent breakdown-control evidence.}
 \label{tab:marl_performance}
 
 \footnotesize
@@ -339,8 +339,26 @@ Wait time vs.\ no-control \\
 Shi et al.\ (2022)~\cite{Shi2022DistDRL} &
 Distributed DRL &
 Connected environment &
-D, B &
+D, T &
 Integrated control gains \\
+
+\addlinespace[2pt]
+\multicolumn{5}{l}{\textit{Adjacent breakdown-control evidence (not MARL bus control)}} \\
+\midrule
+
+Cao et al.\ (2022)~\cite{Cao2022Train} &
+MARL rescheduling &
+Flatland rail network &
+B &
+Adaptation under train malfunctions \\
+
+Guedes and Borenstein (2018)~\cite{Guedes2018Rescheduling} &
+Heuristic rescheduling &
+Real public-transit bus network &
+B &
+Recovery after vehicle failures \\
+
+\midrule
 
 \textbf{This study} &
 \textbf{DDQN + PS (CTDE)} &
@@ -355,13 +373,13 @@ Integrated control gains \\
 \end{table}
 
 \clearpage
-Only Shi et al.~\cite{Shi2022DistDRL} carries a B (breakdown) entry in Table~\ref{tab:marl_performance}. Cao et al.~\cite{Cao2022Train}, which also models discrete vehicle failures, is deliberately excluded from this count: their MARL application is to \textit{train} rescheduling, not bus scheduling, so it does not belong in a table scoped to MARL bus-control literature. Verbich and El-Geneidy~\cite{verbich2021} likewise model breakdowns but use heuristic, non-MARL control (Table~\ref{tab:ml_sarl_coverage}), so they are excluded for the same reason. Among MARL bus-scheduling studies specifically, Shi et al. remains the only one to model discrete breakdowns.
+The two B entries reconcile the breakdown studies as adjacent evidence without misclassifying either one. Cao et al.~\cite{Cao2022Train} apply MARL to \textit{train} rescheduling under malfunctions, whereas Guedes and Borenstein~\cite{Guedes2018Rescheduling} apply heuristic real-time rescheduling to public-transit bus failures. The former is MARL but not bus control; the latter is bus failure control but not MARL. Source verification also showed that Shi et al.~\cite{Shi2022DistDRL} study uncertain passenger demand and interstation travel time (D, T), not breakdowns. Consequently, none of the B entries in Table~\ref{tab:marl_performance} is a prior MARL bus-scheduling controller.
 
 Table~\ref{tab:marl_performance} summarizes what each study evaluated, what disturbances it modeled, and what it reported. No prior MARL bus paper identified in this review evaluates demand surges, ordinary travel-time variability, heavy-tailed weather stress, and discrete breakdowns together in a public-data-calibrated corridor simulation. Of these classes, observed ordinary rain is available for the CapMetro baseline; severe weather and breakdowns remain synthetic stressors. The algorithmic choice for that setting, DDQN with parameter sharing under CTDE, is justified in Chapter~3 (Section~\ref{subsec:proposed-algorithm}). At each control event, an agent selects a holding strength from $\alpha \in \{0.0, 0.1, 0.2, 0.3, 0.4\}$, scaled by a maximum holding duration, and a binary next-stop skip decision, giving $|A_i| = 10$ actions. The full action-space rationale is given in Chapter~3 (Section~\ref{subsec:action-space}).
 
 
 
-Under the non-ideal evaluation regime the weather generator (W) \textbf{replaces} the traffic-speed generator (T) as the source of inter-stop travel-time variability rather than acting alongside it. Both are anchored to the same per-segment empirical mean $\mu$, and the weather coefficient of variation ($\eta \ge 0.3$) already spans and exceeds the $\pm 20\%$ range produced by traffic-speed scaling (Section~3.2.6). T therefore governs travel-time stochasticity under the ideal regime and W governs it under the non-ideal regime; the two are not composed on the same segment.
+Demand (D) and empirical traffic-time variability (T) remain active in every evaluation phase. Under the non-ideal regime, the synthetic weather factor (W) is composed multiplicatively with the empirical T draw rather than replacing it (Section~3.2.6). Thus a ``W-only'' ablation means D+T+W with S and B inactive; it isolates W's incremental effect while retaining the same public-data-calibrated baseline used by every controller.
 
 
 

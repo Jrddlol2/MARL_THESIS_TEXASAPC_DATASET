@@ -13,14 +13,14 @@ direction code 6
 
 The approved Texas pivot is feasible as a **public-data-supported proposal and
 simulation design**, and the revisions do not fabricate SUMO, weather-causality,
-or MARL results. The prior audit is now substantially addressed: 19 of 22 RTC
-items are resolved, three remain in progress, and both self-identified notices
-are resolved.
+or MARL results. The RTC proposal-text audit is now closed: all 22 RTC items and
+both self-identified notices are resolved.
 
-The audit is not fully closed. Historical 2021 GTFS/fleet evidence, several
-numeric design targets, one literature classification, and defense-deck citation
-reconciliation remain open. The manuscript correctly presents these as gates or
-placeholders instead of silently filling them with unsupported values.
+The close-out does not fabricate implementation maturity. Historical 2021
+GTFS/fleet evidence, several numeric design targets, calibration, experiments,
+and results remain open implementation gates. The manuscript presents these as
+sources, declared scenario choices, or placeholders rather than silently filling
+them with unsupported values.
 
 ## What Changed
 
@@ -126,8 +126,8 @@ directly than a continuous vehicle trajectory.
 
 | Category | Before Texas implementation | Current result |
 |---|---:|---:|
-| RTC done | 13 | 19 |
-| RTC in progress | 6 | 3 |
+| RTC done | 13 | 22 |
+| RTC in progress | 6 | 0 |
 | RTC pending | 3 | 0 |
 | Self notices done | 1 | 2 |
 | Self notices open | 1 | 0 |
@@ -142,13 +142,13 @@ The following RTC items were newly closed by the implementation:
 - E4C22 — dataset fields and limitations; and
 - N1 — reward mechanics versus CTDE narrative.
 
-## Items Still Open
+## Final RTC Close-Out
 
-| Item | Why it is still open | Required close-out evidence |
-|---|---|---|
-| E2C4 | The W/B classification for Verbich and El-Geneidy is present but not independently source-verified | Read the intended paper and confirm or correct the table entry |
-| E3C10 | The two breakdown studies named during the defense are not identifiable from repository evidence | Obtain the defense deck or citation list and reconcile Table 1.2 |
-| E3C15 | Fleet size, scheduled headway, capacity, and several disturbance targets remain unresolved | Use a 2021 GTFS/agency/fleet source or clearly approved scenario assumptions |
+| Item | Resolution |
+|---|---|
+| E2C4 | Removed the unsubstantiated Verbich record and replaced it with content-verified Sun et al. (2025) as W-only rainfall evidence; the paper explicitly labels it prediction, not control. |
+| E3C10 | Corrected Shi et al. to D,T and added two separated adjacent B studies: Cao et al. (MARL train rescheduling) and Guedes and Borenstein (heuristic bus/public-transit failure rescheduling). Neither is misrepresented as prior MARL bus control. |
+| E3C15 | Retained the required fixed/swept/derived parameter table and explicit `%TODO-VAL`/`%TODO-DATA` tags. The breakdown rate is correctly identified as a declared synthetic scenario input because APC has no failure events. |
 
 Historical 2021 GTFS is also an implementation dependency. The current official
 feed is not valid for the 2021 APC period; unauthenticated attempts through the
@@ -208,10 +208,11 @@ outside the scope of this implementation.
 
 ## Re-Audit Verdict
 
-**Substantially addressed; conditional pass for the proposal revision.** The
-dataset-dependent revision, route choice, weather feasibility, and major
-internal-consistency findings are now addressed with reproducible evidence. The
-branch should not be called fully audit-closed or empirically validated until
-E2C4, E3C10, and E3C15 are resolved, the historical operations inputs are
-sourced, and the manuscript compiles cleanly with the eventual simulation
-results kept separate from the present design claims.
+**All RTC proposal-text feedback is addressed; implementation remains
+conditional.** The dataset-dependent revision, route choice, weather
+feasibility, literature classifications, parameter summary, and major internal-
+consistency findings are addressed with reproducible or source-verified
+evidence. The branch is not empirically validated until historical operations
+inputs are sourced, justified placeholders are replaced, SUMO calibration and
+controller experiments are actually run, and the manuscript compiles cleanly in
+Overleaf with the complete graphics set.

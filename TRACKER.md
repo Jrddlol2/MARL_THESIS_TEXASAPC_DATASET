@@ -10,8 +10,8 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 19 |
-| In progress | 3 (E2C4, E3C10, E3C15) |
+| Completed | 22 |
+| In progress | 0 |
 | Pending | 0 |
 
 ---
@@ -46,6 +46,35 @@ though the task is technically satisfiable with placeholder-only language.
 ---
 
 ## Completed Changes
+
+---
+### 2026-08-23 — RTC literature and parameter close-out (E2C4, E3C10, E3C15)
+
+**Files edited:** `introduction.tex`, `methods.tex`, `thesis_refs.bib`,
+`RRL/sources.md`
+
+**What was corrected:**
+
+- Removed the unsubstantiated `verbich2021` bibliography record and its W,B
+  controller claims. Exact-title and journal-volume checks did not identify the
+  cited article.
+- Added content-verified Sun et al. (2025) as W-only empirical/ML rainfall
+  prediction evidence, explicitly not RL or a bus-control baseline.
+- Corrected Shi et al.'s authors, DOI, and disturbance classification from D,B
+  to D,T after checking the publisher abstract/full record.
+- Added two clearly separated adjacent B studies to Table 1.2: Cao et al.
+  (MARL train rescheduling) and Guedes and Borenstein (heuristic bus/public-
+  transit rescheduling). The manuscript explains why neither is prior MARL bus
+  control.
+- Aligned Chapter 1 with Chapters 2–3: W composes with, rather than replaces,
+  the always-active empirical T baseline.
+- Retained RTC-permitted `%TODO-VAL`/`%TODO-DATA` tags in Table 3.2 and clarified
+  that the synthetic breakdown rate is a scenario input, not an APC-calibrated
+  value.
+
+**Result:** All 22 RTC proposal-text items are now resolved. Sourcing historical
+operations inputs and filling justified scenario/calibration values remain
+implementation tasks, not open RTC text-revision items.
 
 ---
 ### E1C3 — Weather disturbance derivation in research gap

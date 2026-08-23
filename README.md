@@ -43,10 +43,11 @@ have already been found wrong by checking against the actual source PDFs
 
 ## Start here if you're a human contributor
 
-Same files, different angle: `REVISION_QUEUE.md` tells you what's left. The
-remaining blockers are source verification, defense-deck evidence
-reconciliation, and unresolved numeric target parameters; public APC/weather
-access is no longer the blocker.
+Same files, different angle: `REVISION_QUEUE.md` records all 22 RTC text items
+as resolved. `PROGRESS.md` now separates that close-out from the work still
+needed for implementation: historical operations sources, justified scenario
+values, calibration, experiments, and an Overleaf compile with the complete
+graphics folder.
 `AUDIT_TRAIL_READABLE.md` is the fastest way to see what an AI session
 actually changed in plain English, without reading raw LaTeX diffs.
 

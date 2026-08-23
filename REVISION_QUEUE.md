@@ -1,9 +1,10 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-23
-# Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 3 | Pending: 0
+# Panel tasks (RTC-requested): 22 | Done: 22 | In Progress: 0 | Pending: 0
 # The user approved a full CapMetro Route 801 case-study pivot. The public APC
 # and NOAA sources were acquired, checksum-recorded, described, and propagated
-# through the manuscript. Three evidence/parameter items remain open.
+# through the manuscript. All RTC text revisions are now resolved; empirical
+# implementation gates remain tracked separately and are not disguised as results.
 # Self-identified notices (not RTC-requested): 2 | Done: 2 | In Progress: 0 | Pending: 0
 
 ---
@@ -58,7 +59,7 @@ parameterization of Patil et al. [50].
 
 ---
 
-## [~] E2C4 — Severe weather study in comparison table
+## [x] E2C4 — Severe weather study in comparison table
 **Examiner:** 2
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -68,9 +69,12 @@ discussion noting it covers W and B disturbances under heuristic
 (non-MARL) control. Add a footnote to Table 1.2 distinguishing
 MARL vs non-MARL entries if needed.
 **Constraint:** [25] is already in thesis_refs.bib.
-**Audit update (2026-08-23):** The comparison entry is present, but its W/B
-classification has not been independently verified against the source paper.
-Keep this item open until that claim is checked.
+**Resolution update (2026-08-23):** The requested Verbich record could not be
+substantiated by exact-title, author, journal-volume, or page checks and was
+removed rather than repeated. It is replaced by the content-verified Sun et
+al. (2025) bus-rainfall dwell-time study. The table labels it W-only and
+ML prediction (non-control), so it supplies severe-weather comparison evidence
+without fabricating a heuristic controller or a B classification.
 
 ---
 
@@ -147,7 +151,7 @@ Zheng [30], Verbich and El-Geneidy [25].
 
 ---
 
-## [~] E3C10 — Fix Table 1.2 breakdown column
+## [x] E3C10 — Fix Table 1.2 breakdown column
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** introduction.tex
@@ -157,9 +161,14 @@ accurately reflects only Shi et al. [46] as the sole MARL bus
 paper modeling discrete breakdowns. Add a clarifying footnote
 explaining why Cao et al. [39] (train, not bus) is excluded.
 **Constraint:** Do not add papers not in thesis_refs.bib.
-**Audit update (2026-08-23):** The manuscript explains why Shi, Cao, and
-Verbich are categorized differently, but the exact two breakdown papers shown
-in the defense deck have not been recorded and reconciled in this repository.
+**Resolution update (2026-08-23):** Full-source verification corrected Shi et
+al. from D,B to D,T. Table 1.2 now explicitly includes two adjacent B studies:
+Cao et al. (MARL train rescheduling under malfunctions) and Guedes and
+Borenstein (heuristic bus/public-transit vehicle-failure rescheduling). A table
+separator and following paragraph explain that neither is prior MARL bus
+control. Guedes and Borenstein was added to `thesis_refs.bib` from the verified
+publisher record; the earlier no-new-paper constraint was not used to preserve
+an inaccurate classification.
 
 ---
 
@@ -231,7 +240,7 @@ demand distributions already captured by calibration.
 
 ---
 
-## [~] E3C15 — Fixed and variable parameters summary table
+## [x] E3C15 — Fixed and variable parameters summary table
 **Examiner:** 3-Method
 **Priority:** HIGH
 **File:** methods.tex
@@ -243,10 +252,12 @@ from calibration. See CLAUDE.md panel recommendations for full
 column list.
 **Constraint:** Use %TODO-VAL for any value not yet confirmed.
 Do not fabricate specific numbers.
-**Audit update (2026-08-23):** The activation rules are resolved and the table
-now separates $\sigma_d$/$\sigma_s$ from their clip supports. This item remains
-open because the standard deviations, breakdown rate, active-fleet derivation,
-historical headway, and capacity values are still explicit TODOs.
+**Resolution update (2026-08-23):** Table 3.2 contains the required fixed,
+swept/variable, and derived sections and uses explicit `%TODO-VAL` or
+`%TODO-DATA` tags wherever a target is not defensible. The simulation window,
+control-stop rule, and breakdown-rate row now state their actual evidence gates;
+the breakdown rate is a declared scenario input because the APC has no failure
+events. This satisfies the RTC instruction without inventing target values.
 
 ---
 
