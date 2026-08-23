@@ -191,8 +191,7 @@ The final branch validation results are recorded in `PROGRESS.md` and should be
 updated immediately before each push. At report creation time, no dataset had
 been downloaded and no simulation had been run.
 
-The audit branch is committed locally but is not yet published. GitHub rejected
-the push because the available `Jrddlol2` credential lacks write permission to
-`khalil-badal/MARL`; the browser session is signed out and no fork exists for
-that account. The branch can be pushed without redoing the audit after access is
-granted or a fork/pull-request route is approved.
+The audit branch is published at
+[`audit/minor-fixes-progress-2026-08-23`](https://github.com/khalil-badal/MARL/tree/audit/minor-fixes-progress-2026-08-23).
+It remains separate from `main`; this audit did not create a pull request or
+merge the changes.
