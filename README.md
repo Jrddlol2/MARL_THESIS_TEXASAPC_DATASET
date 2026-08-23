@@ -1,15 +1,16 @@
 # MARL — Bus Scheduling Thesis (Group B3)
 
 **Title:** An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus
-Scheduling Under Non-Ideal Conditions
+Scheduling Under Non-Ideal Conditions: A CapMetro Rapid Case Study
 **Institution:** University of Santo Tomas, ECE 21126
 **Status:** Undergraduate thesis proposal, ACCEPTED with major revisions.
 The original August 8, 2026 resubmission deadline has passed; the team must
 confirm the extension or replacement deadline.
 
 **Current handoff:** [PROGRESS.md](PROGRESS.md) is the live next-step tracker.
-The detailed repository and manuscript findings are in
-[AUDIT_REPORT_2026-08-23.md](AUDIT_REPORT_2026-08-23.md).
+The original audit is in [AUDIT_REPORT_2026-08-23.md](AUDIT_REPORT_2026-08-23.md);
+the Texas implementation and follow-up status are in
+[RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md](RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md).
 
 This repository holds the LaTeX manuscript **and** a structured workflow for
 using an AI coding assistant (Claude Code, or similar) to carry out the
@@ -42,9 +43,10 @@ have already been found wrong by checking against the actual source PDFs
 
 ## Start here if you're a human contributor
 
-Same files, different angle: `REVISION_QUEUE.md` tells you what's left to
-do and what's blocking it (mostly: waiting on dataset access, or waiting on
-someone to pull the missing presentation figures from the defense slides).
+Same files, different angle: `REVISION_QUEUE.md` tells you what's left. The
+remaining blockers are source verification, defense-deck evidence
+reconciliation, and unresolved numeric target parameters; public APC/weather
+access is no longer the blocker.
 `AUDIT_TRAIL_READABLE.md` is the fastest way to see what an AI session
 actually changed in plain English, without reading raw LaTeX diffs.
 
@@ -65,6 +67,14 @@ futurework.tex       (not yet written — commented out of main.tex)
 appendix.tex         (not yet written — commented out of main.tex)
 ai_declaration.tex   AI-use declaration (currently empty)
 thesis_refs.bib      bibliography
+```
+
+**Texas public-data implementation:**
+```
+config/texas_capmetro_801.json       approved case-study and source gates
+scripts/texas_capmetro_pipeline.py   reproducible APC/NOAA acquisition + audit
+data/README.md                       local data layout and reproduction command
+data/audit/texas_capmetro/           compact queries, checksums, and evidence
 ```
 
 **Revision workflow** (how the manuscript gets edited, and how that's tracked):
@@ -112,5 +122,5 @@ system exists to make that checking systematic instead of hopeful.
 
 ## Deadline
 
-Revised proposal manuscript + signed conformity of revisions due
-**August 8, 2026**, per `RTC_DECISION_LETTER.md`.
+The original revised-proposal deadline was **August 8, 2026**, per
+`RTC_DECISION_LETTER.md`. The team must confirm the replacement deadline.

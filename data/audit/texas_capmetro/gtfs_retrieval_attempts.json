@@ -1,0 +1,23 @@
+{
+  "attempts": [
+    {
+      "result": "Public archive documentation verified; feed and feed-version API calls returned HTTP 401 without an account key.",
+      "source": "Transitland Feed Archive API"
+    },
+    {
+      "result": "Official CapMetro feed and dataset-history page verified; the public page exposed 2026 history, while the history API requires a bearer token. No 2021 file was obtained.",
+      "source": "Mobility Database mdb-150 history"
+    },
+    {
+      "result": "Current official asset and revision sequence 38 verified. Specific revision and source endpoints returned HTTP 401, so no historical blob was obtained anonymously.",
+      "source": "Texas Open Data CapMetro GTFS asset r4v4-vz24"
+    }
+  ],
+  "gate": "Do not assign compass direction names, stop names, route shapes, or scheduled headways until a 2021-compatible GTFS snapshot is checksum-verified.",
+  "generated_utc": "2026-08-23T12:56:01.923432+00:00",
+  "required_service_window": [
+    "2021-07-01",
+    "2021-12-31"
+  ],
+  "status": "historical_archive_not_yet_verified"
+}

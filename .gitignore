@@ -17,3 +17,16 @@ RRL/*.pdf
 # Defense presentation: large source file (62MB), kept local for
 # extracting figures/content only. Not pushed to GitHub.
 B3-Final-Defense.pdf
+
+# Texas CapMetro case-study data. Raw downloads and generated model inputs are
+# reproducible but too large/noisy for Git; only scripts, configs, manifests,
+# checksums, and compact audit outputs are committed.
+data/raw/
+data/cache/
+data/processed/
+outputs/
+
+# Interrupted download files must never be committed.
+*.part
+__pycache__/
+*.pyc

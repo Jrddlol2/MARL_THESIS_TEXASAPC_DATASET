@@ -1,0 +1,20 @@
+{
+  "bytes": 73106898,
+  "column_count": 47,
+  "direction_code": "6",
+  "direction_label": null,
+  "direction_label_gate": "2021-compatible GTFS not yet verified",
+  "endpoint": "https://data.texas.gov/resource/im6q-3pc9.csv",
+  "generated_utc": "2026-08-23T12:49:10.712552+00:00",
+  "path": "data/raw/capmetro/route_801_direction_6_clean.csv",
+  "query": {
+    "$limit": "50000",
+    "$order": "apc_date_time,vehicle_id,actual_sequence,bs_id",
+    "$select": "act_trip_start_time,actual_sequence,apc_date_time,block_id,booking_id,booking_num,booking_start_date,bs_id,close_date_time,current_route_id,day_type_vs,direction_code_id,dwell_time,ext_trip_id,garage_id,headsign_route,import_error,import_trip_error,insert_date_time,max_load,non_rev_distance,non_rev_seconds,num_sat,offs,ons,open_date_time,operator_id,position_source,quality_indicator,raw_max_load,raw_off,raw_on,rev_distance,rev_seconds,route_id,run_id,sched_time,seg_arr_time,seg_dep_time,start_trip_time,time_id,tp_id,transit_date_time,variation,veh_lat,veh_long,vehicle_id",
+    "$where": "route_id in ('801') and route_id=current_route_id and import_error='0' and import_trip_error='0' and bs_id<>'0' and direction_code_id in ('6')"
+  },
+  "reused_existing_file": false,
+  "route_id": "801",
+  "rows": 229421,
+  "sha256": "8368412e47df32ff8a3c2837048797664315c0e7ae51c44676766b5af7f23e21"
+}

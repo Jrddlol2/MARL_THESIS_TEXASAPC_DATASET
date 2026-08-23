@@ -1,107 +1,121 @@
 # Thesis Revision Progress
 
 - **Last updated:** 2026-08-23
-- **Working branch:** `audit/minor-fixes-progress-2026-08-23`
-- **Repository baseline:** `a64f44c` (`main` at audit start)
-- **Dataset decision:** Deferred - no public backup dataset has been selected or downloaded
+- **Working branch:** `dataset/texas-capmetro-801`
+- **Protected branch:** `main` remains at `a64f44c` and has not been edited or merged
+- **Case-study decision:** Full pivot to CapMetro Rapid Route 801, direction code 6
+- **Implementation status:** Public-data pipeline and manuscript revision complete; simulation, training, and controller evaluation have not been run
 
-## Current Status
+## Current Audit Status
 
-| Workstream | Done | In progress | Pending | Notes |
+| Workstream | Done | In progress | Pending | Interpretation |
 |---|---:|---:|---:|---|
-| RTC-requested items | 13 | 6 | 3 | Six items were reopened after the repository audit |
-| Self-identified notices | 1 | 1 | 0 | N1 remains open because the reward/CTDE descriptions conflict |
+| RTC-requested items | 19 | 3 | 0 | The dataset-dependent and internal-consistency revisions are now implemented |
+| Self-identified notices | 2 | 0 | 0 | Reward and CTDE descriptions are aligned |
 
-The three pending RTC items - E1C1, E2C5, and E4C22 - all require inspection
-of the actual EDSA operational dataset. They must not be marked complete from a
-public analog dataset.
+The audit is **substantially addressed, but not fully closed**. The three open
+RTC items require source evidence or parameter decisions that the public APC and
+weather files cannot supply:
 
-## Completed Before This Audit
+1. E2C4 — independently verify the claimed weather/breakdown classification of
+   Verbich and El-Geneidy against the intended paper.
+2. E3C10 — obtain the defense-deck citations for the two breakdown studies and
+   reconcile them with Table 1.2.
+3. E3C15 — approve or source unresolved numeric targets, including fleet size,
+   scheduled headway, vehicle capacity, and disturbance intensities.
 
-The repository already contains the main RTC-requested additions for:
+## Completed on the Texas Branch
 
-- dataset-field-to-model mapping;
-- weather-disturbance derivation;
-- traditional-controller failure modes and success criteria;
-- disturbance definitions and sampling descriptions;
-- ML/SARL/MARL comparison tables;
-- NLEX scope clarification and feeder-road exclusion;
-- parameter, observation-feature, and evaluation-metric tables;
-- figure/table callouts, the corridor map, and the eta-basis table;
-- 1.5 line spacing and continuous line numbers; and
-- the N2 bus-scheduling-versus-MARL framing clarification.
+- Created a reproducible CapMetro/NOAA pipeline in
+  `scripts/texas_capmetro_pipeline.py`, controlled by
+  `config/texas_capmetro_801.json`.
+- Downloaded the official 47-field CapMetro APC source and preserved raw files
+  locally outside Git, with SHA-256 manifests and compact audit evidence in
+  `data/audit/texas_capmetro/`.
+- Compared Routes 801 and 803 using the same declared cleaning rules. Route 801
+  was chosen for its larger clean stop-event, boarding, and usable-segment
+  samples, despite having fewer distinct trip-day pairs. This is a coverage
+  choice, not a service-quality claim.
+- Selected direction code 6 because it has the larger clean-event and boarding
+  samples within Route 801. The historical inbound/outbound label is not claimed
+  until a contemporaneous 2021 GTFS or agency source is obtained.
+- Produced a 229,421-row primary subset covering 184 service days and 29 stop
+  IDs. Its raw CSV checksum is
+  `8368412e47df32ff8a3c2837048797664315c0e7ae51c44676766b5af7f23e21`.
+- Joined NOAA LCDv2 observations from Camp Mabry and Austin-Bergstrom. Both
+  stations matched 100% of APC rows within the declared 90-minute tolerance;
+  Camp Mabry identified 11,804 rain-exposed rows.
+- Kept the weather interpretation honest: the pooled dry/rain medians are
+  descriptive only, the APC time basis remains an explicit assumption, and
+  severe/extreme weather remains a labeled synthetic stress test.
+- Reframed Chapters 1–3 and the title around the CapMetro case; aligned the
+  disturbance matrix, CTDE description, calibration claims, parameter table,
+  and empirical-versus-synthetic boundaries.
+- Updated the revision queue, tracker, audit trails, repository guidance, data
+  documentation, and team handoff report.
 
-Completion here means the requested material is present. Items listed as
-reopened below still require consistency or evidence checks before final signoff.
+## Feasibility Decision
 
-## Completed on the Audit Branch
+The route is feasible for an APC-driven simulation baseline and an observed
+ordinary-rain covariate because the required stop events, ordering fields,
+travel-time fields, loads, coordinates, and weather matches exist at useful
+coverage. This does **not** make every thesis component empirically identified.
 
-- Corrected `TThe objective` to `The objective` in `problem.tex`.
-- Corrected the grammar of the ideal-condition description in `methods.tex`.
-- Replaced the premature claim that the SafeTravelPH baseline "is established"
-  with explicit pending language. No data source was selected or characterized.
-- Reopened items whose checkboxes overstated their verified status.
-- Corrected the current SARL/MARL and CTDE figure-number references after the
-  corridor map shifted them to Figures 1.4 and 1.5.
-- Corrected N2's Significance location from Section 2.3 to Section 2.4.
-- Updated stale `CLAUDE.md` notes for line numbering, line spacing, and the
-  original submission deadline.
-- Added this progress file and `AUDIT_REPORT_2026-08-23.md` for team handoff.
-
-## Reopened Items
-
-| Item | Why it remains open | Decision or evidence needed |
+| Component | Current status | Boundary |
 |---|---|---|
-| E2C4 | Verbich and El-Geneidy's W/B classification is not source-verified | Read the intended paper and confirm the table entry |
-| E3C8 | Disturbances are defined, but S/T activation is inconsistent | Approve one training/Stage A/Stage B activation matrix |
-| E3C10 | The repository does not identify the two breakdown papers shown in the defense | Record the slide entries and reconcile them with Table 1.2 |
-| E3C12 | Figure 1.5 says shared reward/joint-state training, while Section 3.2.7 says per-agent rewards/local transitions | Approve one reward and training architecture |
-| E3C15 | `sigma_d` and `sigma_s` cells contain clip ranges, not standard deviations | Supply values or retain explicit TODO-VAL placeholders |
-| E4C20 | Sampling prose exists, but activation conflicts and missing values prevent reproduction | Resolve E3C8/E3C15 and propagate the result |
-| N1 | Reward mechanics are written, but CTDE text contradicts them | Resolve together with E3C12 |
+| Stop-event demand and dwell calibration | Feasible | APC boardings, alightings, load, dwell, and event order are available |
+| Segment travel-time calibration | Feasible with validation | `rev_seconds` is usable; distance-derived speed is gated on distance-unit confirmation |
+| Ordinary-rain analysis | Feasible as an adjusted observational model | Must control for segment, time of day, and day type; no causal multiplier is claimed yet |
+| Severe/extreme weather robustness | Feasible only as a synthetic stress test | It must remain labeled out-of-support simulation, not observed CapMetro behavior |
+| 2021 route shape, stop names, scheduled headway | Not yet authoritative | Requires contemporaneous historical GTFS or agency archive |
+| Vehicle capacity and fleet size | Not yet authoritative | Requires an agency/fleet source or a documented scenario assumption |
+| Breakdown and demand-surge disturbances | Synthetic by design | APC does not directly observe breakdown events or passenger arrivals left behind |
+| SUMO calibration and MARL results | Not performed | No controller-performance result is claimed in the manuscript |
 
-## Dataset Position
+## Local Backups
 
-- The group does not yet have a verified EDSA operational dataset.
-- No public backup has been selected in this branch.
-- Public analog data may later be used only for pipeline development and must
-  never be presented as EDSA calibration or EDSA performance evidence.
-- The current shortlist is CapMetro APC 2021 for the six-field pipeline,
-  TransMilenio for a BRT-mode plausibility check, MBTA LAMP for operations-event
-  validation, and Caltrans PeMS for traffic-disturbance inputs.
-- A dataset decision should be recorded in a separate decision entry after the
-  team agrees on fitness, licensing, storage size, and the exact role of each
-  source.
+No checkpoint has been overwritten. Existing checkpoints are under:
+
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-201254_baseline_before_texas_implementation`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-205643_pre_manuscript_after_public_data_pipeline`
+
+Each checkpoint includes repository/source state, hashes, and a recovery note.
+A third final checkpoint will be created after the branch commit and before the
+first remote push.
 
 ## Recommended Next Order
 
-1. Approve the reward/CTDE architecture, then align Figure 1.5 and Section 3.2.7.
-2. Approve the disturbance activation matrix and unresolved parameter values.
-3. Verify the eight gap-critical citations, beginning with `verbich2021` and the
-   mismatched `Wang2020Holding` local PDF.
-4. Reconcile the defense-deck breakdown entries and preserve the evidence note.
-5. Decide whether to use a public analog dataset; keep EDSA and analog outputs
-   separated in filenames, tables, and claims.
-6. Recompile the manuscript and rerun the full audit after the substantive
-   decisions are implemented.
+1. Acquire a contemporaneous 2021 CapMetro GTFS archive and a defensible fleet
+   or vehicle-capacity source; keep current direction code 6 unlabeled until then.
+2. Resolve E3C15 numeric targets and replace the remaining `TODO-DATA`/
+   `TODO-VAL` placeholders only with sourced values or declared scenario inputs.
+3. Verify E2C4 against the source paper and reconcile E3C10 against the defense
+   deck.
+4. Implement the SUMO network and chronological calibration/validation split,
+   then document its goodness-of-fit before training any controller.
+5. Estimate an adjusted ordinary-rain effect; do not promote the pooled 204 s
+   versus 212 s medians into a causal multiplier.
+6. Run NC/FH/EH/SARL/MARL experiments only after calibration passes, then report
+   the actual seeds, run counts, confidence intervals, and failures.
+7. Compile and visually inspect the full manuscript in Overleaf before the next
+   PDF is circulated.
 
-## Validation Record
+## Validation and Publication Record
 
-- Queue counts verified from the file: 22 RTC items = 13 done + 6 in
-  progress + 3 pending; 2 notices = 1 done + 1 in progress.
-- Internal Markdown links checked: all referenced repository files exist.
-- LaTeX structural scan passed: 43 unique labels, 67 references, no missing
-  references, no duplicate labels, and balanced named environments.
-- Citation-key scan passed: 66 active keys, 75 bibliography entries, no missing
-  bibliography keys, and 9 unused entries documented in the audit report.
-- Full LaTeX compilation was not run because no TeX engine is installed in the
-  local audit environment. Compile and visually inspect in Overleaf before
-  circulating the next PDF.
-- Dataset download: not performed.
-- Core audit commits published: `7680bd0`, `1f843c3`, and `da55c5a`.
-- Push status: published to
-  [`audit/minor-fixes-progress-2026-08-23`](https://github.com/khalil-badal/MARL/tree/audit/minor-fixes-progress-2026-08-23).
-- The branch is intentionally separate from `main`; no pull request or merge
-  was created as part of this audit.
+- Reproduced route and weather evidence: passed.
+- Python syntax check: passed.
+- Git whitespace/error check: passed; only expected Windows line-ending notices.
+- Bibliography duplicate/missing-key scan: passed.
+- LaTeX label/reference and named-environment static checks: passed.
+- Active graphic audit: nine referenced assets (two title-page logos and seven
+  manuscript diagrams) are absent from this Git checkout. The tracker records
+  that these are maintained in the Overleaf `Figures` folder; synchronize them
+  before attempting a repository-only compile.
+- Full LaTeX compilation: not available locally because no TeX engine is
+  installed and the active graphic assets above are absent; Overleaf compilation
+  with the complete `Figures` folder remains required.
+- Remote publication: pending the final re-audit, final backup, and commit.
+- Pull request/merge: intentionally not created. `main` must remain untouched.
 
-Update this section immediately before every audit-branch push.
+Update this file before any later branch push that materially changes these
+facts or statuses.

@@ -1,0 +1,51 @@
+{
+  "citation_doi": "10.25921/96dw-mb77",
+  "downloads": {
+    "bergstrom": {
+      "bytes": 7645753,
+      "path": "data/raw/noaa/LCD_USW00013904_2021.csv",
+      "reused_existing_file": false,
+      "sha256": "fdd8c27f825fb077cb6b001e988fc87f398ab0ace985700ee564be2936db500e",
+      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv"
+    },
+    "camp_mabry": {
+      "bytes": 8531389,
+      "path": "data/raw/noaa/LCD_USW00013958_2021.csv",
+      "reused_existing_file": false,
+      "sha256": "8d2aafedde6f78ef5eb0487053da180f3ced5562474e71b955808b1d2e04ac4b",
+      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv"
+    }
+  },
+  "generated_utc": "2026-08-23T12:50:44.325919+00:00",
+  "normalization": "Interpret NOAA timestamps as fixed UTC-06:00 local standard time, then convert to America/Chicago. This shifts summer observations to daylight time while preserving their physical instants.",
+  "product": "NOAA NCEI Local Climatological Data Version 2",
+  "source_time_basis": "Local standard time (UTC-06:00) with no daylight-saving adjustment, per LCDv2 documentation",
+  "stations": {
+    "bergstrom": {
+      "first_timestamp_austin": "2021-07-01T00:53:00-05:00",
+      "last_timestamp_austin": "2021-12-31T23:53:00-06:00",
+      "name": "Austin-Bergstrom International Airport",
+      "processed_path": "data/processed/texas_capmetro/weather_bergstrom_2021_jul_dec.csv",
+      "processed_sha256": "4129e60c580acb1d3a2b50b6c80019b13c6cabcd44cd306f62d2f6e292b551ff",
+      "rain_flag_records": 480,
+      "records": 5472,
+      "records_with_precipitation_value": 4225,
+      "records_with_visibility": 5472,
+      "station_id": "USW00013904",
+      "station_key": "bergstrom"
+    },
+    "camp_mabry": {
+      "first_timestamp_austin": "2021-07-01T00:51:00-05:00",
+      "last_timestamp_austin": "2021-12-31T23:51:00-06:00",
+      "name": "Austin Camp Mabry",
+      "processed_path": "data/processed/texas_capmetro/weather_camp_mabry_2021_jul_dec.csv",
+      "processed_sha256": "1d6e9ba87121888f8e23db1954d6f2dde4a8551ee4e207d7f01fa0db9429eb8c",
+      "rain_flag_records": 584,
+      "records": 6484,
+      "records_with_precipitation_value": 4509,
+      "records_with_visibility": 5790,
+      "station_id": "USW00013958",
+      "station_key": "camp_mabry"
+    }
+  }
+}

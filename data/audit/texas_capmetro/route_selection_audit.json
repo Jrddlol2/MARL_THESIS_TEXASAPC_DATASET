@@ -1,0 +1,97 @@
+{
+  "clean_definition": "route_id in ('801','803') and route_id=current_route_id and import_error='0' and import_trip_error='0' and bs_id<>'0' and direction_code_id in ('4','6')",
+  "comparison_download": {
+    "bytes": 99273767,
+    "endpoint": "https://data.texas.gov/resource/im6q-3pc9.csv",
+    "path": "data/raw/capmetro/route_801_803_clean_comparison.csv",
+    "query": {
+      "$limit": "50000",
+      "$order": "route_id,apc_date_time,vehicle_id,actual_sequence,bs_id",
+      "$select": "route_id,direction_code_id,transit_date_time,apc_date_time,act_trip_start_time,ext_trip_id,vehicle_id,actual_sequence,bs_id,ons,offs,max_load,dwell_time,rev_seconds,rev_distance,veh_lat,veh_long,quality_indicator,position_source",
+      "$where": "route_id in ('801','803') and route_id=current_route_id and import_error='0' and import_trip_error='0' and bs_id<>'0' and direction_code_id in ('4','6')"
+    },
+    "reused_existing_file": true,
+    "rows": 832455,
+    "sha256": "caddddedfe99c6cd9ca45586530bf2076421608e0d75eed16d6ea372b9840cbb"
+  },
+  "dataset": {
+    "column_count": 47,
+    "landing_page": "https://data.texas.gov/dataset/APC-Raw-July-2021-December-2021/im6q-3pc9",
+    "name": "APC Raw July 2021 - December 2021",
+    "socrata_id": "im6q-3pc9"
+  },
+  "generated_utc": "2026-08-23T13:17:49.331805+00:00",
+  "gps_high_quality_definition": "nonzero coordinates and quality_indicator in {3,4,5,6}",
+  "routes": {
+    "801": {
+      "alightings": 708331,
+      "all_route_records": 547616,
+      "boardings": 810309,
+      "clean_stop_events": 455654,
+      "direction_summary": {
+        "4": {
+          "boardings": 390108,
+          "clean_stop_events": 226233,
+          "distinct_trip_day_pairs": 12452
+        },
+        "6": {
+          "boardings": 420201,
+          "clean_stop_events": 229421,
+          "distinct_trip_day_pairs": 12491
+        }
+      },
+      "distinct_stops_by_direction": {
+        "4": 29,
+        "6": 29
+      },
+      "distinct_trip_day_pairs": 24943,
+      "error_free_matching_route_records": 480452,
+      "gps_high_quality_percent": 98.136,
+      "gps_high_quality_records": 447160,
+      "matching_current_route_records": 524728,
+      "mean_reported_max_load": 11.414,
+      "median_dwell_seconds": 18.0,
+      "service_days": 184,
+      "usable_positive_time_distance_segments": 441779
+    },
+    "803": {
+      "alightings": 439785,
+      "all_route_records": 468689,
+      "boardings": 532063,
+      "clean_stop_events": 376801,
+      "direction_summary": {
+        "4": {
+          "boardings": 287547,
+          "clean_stop_events": 196048,
+          "distinct_trip_day_pairs": 13398
+        },
+        "6": {
+          "boardings": 244516,
+          "clean_stop_events": 180753,
+          "distinct_trip_day_pairs": 13211
+        }
+      },
+      "distinct_stops_by_direction": {
+        "4": 28,
+        "6": 28
+      },
+      "distinct_trip_day_pairs": 26609,
+      "error_free_matching_route_records": 403254,
+      "gps_high_quality_percent": 97.479,
+      "gps_high_quality_records": 367301,
+      "matching_current_route_records": 445369,
+      "mean_reported_max_load": 8.088,
+      "median_dwell_seconds": 18.0,
+      "service_days": 184,
+      "usable_positive_time_distance_segments": 361852
+    }
+  },
+  "selection": {
+    "boarding_advantage_percent_over_803": 52.3,
+    "clean_event_advantage_percent_over_803": 20.93,
+    "interpretation_limit": "The selection maximizes empirical coverage; it is not a claim that Route 801 has better or worse service.",
+    "primary_route": "801",
+    "reason": "Under identical cleaning rules, Route 801 provides larger clean stop-event, boarding, and usable-segment samples despite fewer distinct trip-day pairs, while retaining comparable GPS quality.",
+    "usable_segment_advantage_percent_over_803": 22.09
+  }
+}

@@ -1,5 +1,13 @@
 # Texas CapMetro APC Dataset Audit and Paper Implementation Plan
 
+> **Reproduction status (2026-08-23):** The branch pipeline independently
+> reproduced the core Route 801/803 coverage metrics and downloaded the full
+> 229,421-row, 47-column Route 801 direction-code 6 subset. It also achieved a
+> 100% nearest-observation join to both NOAA stations under the declared
+> 90-minute tolerance. See `data/audit/texas_capmetro/` for exact queries,
+> checksums, evidence, and limitations. Preliminary counts below are superseded
+> by those generated artifacts wherever definitions differ.
+
 > **Dataset identity:** Texas — Capital Metropolitan Transportation Authority (CapMetro), Austin, Texas, USA  
 > **Primary candidate corridor:** CapMetro Rapid Route 801, direction code 6  
 > **Secondary validation corridor:** CapMetro Rapid Route 803  

@@ -639,4 +639,82 @@ selected, characterized, or processed.
 
 ---
 
+## 2026-08-23 — Texas CapMetro full case-study pivot — main.tex; introduction.tex; problem.tex; methods.tex; thesis_refs.bib
+**Branch:** `dataset/texas-capmetro-801`
+
+```diff
+- \title{An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling Under Non-Ideal Conditions}
++ \title{An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling Under Non-Ideal Conditions: A CapMetro Rapid Case Study}
+
+- [Active EDSA background, EDSA ridership/map/rain figures, and EDSA-specific empirical rationale]
++ [Active CapMetro Route 801 background, reproduced Route 801/803 coverage table,
++  229,421-row direction-code 6 subset description, and verified NOAA join]
++ % Superseded EDSA-specific background retained temporarily in source history only.
++ \iffalse
++ [prior EDSA background]
++ \fi
+
+- To investigate ... a calibrated simulation of the EDSA Carousel corridor.
++ To evaluate ... a public-data-calibrated simulation of CapMetro Rapid Route 801 direction code 6.
+
+- Stage A/Stage B prose used conflicting S/T/W activation rules and let W replace T.
++ \caption{Authoritative disturbance-activation matrix.}
++ Training: D+T on; S/W/B randomized.
++ Stage A: D+T on; S/W/B off.
++ Stage B: D+T+S+W+B on.
++ Ablations: D+T plus S, W, or B individually.
+
+- Total stop count ... 24; fleet size approximately 12--30; sigma cells displayed clip bounds.
++ Total distinct stop IDs ... 29; fleet size TODO-DATA; sigma values separated
++ from the [1,3] and [0.8,1.2] clip supports.
+
+- Weather lognormal replaced the traffic-speed generator and drew T directly
+- from LogNormal(mu_ln, sigma_ln).
++ T_W = T_0 m_{s,b,d}(w) F_W
++ [Observed ordinary-rain multiplier is estimated within segment/time/day strata;
++  F_W is a unit-mean, labeled synthetic out-of-support stress factor.]
+
+- CTDE caption/prose: shared reward and joint-state training.
++ CTDE caption/prose: per-agent rewards and local transitions feed a shared replay
++ buffer and shared DDQN learner; no joint-state actor input or team reward.
+
+- SafeTravelPH requirements-only data description.
++ Verified CapMetro APC, NOAA LCDv2, and historical-GTFS/fleet-source gate;
++ absent passenger-arrival, capacity, breakdown, and continuous-trajectory fields
++ are stated explicitly.
+```
+
+**Why:** the user approved a full Texas case-study branch after the public-data
+audit. Every numeric dataset statement above is reproduced by the committed
+pipeline evidence. No SUMO calibration, MARL result, causal rain multiplier,
+historical direction label, capacity, or observed breakdown was invented.
+
+---
+
+## 2026-08-23 — Texas branch final re-audit corrections — scripts/texas_capmetro_pipeline.py; methods.tex; progress/audit reports
+
+```diff
+- Route 801 provides the larger clean stop-event, boarding, trip-day, and usable-segment sample.
++ Route 801 provides larger clean stop-event, boarding, and usable-segment
++ samples despite fewer distinct trip-day pairs.
+
+- The full evaluation suite of approximately 960 runs is expected to require
+- single-digit hours ... approximately 30 hours of T4-class GPU time.
++ The declared minimum evaluation suite contains 1,080 runs.
++ No wall-clock duration is claimed before representative Route 801 episodes
++ are profiled on the actual implementation.
+```
+
+**Why:** the first sentence overstated one route-selection metric: Route 803 has
+more distinct trip-day pairs, although Route 801 retains the larger event,
+boarding, and usable-segment samples. The runtime paragraph also conflicted with
+the explicit 1,080-run arithmetic and projected performance without a benchmark.
+The correction preserves feasibility as a testable plan rather than inventing
+runtime evidence. `PROGRESS.md` and the re-audit also record that nine active
+graphics are absent from this checkout and must be synchronized from Overleaf.
+The same static pass removed an incomplete `\includeonly[` command from
+`main.tex`; chapters are already loaded with `\input`.
+
+---
+
 *Nothing follows.*

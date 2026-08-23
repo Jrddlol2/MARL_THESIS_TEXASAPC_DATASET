@@ -1,0 +1,76 @@
+{
+  "study": {
+    "case_study": "CapMetro Rapid Route 801, Austin, Texas",
+    "candidate_routes": ["801", "803"],
+    "primary_route_id": "801",
+    "primary_direction_code": "6",
+    "primary_direction_label": null,
+    "direction_label_status": "provisional_code_only_pending_2021_gtfs",
+    "observation_start": "2021-07-01",
+    "observation_end": "2021-12-31",
+    "timezone": "America/Chicago"
+  },
+  "apc": {
+    "dataset_name": "APC Raw July 2021 - December 2021",
+    "socrata_id": "im6q-3pc9",
+    "metadata_url": "https://data.texas.gov/api/views/im6q-3pc9",
+    "resource_json_url": "https://data.texas.gov/resource/im6q-3pc9.json",
+    "resource_csv_url": "https://data.texas.gov/resource/im6q-3pc9.csv",
+    "cleaning_rules": {
+      "route_must_match_current_route": true,
+      "import_error": "0",
+      "import_trip_error": "0",
+      "exclude_bs_id": "0",
+      "allowed_direction_codes": ["4", "6"]
+    },
+    "timestamp_assumption": "APC compact timestamps are Austin wall-clock times; this remains an explicit assumption until CapMetro metadata confirms the time basis.",
+    "raw_output": "data/raw/capmetro/route_801_direction_6_clean.csv"
+  },
+  "weather": {
+    "product": "NOAA NCEI Local Climatological Data Version 2",
+    "citation_doi": "10.25921/96dw-mb77",
+    "time_basis": "Local standard time (UTC-06:00) with no daylight-saving adjustment, per LCDv2 documentation",
+    "primary_station": {
+      "name": "Austin Camp Mabry",
+      "station_id": "USW00013958",
+      "wban": "13958",
+      "latitude": 30.3208,
+      "longitude": -97.7604,
+      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv"
+    },
+    "secondary_station": {
+      "name": "Austin-Bergstrom International Airport",
+      "station_id": "USW00013904",
+      "wban": "13904",
+      "latitude": 30.18311,
+      "longitude": -97.67989,
+      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv"
+    },
+    "primary_exposure": ["precipitation", "present_weather_rain_code"],
+    "secondary_exposure": ["visibility"],
+    "control_covariates": ["temperature", "relative_humidity", "wind_speed"],
+    "nearest_join_tolerance_minutes": 90
+  },
+  "gtfs": {
+    "required_service_window": ["2021-07-01", "2021-12-31"],
+    "status": "historical_archive_not_yet_verified",
+    "current_official_feed": "https://data.austintexas.gov/download/r4v4-vz24/application/zip",
+    "current_feed_is_not_valid_for_2021_mapping": true,
+    "candidate_archive": "Transitland Feed Archive or Mobility Database history",
+    "retrieval_attempts": [
+      {
+        "source": "Transitland Feed Archive API",
+        "result": "Public archive documentation verified; feed and feed-version API calls returned HTTP 401 without an account key."
+      },
+      {
+        "source": "Mobility Database mdb-150 history",
+        "result": "Official CapMetro feed and dataset-history page verified; the public page exposed 2026 history, while the history API requires a bearer token. No 2021 file was obtained."
+      },
+      {
+        "source": "Texas Open Data CapMetro GTFS asset r4v4-vz24",
+        "result": "Current official asset and revision sequence 38 verified. Specific revision and source endpoints returned HTTP 401, so no historical blob was obtained anonymously."
+      }
+    ],
+    "gate": "Do not assign compass direction names, stop names, route shapes, or scheduled headways until a 2021-compatible GTFS snapshot is checksum-verified."
+  }
+}

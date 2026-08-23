@@ -1,23 +1,20 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
 # Updated: 2026-08-23
-# Panel tasks (RTC-requested): 22 | Done: 13 | In Progress: 6 | Pending: 3
-# E1C1/E2C5/E4C22 remain pending because the EDSA dataset has not been
-# acquired. Six previously completed items were reopened by the repository
-# audit because implementation, source-verification, or consistency gaps remain.
-# Self-identified notices (not RTC-requested): 2 | Done: 1 | In Progress: 1 | Pending: 0
+# Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 3 | Pending: 0
+# The user approved a full CapMetro Route 801 case-study pivot. The public APC
+# and NOAA sources were acquired, checksum-recorded, described, and propagated
+# through the manuscript. Three evidence/parameter items remain open.
+# Self-identified notices (not RTC-requested): 2 | Done: 2 | In Progress: 0 | Pending: 0
 
 ---
 
-## [ ] E1C1 — Dataset setup discussion
+## [x] E1C1 — Dataset setup discussion
 **Examiner:** 1
 **Priority:** HIGH
-**Status:** BLOCKED — group does not have access to the SafeTravelPH
-dataset yet. Do NOT write descriptive/qualitative claims about the
-dataset's structure (e.g. what an individual record looks like, how
-it was collected, its granularity) until the group has actually seen
-it. A prior attempt at this task (2026-08-06) was reverted for
-overstepping this — see TRACKER.md "Reverted Work" for what was
-removed and why.
+**Status:** RESOLVED 2026-08-23 — the user approved a full CapMetro case-study
+pivot. The official APC schema and selected subset were acquired and audited
+before manuscript claims were written. Exact queries, counts, checksums, field
+uses, and limitations are preserved under `data/audit/texas_capmetro/`.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Add a "Dataset Description" subsection explaining
@@ -77,11 +74,12 @@ Keep this item open until that claim is checked.
 
 ---
 
-## [ ] E2C5 — Dataset contents description
+## [x] E2C5 — Dataset contents description
 **Examiner:** 2
 **Priority:** HIGH
-**Status:** BLOCKED — same as E1C1. Do not resume without explicit
-go-ahead from the user.
+**Status:** RESOLVED 2026-08-23 — consolidated with E1C1/E4C22 using the
+reproduced CapMetro APC and NOAA evidence. Missing passenger-arrival, capacity,
+breakdown, continuous-trajectory, and historical-schedule fields are stated.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Same scope as E1C1 and E4C22. Consolidate into
@@ -119,7 +117,7 @@ Do not invent new thresholds.
 
 ---
 
-## [~] E3C8 — Disturbance definitions and independence
+## [x] E3C8 — Disturbance definitions and independence
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** methods.tex
@@ -129,10 +127,10 @@ explicitly defining each disturbance (D, S, T, W, B), clarifying
 that generators are injected independently (no causal chain), and
 distinguishing stochastic baseline demand (D) from demand surge (S).
 **Constraint:** No new citations needed.
-**Audit update (2026-08-23):** The definitions and independence statement are
-present, but the operating-condition prose still conflicts over when S and T
-are active. Close this item only after one authoritative activation matrix is
-approved and propagated through the methods chapter.
+**Resolution update (2026-08-23):** The approved matrix is now authoritative:
+D+T are always active; training randomizes S/W/B; Stage A is D+T; Stage B is
+D+T+S+W+B; and ablations add S, W, or B individually to D+T. W composes with
+rather than replaces T.
 
 ---
 
@@ -177,7 +175,7 @@ figure captions for consistent attribution.
 
 ---
 
-## [~] E3C12 — Explain SARL/MARL figure concepts in text
+## [x] E3C12 — Explain SARL/MARL figure concepts in text
 **Examiner:** 3-RRW
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -189,9 +187,10 @@ bus-control terms within the SARL vs MARL comparison.
 (State Space / Action Space subsections in methods.tex).
 **Current numbering:** The map inserted under E3C17 shifted the SARL/MARL
 figure from Figure 1.3 to Figure 1.4 and the CTDE figure to Figure 1.5.
-**Audit update (2026-08-23):** The requested explanation is present, but the
-adjacent CTDE caption still describes a shared reward and joint-state training,
-contradicting the per-agent reward/local-transition protocol in Section 3.2.7.
+**Resolution update (2026-08-23):** The CTDE figure caption, RRL prose, proposed
+algorithm, and training protocol now agree on per-agent rewards/local
+transitions with one shared learner, network, and replay buffer. No joint-state
+actor input or shared team reward is claimed.
 
 ---
 
@@ -244,9 +243,10 @@ from calibration. See CLAUDE.md panel recommendations for full
 column list.
 **Constraint:** Use %TODO-VAL for any value not yet confirmed.
 Do not fabricate specific numbers.
-**Audit update (2026-08-23):** The table is present, but $\sigma_d$ and
-$\sigma_s$ list clip ranges rather than actual standard deviations. Their
-values and the Stage A/Stage B activation rules remain unresolved.
+**Audit update (2026-08-23):** The activation rules are resolved and the table
+now separates $\sigma_d$/$\sigma_s$ from their clip supports. This item remains
+open because the standard deviations, breakdown rate, active-fleet derivation,
+historical headway, and capacity values are still explicit TODOs.
 
 ---
 
@@ -308,7 +308,7 @@ around line 228. Uncomment it after all content edits are complete.
 
 ---
 
-## [~] E4C20 — Simulation mechanics explanation
+## [x] E4C20 — Simulation mechanics explanation
 **Examiner:** 4
 **Priority:** HIGH
 **File:** methods.tex
@@ -320,9 +320,10 @@ is the value sampled, what does it affect, how does it propagate
 through the simulation. Should read like an algorithm description
 in prose.
 **Constraint:** No data values. No new citations needed.
-**Audit update (2026-08-23):** Sampling mechanics are described, but the
-conflicting S/T activation rules and missing $\sigma_d$, $\sigma_s$, and
-$\lambda$ values prevent full reproducibility.
+**Resolution update (2026-08-23):** The activation matrix, named random streams,
+empirical T baseline, observed-weather estimation layer, compositional
+unit-mean lognormal stress, and per-step breakdown mechanic are now specified.
+Unselected numeric targets remain tracked separately under E3C15.
 
 ---
 
@@ -341,11 +342,11 @@ Deployment Source | Simulation Source.
 
 ---
 
-## [ ] E4C22 — Dataset contents
+## [x] E4C22 — Dataset contents
 **Examiner:** 4
 **Priority:** HIGH
-**Status:** BLOCKED — same as E1C1. Do not resume without explicit
-go-ahead from the user.
+**Status:** RESOLVED 2026-08-23 — consolidated with E1C1/E2C5 after inspecting
+the actual public CapMetro/NOAA files and recording absent variables.
 **File:** methods.tex
 **Section:** 3.2.5
 **Instruction:** Consolidated with E1C1 and E2C5. Addressed in
@@ -362,7 +363,7 @@ deadline pressure from the panel and should stay lowest priority unless
 the group decides otherwise. Do not present these in the conformity-of-
 revisions table as panel-requested changes — they are not.
 
-## [~] N1 — Reward function mechanics and architecture consistency
+## [x] N1 — Reward function mechanics and architecture consistency
 **Source:** User notice (not an RTC/examiner comment)
 **Priority:** LOWEST
 **File:** methods.tex
@@ -389,10 +390,10 @@ explicitly an implementation-phase deliverable per the existing text.
 Use %TODO-VAL for $w_1, w_2, w_3$. This task can be skipped or deferred
 past the August 8, 2026 submission if time runs short, since it responds
 to no panel requirement.
-**Audit update (2026-08-23):** The per-agent reward explanation is present,
-but Figure 1.5 and the CTDE prose still say that agents share one reward and
-train from joint-state information. The team must approve one architecture
-before this item can be closed consistently.
+**Resolution update (2026-08-23):** Per-agent reward mechanics, local
+transitions, shared replay/network training, and decentralized execution are
+now consistent in the figure caption and both chapters. Reward weights remain
+honest `%TODO-VAL` values under Expected Output 2.1.
 
 ---
 

@@ -1,6 +1,6 @@
 # CHANGE TRACKER — Group B3 Thesis Revision 1
-# Thesis: An Evaluation of Multi-Agent Reinforcement Learning
-#         for Dynamic Bus Scheduling Under Non-Ideal Conditions
+# Thesis: An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus
+#         Scheduling Under Non-Ideal Conditions: A CapMetro Rapid Case Study
 # Start date: 2026-08-06
 # Original target submission: August 8, 2026 (extension/replacement date to be confirmed)
 
@@ -10,13 +10,13 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 13 |
-| In progress | 6 (reopened by the 2026-08-23 repository audit) |
-| Pending | 3 (E1C1/E2C5/E4C22, pending EDSA dataset access — see Reverted Work / REVISION_QUEUE.md) |
+| Completed | 19 |
+| In progress | 3 (E2C4, E3C10, E3C15) |
+| Pending | 0 |
 
 ---
 
-## Reverted Work
+## Reverted Work (historical; superseded by the approved Texas pivot)
 
 ### E1C1 + E2C5 + E4C22 — Dataset Description — REVERTED 2026-08-06
 **Originally added:** 2026-08-06. **Reverted:** 2026-08-06, same session, before any commit/push.
@@ -466,6 +466,71 @@ separate completed edits from unresolved scientific decisions and keep the
 public-backup dataset choice explicitly deferred.
 
 **Commit message:** `docs: add audit report and refresh revision progress`
+
+---
+
+## 2026-08-23 Texas CapMetro case-study implementation
+
+**Branch:** `dataset/texas-capmetro-801`
+
+**Approved decisions:** Full CapMetro pivot; Route 801 selected by reproduced
+coverage; direction code 6 retained without a compass label; Camp Mabry used as
+primary weather station and Austin-Bergstrom for sensitivity; D+T always active
+with S/W/B domain-randomized in training; Stage A D+T; Stage B D+T+S+W+B; no
+changes or push to `main`.
+
+**Backups:** Created immutable checkpoints outside Git under
+`C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\` before all work
+and again before manuscript edits. Each contains a Git bundle, source snapshot,
+state files, and SHA-256 manifest. Raw downloads were not duplicated in the
+second archive; their paths, sizes, and checksums were recorded.
+
+**Public-data pipeline:** Added `config/texas_capmetro_801.json`,
+`scripts/texas_capmetro_pipeline.py`, `data/README.md`, and compact evidence
+under `data/audit/texas_capmetro/`. Raw and processed data are Git-ignored.
+
+**Reproduced evidence:**
+
+- Route 801: 547,616 total records; 455,654 clean stop events; 810,309
+  boardings; 441,779 positive-time/positive-distance segments; 98.136% declared
+  high-quality GPS records.
+- Route 803: 468,689 total records; 376,801 clean stop events; 532,063
+  boardings; 361,852 positive-time/positive-distance segments; 97.479% declared
+  high-quality GPS records.
+- Primary Route 801/code-6 subset: 229,421 rows, 47 columns, SHA-256
+  `8368412e47df32ff8a3c2837048797664315c0e7ae51c44676766b5af7f23e21`.
+- NOAA join: 100% within 90 minutes at both stations; 11,804 Camp Mabry
+  rain-exposed APC rows. The pooled wet/dry median difference is retained only
+  as descriptive audit output, not a causal multiplier.
+
+**GTFS gate:** The current official feed is not substituted for 2021. Public
+archive attempts at Transitland, Mobility Database, and Texas portal revisions
+were documented; authenticated historical access is still required. Direction
+6 therefore remains code-only.
+
+**Manuscript changes:** Updated title, background, rationale, research gap,
+objectives, significance, scope, methods, source table, activation matrix,
+weather formulation, CTDE description, parameter table, and bibliography. Old
+EDSA-specific background and SafeTravelPH data-plan text are retained only
+inside inactive `\iffalse` blocks for source history and do not compile.
+
+**Audit result:** Closed E1C1, E2C5, E3C8, E3C12, E4C20, E4C22, and N1. The
+official queue is now 19 done, 3 in progress, 0 pending. E2C4 still needs source
+verification; E3C10 still needs defense-deck paper reconciliation; E3C15 still
+needs numeric target values and authoritative schedule/capacity inputs.
+
+**Final re-audit corrections:** The reproduced comparison showed that Route 801
+has fewer distinct trip-day pairs than Route 803 even though it has more clean
+events, boardings, and usable segments. The pipeline and generated evidence now
+state that tradeoff explicitly. The methods run-count inconsistency was also
+corrected from 960 to 1,080, and unsupported single-digit CPU/30-hour GPU runtime
+estimates were replaced with a required pilot-profile step. The static build
+audit found nine active graphic assets absent from this checkout; the existing
+Overleaf-only asset dependency is documented in `PROGRESS.md` and the re-audit.
+An incomplete `\includeonly[` command in `main.tex` was removed; all active
+chapters are already loaded through `\input`, so the stray command served no
+valid inclusion purpose and would block a clean LaTeX parse.
+The current team report is `RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md`.
 
 ---
 

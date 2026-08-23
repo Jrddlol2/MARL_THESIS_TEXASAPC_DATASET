@@ -68,17 +68,20 @@ biblatex. Citation keys live in `thesis_refs.bib`.
 ## CORE RULES — READ BEFORE EVERY EDIT
 
 ### R1 — No Data Fabrication
-The group does not yet have an operational dataset from DOTr or any
-other source. The SafeTravelPH dataset (July 2023) is cited in the
-manuscript but its contents have not been formally documented yet.
+The user approved a full public-data case-study pivot on 2026-08-23. The branch
+contains a checksum-recorded CapMetro APC Route 801 direction-code 6 subset and
+NOAA LCDv2 weather sources. Specific dataset counts may be written only when
+they are reproduced by `scripts/texas_capmetro_pipeline.py` and preserved under
+`data/audit/texas_capmetro/`.
 
-NEVER write specific numerical values (e.g., mean travel times,
-boarding counts, segment speeds) that would imply the dataset has
-been processed. Instead, use placeholder language:
+NEVER write uncomputed calibration values, causal weather effects, simulation
+performance, passenger waiting results, breakdown observations, capacity, or
+historical schedule semantics. Use placeholder language where those remain
+unresolved:
 
   ALLOWED:   "...the mean inter-stop travel time µ and standard
               deviation σ extracted from the operational dataset..."
-  ALLOWED:   "[To be completed upon dataset acquisition]"
+  ALLOWED:   "%TODO-DATA: historical scheduled headway"
   FORBIDDEN: "The mean inter-stop travel time was 142 seconds..."
 
 ### R2 — No Citation Fabrication
@@ -101,8 +104,10 @@ needs data that does not exist yet, use:
 - New tables get the next available number. Don't hardcode a number here —
   check methods.tex for the current highest `\label{tab:...}` before adding
   one, since table content has been added/reverted during revision work.
-  As of 2026-08-06: `tab:notation` (3.1), `tab:sim-parameters` (3.2),
-  `tab:observation-features` (3.3) exist; next available is 3.4.
+  As of 2026-08-23, do not assume fixed numbers: the active methods tables
+  include `tab:activation-matrix`, `tab:sim-parameters`,
+  `tab:field-mapping-texas`, `tab:notation`, `tab:eta-basis`, and
+  `tab:observation-features`. Use labels and recompile to obtain numbers.
 - New figures get the next available number (currently: Figure 3.6)
 - Maintain existing LaTeX formatting conventions
 
@@ -112,15 +117,20 @@ After each task: update TRACKER.md, mark the task done in
 REVISION_QUEUE.md, then stop and report.
 
 ### R6 — Dataset Language
-Whenever the manuscript refers to the dataset, use this approved
-framing until the actual dataset is acquired:
+Use the approved Texas framing:
 
-  Primary source: SafeTravelPH crowdsourced trajectory data (July 2023)
-  Secondary source: DOTr station-level ridership records (to be acquired
-                    via FOI request, tracking no. to be inserted)
+  Primary operational source: CapMetro APC Raw July--December 2021,
+                              Socrata `im6q-3pc9`
+  Primary weather source: NOAA LCDv2 Camp Mabry `USW00013958`
+  Sensitivity weather source: NOAA LCDv2 Austin-Bergstrom `USW00013904`
+  Study route/direction: Route 801, direction code 6 (compass label pending)
 
-  Do NOT claim the group has processed either dataset yet.
-  Do NOT claim specific calibration results have been achieved yet.
+  Do NOT substitute a current GTFS feed for a 2021 snapshot.
+  Do NOT call APC timestamps timezone-confirmed; Austin wall-clock is a declared
+  assumption in the pipeline.
+  Do NOT call passenger waiting time, capacity, breakdowns, or continuous speed
+  trajectories observed APC variables.
+  Do NOT claim specific SUMO calibration or controller results yet.
 
 ---
 
@@ -382,8 +392,9 @@ Example:
 - This is a PROPOSAL manuscript (not final). Results do not exist yet.
 - The MARL simulation has NOT been run yet.
 - The SUMO calibration has NOT been performed yet.
-- The SafeTravelPH dataset has been cited but NOT formally processed.
-- The DOTr FOI request has NOT been filed yet (or is pending).
+- The CapMetro APC and NOAA files have been acquired and audited; raw files are
+  local/Git-ignored, while queries and checksums are committed.
+- A 2021-compatible GTFS snapshot and verified capacity source remain open.
 - All figures labeled "illustrative" remain illustrative.
 - The manuscript is written in LaTeX, compiled on Overleaf.
 - Original target submission: August 8, 2026. Confirm the extension or

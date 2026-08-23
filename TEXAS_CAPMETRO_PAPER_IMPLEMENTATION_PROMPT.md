@@ -1,5 +1,21 @@
 # Copy-Ready Prompt — Implement the Texas CapMetro Dataset in the Paper
 
+## Approved decisions for this branch (2026-08-23)
+
+1. Perform the full CapMetro case-study pivot rather than a temporary appendix.
+2. Use observed NOAA weather only where the timestamp join and sample coverage
+   are reproduced; do not convert pooled descriptive differences into causal
+   weather multipliers.
+3. Create immutable local checkpoints under
+   `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\` before major
+   edits, without automatically overwriting or deleting prior checkpoints.
+4. Use Route 801 as the primary case because identical cleaning rules reproduce
+   materially greater event, boarding, and usable-segment coverage than Route
+   803. This is a coverage decision, not a service-quality claim.
+5. Use direction code 6 provisionally; do not assign a compass label until a
+   checksum-verified, 2021-compatible GTFS snapshot is acquired.
+6. Push only `dataset/texas-capmetro-801`; do not modify or push `main`.
+
 Copy everything inside the following block into a new Codex task or another
 careful implementation session.
 

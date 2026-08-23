@@ -1,5 +1,10 @@
 # Manuscript and Repository Audit Report
 
+> **Historical pre-pivot report.** The approved CapMetro Route 801
+> implementation and current verdict are documented in
+> `RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md`. Status counts below describe the
+> earlier audit branch and are superseded by the re-audit.
+
 - **Thesis:** *An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling Under Non-Ideal Conditions*
 - **Audit date:** 2026-08-23
 - **Audited repository baseline:** `main` at `a64f44c`

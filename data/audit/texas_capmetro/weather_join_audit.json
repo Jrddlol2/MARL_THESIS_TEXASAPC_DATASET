@@ -1,0 +1,29 @@
+{
+  "apc_subset_sha256": "8368412e47df32ff8a3c2837048797664315c0e7ae51c44676766b5af7f23e21",
+  "apc_timestamp_interpretation": "APC compact timestamps are Austin wall-clock times; this remains an explicit assumption until CapMetro metadata confirms the time basis.",
+  "counts": {
+    "apc_rows": 229421,
+    "primary_matched": 229421,
+    "primary_rain_exposed_rows": 11804,
+    "secondary_matched": 229421,
+    "station_rain_flag_agreement": 215705,
+    "station_rain_flag_disagreement": 13716
+  },
+  "descriptive_unadjusted_segment_medians": {
+    "dry_median_rev_seconds": 204.0,
+    "dry_positive_time_distance_segments": 211343,
+    "rain_median_rev_seconds": 212.0,
+    "rain_positive_time_distance_segments": 11406,
+    "warning": "These pooled medians are descriptive only and must not be interpreted as a causal weather multiplier; segment, time-of-day, and day-type controls are required."
+  },
+  "dst_policy": "APC wall-clock timestamps are localized to America/Chicago. Ambiguous fall-back timestamps use fold=0 and are counted explicitly. NOAA local-standard timestamps are converted from fixed UTC-06:00 to America/Chicago before matching.",
+  "feasibility_rule": "at least 95% APC join coverage and at least 1,000 rain-exposed APC rows",
+  "generated_utc": "2026-08-23T13:27:13.112818+00:00",
+  "join_method": "nearest NOAA observation within 90 minutes",
+  "median_absolute_join_delta_minutes": 12.667,
+  "ordinary_weather_calibration_feasible": true,
+  "p95_absolute_join_delta_minutes": 27.933,
+  "primary_join_coverage_percent": 100.0,
+  "secondary_join_coverage_percent": 100.0,
+  "severe_weather_policy": "Observed ordinary rain may calibrate empirical baseline effects after stratified modeling. Severe/extreme weather outside observed support remains an explicitly synthetic stress test."
+}

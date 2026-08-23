@@ -517,4 +517,66 @@ selected, characterized, or processed.
 
 ---
 
+## 2026-08-23 — Texas CapMetro full case-study pivot
+
+### What changed
+
+- The title now identifies the CapMetro Rapid case study.
+- The active EDSA background and case-specific figures were replaced with a
+  CapMetro Route 801 background and a reproduced Route 801/803 data-coverage
+  table. The old block remains inactive in source history and does not compile.
+- Chapter 2 now frames the rationale, gap, objectives, significance, scope, and
+  limitations around Route 801 direction code 6.
+- Chapter 3 now describes the actual 47-column APC source, the 229,421-row
+  primary subset, NOAA Camp Mabry/Bergstrom weather, and the still-open 2021
+  GTFS/capacity gates.
+- The methods now use one activation matrix: D and T are always active;
+  training randomizes S/W/B; Stage A is D+T; Stage B is D+T+S+W+B; and
+  ablations add one of S/W/B to D+T.
+- Weather is split into observed ordinary-rain calibration and a clearly
+  synthetic severe/extreme stress factor. The pooled wet/dry median difference
+  is not treated as causal.
+- The CTDE explanation is internally consistent: agents have local
+  observations, per-agent rewards, and local transitions, while one shared
+  learner/network/replay buffer aggregates training experience.
+- Continuous speed-trajectory claims were replaced with supportable segment
+  travel-time calibration. Distance-derived speed remains gated on unit
+  confirmation.
+- The parameter table now distinguishes standard deviations from clip bounds;
+  unresolved target values remain visible TODOs.
+
+### Why
+
+The user approved a full Texas pivot after the official APC and NOAA files were
+downloaded and audited. The changes use only reproduced public-data facts and
+keep unresolved or synthetic quantities explicitly labeled. No controller
+performance or SUMO calibration result is claimed.
+
+---
+
+## 2026-08-23 — Final re-audit corrections
+
+### What changed
+
+- Corrected the Route 801 justification to acknowledge that Route 803 has more
+  distinct trip-day pairs. Route 801 is still selected because it has more clean
+  events, boardings, and usable segments with comparable GPS quality.
+- Corrected the evaluation total from 960 to 1,080 runs.
+- Removed unmeasured single-digit CPU and 30-hour GPU estimates. The paper now
+  requires a pilot benchmark before making a wall-clock or hardware claim.
+- Recorded that nine active graphics are missing from this Git checkout and
+  must be synchronized from the Overleaf `Figures` folder before compilation.
+- Removed a stray incomplete `\includeonly[` command from the preamble; the
+  manuscript already loads its active chapters through `\input`.
+- Added the updated `PROGRESS.md` and the member-facing Texas re-audit report.
+
+### Why
+
+These corrections prevent a route-selection tradeoff, an arithmetic conflict,
+and an unsupported runtime projection from being repeated in the paper. The
+remaining feasibility statement is conditional on measured implementation
+performance and does not fabricate a simulation result.
+
+---
+
 *Nothing follows.*

@@ -1,0 +1,4315 @@
+{
+  "approvals": [
+    {
+      "reviewedAt": 1642192119,
+      "reviewedAutomatically": true,
+      "state": "approved",
+      "submissionDetails": {
+        "permissionType": "READ"
+      },
+      "submissionId": 4364269,
+      "submissionObject": "public_audience_request",
+      "submissionOutcome": "change_audience",
+      "submissionOutcomeApplication": {
+        "endedAt": 1642192119,
+        "failureCount": 0,
+        "startedAt": 1642192119,
+        "status": "success"
+      },
+      "submittedAt": 1642192119,
+      "submitter": {
+        "displayName": "cmta_apc",
+        "id": "rvbk-5kuv"
+      },
+      "targetAudience": "public",
+      "workflowId": 1858
+    }
+  ],
+  "assetType": "dataset",
+  "attribution": "Capital Metropolitan Transportation Authority",
+  "attributionLink": "https://www.capmetro.org/metrolabs/",
+  "averageRating": 0,
+  "clientContext": {
+    "clientContextVariables": [],
+    "inheritedVariables": {}
+  },
+  "columns": [
+    {
+      "cachedContents": {
+        "cardinality": "937681",
+        "count": "9197694",
+        "largest": "20211230235945",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20051231180204",
+        "top": [
+          {
+            "count": "211",
+            "item": "20210816165501"
+          },
+          {
+            "count": "201",
+            "item": "20211207222631"
+          },
+          {
+            "count": "201",
+            "item": "20211205000313"
+          },
+          {
+            "count": "201",
+            "item": "20211217210921"
+          },
+          {
+            "count": "200",
+            "item": "20210927060850"
+          },
+          {
+            "count": "200",
+            "item": "20210925054753"
+          },
+          {
+            "count": "200",
+            "item": "20211124042006"
+          },
+          {
+            "count": "200",
+            "item": "20210928110840"
+          },
+          {
+            "count": "200",
+            "item": "20210723061330"
+          },
+          {
+            "count": "200",
+            "item": "20210719041409"
+          },
+          {
+            "count": "200",
+            "item": "20211110043750"
+          },
+          {
+            "count": "200",
+            "item": "20211210001921"
+          },
+          {
+            "count": "200",
+            "item": "20210911093448"
+          },
+          {
+            "count": "198",
+            "item": "20211202061558"
+          },
+          {
+            "count": "197",
+            "item": "20211001233153"
+          },
+          {
+            "count": "196",
+            "item": "20210721063056"
+          },
+          {
+            "count": "193",
+            "item": "20211008053900"
+          },
+          {
+            "count": "193",
+            "item": "20210901233112"
+          },
+          {
+            "count": "186",
+            "item": "20210821125815"
+          },
+          {
+            "count": "185",
+            "item": "20210808002739"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'act_trip_start_time' is a timestamp that is the actual trip start time.",
+      "fieldName": "act_trip_start_time",
+      "format": {},
+      "id": 554285013,
+      "name": "act_trip_start_time",
+      "position": 1,
+      "renderTypeName": "text",
+      "tableColumnId": 140521906
+    },
+    {
+      "cachedContents": {
+        "cardinality": "201",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "1",
+        "top": [
+          {
+            "count": "949188",
+            "item": "2"
+          },
+          {
+            "count": "785956",
+            "item": "1"
+          },
+          {
+            "count": "751088",
+            "item": "3"
+          },
+          {
+            "count": "679930",
+            "item": "4"
+          },
+          {
+            "count": "616191",
+            "item": "5"
+          },
+          {
+            "count": "550818",
+            "item": "6"
+          },
+          {
+            "count": "489193",
+            "item": "7"
+          },
+          {
+            "count": "434470",
+            "item": "8"
+          },
+          {
+            "count": "388124",
+            "item": "9"
+          },
+          {
+            "count": "347731",
+            "item": "10"
+          },
+          {
+            "count": "309292",
+            "item": "11"
+          },
+          {
+            "count": "281146",
+            "item": "12"
+          },
+          {
+            "count": "256896",
+            "item": "13"
+          },
+          {
+            "count": "234768",
+            "item": "14"
+          },
+          {
+            "count": "214494",
+            "item": "15"
+          },
+          {
+            "count": "196048",
+            "item": "16"
+          },
+          {
+            "count": "179166",
+            "item": "17"
+          },
+          {
+            "count": "163744",
+            "item": "18"
+          },
+          {
+            "count": "149258",
+            "item": "19"
+          },
+          {
+            "count": "135957",
+            "item": "20"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'actual_sequence' is the numeric ordering of door events/logons/trips collected in the vehicle data logging files. This is the actual sequence, not the scheduled sequence of bus stops as in the 'bus_stop_pattern' table.",
+      "fieldName": "actual_sequence",
+      "format": {},
+      "id": 554285004,
+      "name": "actual_sequence",
+      "position": 2,
+      "renderTypeName": "text",
+      "tableColumnId": 140521897
+    },
+    {
+      "cachedContents": {
+        "cardinality": "6126359",
+        "count": "9197694",
+        "largest": "20211230235955",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210701000004",
+        "top": [
+          {
+            "count": "17",
+            "item": "20211211075253"
+          },
+          {
+            "count": "16",
+            "item": "20210915224501"
+          },
+          {
+            "count": "16",
+            "item": "20210722231501"
+          },
+          {
+            "count": "15",
+            "item": "20211103080013"
+          },
+          {
+            "count": "15",
+            "item": "20210701231501"
+          },
+          {
+            "count": "14",
+            "item": "20210713224501"
+          },
+          {
+            "count": "14",
+            "item": "20210902150535"
+          },
+          {
+            "count": "14",
+            "item": "20210729211501"
+          },
+          {
+            "count": "14",
+            "item": "20211016224501"
+          },
+          {
+            "count": "13",
+            "item": "20210804224501"
+          },
+          {
+            "count": "13",
+            "item": "20210715073121"
+          },
+          {
+            "count": "13",
+            "item": "20210708183038"
+          },
+          {
+            "count": "13",
+            "item": "20210818224501"
+          },
+          {
+            "count": "13",
+            "item": "20210731224501"
+          },
+          {
+            "count": "13",
+            "item": "20210818115528"
+          },
+          {
+            "count": "12",
+            "item": "20210924154028"
+          },
+          {
+            "count": "12",
+            "item": "20211028144437"
+          },
+          {
+            "count": "12",
+            "item": "20211208231501"
+          },
+          {
+            "count": "12",
+            "item": "20211024174501"
+          },
+          {
+            "count": "12",
+            "item": "20211111151500"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'apc_date_time' is a date field describing the date on which the vehicle data was collected. The date comes from the System Date in the Data Logging files.",
+      "fieldName": "apc_date_time",
+      "format": {},
+      "id": 554285025,
+      "name": "apc_date_time",
+      "position": 3,
+      "renderTypeName": "text",
+      "tableColumnId": 140521918
+    },
+    {
+      "cachedContents": {
+        "cardinality": "969",
+        "count": "9197694",
+        "largest": "999999",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "117142",
+            "item": "0"
+          },
+          {
+            "count": "58763",
+            "item": "300001"
+          },
+          {
+            "count": "57727",
+            "item": "300002"
+          },
+          {
+            "count": "55542",
+            "item": "300004"
+          },
+          {
+            "count": "54345",
+            "item": "300006"
+          },
+          {
+            "count": "54012",
+            "item": "7001"
+          },
+          {
+            "count": "53050",
+            "item": "300007"
+          },
+          {
+            "count": "52562",
+            "item": "1002"
+          },
+          {
+            "count": "52349",
+            "item": "1004"
+          },
+          {
+            "count": "52157",
+            "item": "7002"
+          },
+          {
+            "count": "51811",
+            "item": "20001"
+          },
+          {
+            "count": "51516",
+            "item": "20005"
+          },
+          {
+            "count": "50480",
+            "item": "300009"
+          },
+          {
+            "count": "50465",
+            "item": "300003"
+          },
+          {
+            "count": "50370",
+            "item": "1005"
+          },
+          {
+            "count": "50255",
+            "item": "300005"
+          },
+          {
+            "count": "49869",
+            "item": "10002"
+          },
+          {
+            "count": "49839",
+            "item": "20002"
+          },
+          {
+            "count": "49736",
+            "item": "7005"
+          },
+          {
+            "count": "49695",
+            "item": "20004"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'block_id' is the block identification number assigned that uniquely defines a particular route/block combination. A block usually identifies a unique schedule from other blocks upon a common primary route. Valid values for the \u201cblock_id\u201d are between 1 and 999,999. Combined with the 'route_id' field, it is the primary key of the 'block' table.",
+      "fieldName": "block_id",
+      "format": {},
+      "id": 554284992,
+      "name": "block_id",
+      "position": 4,
+      "renderTypeName": "text",
+      "tableColumnId": 140521885
+    },
+    {
+      "cachedContents": {
+        "cardinality": "8",
+        "count": "9197694",
+        "largest": "SEP21E 000",
+        "non_null": "9080858",
+        "null": "116836",
+        "smallest": "AUG21A 000",
+        "top": [
+          {
+            "count": "2187134",
+            "item": "JUN21E 000"
+          },
+          {
+            "count": "2147219",
+            "item": "SEP21E 000"
+          },
+          {
+            "count": "1484468",
+            "item": "SEP21A 000"
+          },
+          {
+            "count": "1428570",
+            "item": "AUG21B 000"
+          },
+          {
+            "count": "768322",
+            "item": "SEP21C 000"
+          },
+          {
+            "count": "721595",
+            "item": "SEP21D 000"
+          },
+          {
+            "count": "343546",
+            "item": "AUG21A 000"
+          },
+          {
+            "count": "4",
+            "item": "JUN21D 000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'booking_id' is a short text description for the imported booking (i.e. SPR098). The booking_num is reported by the vehicle as part of the correlation process, and can be examined in the booking table to get the booking id and booking start date.",
+      "fieldName": "booking_id",
+      "format": {},
+      "id": 554284999,
+      "name": "booking_id",
+      "position": 5,
+      "renderTypeName": "text",
+      "tableColumnId": 140521892
+    },
+    {
+      "cachedContents": {
+        "cardinality": "10",
+        "count": "9197694",
+        "largest": "9",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "2187316",
+            "item": "11"
+          },
+          {
+            "count": "2146939",
+            "item": "16"
+          },
+          {
+            "count": "1484389",
+            "item": "13"
+          },
+          {
+            "count": "1428541",
+            "item": "12"
+          },
+          {
+            "count": "768216",
+            "item": "14"
+          },
+          {
+            "count": "721545",
+            "item": "15"
+          },
+          {
+            "count": "343433",
+            "item": "2"
+          },
+          {
+            "count": "117305",
+            "item": "0"
+          },
+          {
+            "count": "9",
+            "item": "10"
+          },
+          {
+            "count": "1",
+            "item": "9"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'booking_num' is a number field that uniquely identifies an imported schedule. This is reported by the vehicle as part of the correlation process, and can be examined in the booking table to get the booking id and booking start date.",
+      "fieldName": "booking_num",
+      "format": {},
+      "id": 554284982,
+      "name": "booking_num",
+      "position": 6,
+      "renderTypeName": "text",
+      "tableColumnId": 140521875
+    },
+    {
+      "cachedContents": {
+        "cardinality": "116228",
+        "count": "9197694",
+        "largest": "20211230235206",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210606000000",
+        "top": [
+          {
+            "count": "2187134",
+            "item": "20210627000000"
+          },
+          {
+            "count": "2147219",
+            "item": "20211114000000"
+          },
+          {
+            "count": "1484468",
+            "item": "20210919000000"
+          },
+          {
+            "count": "1428570",
+            "item": "20210822000000"
+          },
+          {
+            "count": "768322",
+            "item": "20211017000000"
+          },
+          {
+            "count": "721595",
+            "item": "20211031000000"
+          },
+          {
+            "count": "343546",
+            "item": "20210815000000"
+          },
+          {
+            "count": "4",
+            "item": "20210606000000"
+          },
+          {
+            "count": "3",
+            "item": "20211230042049"
+          },
+          {
+            "count": "3",
+            "item": "20210720043059"
+          },
+          {
+            "count": "3",
+            "item": "20210824090452"
+          },
+          {
+            "count": "3",
+            "item": "20210905014402"
+          },
+          {
+            "count": "2",
+            "item": "20210701012607"
+          },
+          {
+            "count": "2",
+            "item": "20211012052820"
+          },
+          {
+            "count": "2",
+            "item": "20210903100229"
+          },
+          {
+            "count": "2",
+            "item": "20211111000326"
+          },
+          {
+            "count": "2",
+            "item": "20211226221321"
+          },
+          {
+            "count": "2",
+            "item": "20211110135519"
+          },
+          {
+            "count": "2",
+            "item": "20210903092431"
+          },
+          {
+            "count": "2",
+            "item": "20211122042617"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'booking_start_date' is a timestamp equaling the date the booking and its associated schedules become active. The booking_num is reported by the vehicle as part of the correlation process and can be examined in the booking table to get the booking id and booking start date.",
+      "fieldName": "booking_start_date",
+      "format": {},
+      "id": 554285024,
+      "name": "booking_start_date",
+      "position": 7,
+      "renderTypeName": "text",
+      "tableColumnId": 140521917
+    },
+    {
+      "cachedContents": {
+        "cardinality": "2362",
+        "count": "9197694",
+        "largest": "999",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "1619503",
+            "item": "0"
+          },
+          {
+            "count": "49814",
+            "item": "2613"
+          },
+          {
+            "count": "44424",
+            "item": "497"
+          },
+          {
+            "count": "42536",
+            "item": "5604"
+          },
+          {
+            "count": "42158",
+            "item": "6439"
+          },
+          {
+            "count": "36222",
+            "item": "2643"
+          },
+          {
+            "count": "35846",
+            "item": "5868"
+          },
+          {
+            "count": "35695",
+            "item": "5263"
+          },
+          {
+            "count": "35522",
+            "item": "5867"
+          },
+          {
+            "count": "32272",
+            "item": "6345"
+          },
+          {
+            "count": "32077",
+            "item": "5377"
+          },
+          {
+            "count": "30690",
+            "item": "5702"
+          },
+          {
+            "count": "29425",
+            "item": "1368"
+          },
+          {
+            "count": "26534",
+            "item": "5863"
+          },
+          {
+            "count": "26245",
+            "item": "6373"
+          },
+          {
+            "count": "26182",
+            "item": "5938"
+          },
+          {
+            "count": "26033",
+            "item": "2738"
+          },
+          {
+            "count": "25951",
+            "item": "6315"
+          },
+          {
+            "count": "25770",
+            "item": "1619"
+          },
+          {
+            "count": "25759",
+            "item": "5919"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'bs_id' is the bus stop identification number assigned to a particular geographical bus stop within a service region. It may be matched against bs_id field in the bus_stop_data table, along with other items, to acquire detailed information about a stop.",
+      "fieldName": "bs_id",
+      "format": {},
+      "id": 554284995,
+      "name": "bs_id",
+      "position": 8,
+      "renderTypeName": "text",
+      "tableColumnId": 140521888
+    },
+    {
+      "cachedContents": {
+        "cardinality": "6128967",
+        "count": "9197694",
+        "largest": "20211231055637",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210701000004",
+        "top": [
+          {
+            "count": "16",
+            "item": "20210722231501"
+          },
+          {
+            "count": "16",
+            "item": "20210915224501"
+          },
+          {
+            "count": "15",
+            "item": "20210701231501"
+          },
+          {
+            "count": "14",
+            "item": "20210902150535"
+          },
+          {
+            "count": "14",
+            "item": "20211016224501"
+          },
+          {
+            "count": "14",
+            "item": "20210729211501"
+          },
+          {
+            "count": "14",
+            "item": "20210713224501"
+          },
+          {
+            "count": "13",
+            "item": "20210731224501"
+          },
+          {
+            "count": "13",
+            "item": "20210818224501"
+          },
+          {
+            "count": "13",
+            "item": "20210804224501"
+          },
+          {
+            "count": "12",
+            "item": "20211208231501"
+          },
+          {
+            "count": "12",
+            "item": "20211024174501"
+          },
+          {
+            "count": "11",
+            "item": "20210707224501"
+          },
+          {
+            "count": "10",
+            "item": "20211012181851"
+          },
+          {
+            "count": "10",
+            "item": "20210929100020"
+          },
+          {
+            "count": "10",
+            "item": "20210901080221"
+          },
+          {
+            "count": "10",
+            "item": "20211111132906"
+          },
+          {
+            "count": "10",
+            "item": "20210913082544"
+          },
+          {
+            "count": "10",
+            "item": "20211005182234"
+          },
+          {
+            "count": "10",
+            "item": "20210914185136"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'close_date_time' is the date/time when the door was closed. If more than one door closed at a location, then this is the latest door closing.",
+      "fieldName": "close_date_time",
+      "format": {},
+      "id": 554284994,
+      "name": "close_date_time",
+      "position": 9,
+      "renderTypeName": "text",
+      "tableColumnId": 140521887
+    },
+    {
+      "cachedContents": {
+        "cardinality": "79",
+        "count": "9197694",
+        "largest": "985",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "716485",
+            "item": "300"
+          },
+          {
+            "count": "637903",
+            "item": "7"
+          },
+          {
+            "count": "628173",
+            "item": "10"
+          },
+          {
+            "count": "567288",
+            "item": "20"
+          },
+          {
+            "count": "526467",
+            "item": "801"
+          },
+          {
+            "count": "501031",
+            "item": "0"
+          },
+          {
+            "count": "448443",
+            "item": "1"
+          },
+          {
+            "count": "445653",
+            "item": "803"
+          },
+          {
+            "count": "353036",
+            "item": "3"
+          },
+          {
+            "count": "295653",
+            "item": "325"
+          },
+          {
+            "count": "282161",
+            "item": "311"
+          },
+          {
+            "count": "273729",
+            "item": "333"
+          },
+          {
+            "count": "225509",
+            "item": "337"
+          },
+          {
+            "count": "201554",
+            "item": "383"
+          },
+          {
+            "count": "201089",
+            "item": "4"
+          },
+          {
+            "count": "169901",
+            "item": "350"
+          },
+          {
+            "count": "158591",
+            "item": "2"
+          },
+          {
+            "count": "155326",
+            "item": "324"
+          },
+          {
+            "count": "146770",
+            "item": "17"
+          },
+          {
+            "count": "138366",
+            "item": "318"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "The 'current_route_id' is the trip route for a specified entry.",
+      "fieldName": "current_route_id",
+      "format": {},
+      "id": 554285010,
+      "name": "current_route_id",
+      "position": 10,
+      "renderTypeName": "text",
+      "tableColumnId": 140521903
+    },
+    {
+      "cachedContents": {
+        "cardinality": "4",
+        "count": "9197694",
+        "largest": "3",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "7038685",
+            "item": "1"
+          },
+          {
+            "count": "1017323",
+            "item": "3"
+          },
+          {
+            "count": "1007380",
+            "item": "2"
+          },
+          {
+            "count": "134306",
+            "item": "0"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'day_type_vs' is an identification number for both the day of the week and the schedule number for that day for vehicle schedules. It matches the id field in the day_type_vs table.",
+      "fieldName": "day_type_vs",
+      "format": {},
+      "id": 554284989,
+      "name": "day_type_vs",
+      "position": 11,
+      "renderTypeName": "text",
+      "tableColumnId": 140521882
+    },
+    {
+      "cachedContents": {
+        "cardinality": "9",
+        "count": "9197694",
+        "largest": "8",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "2859908",
+            "item": "4"
+          },
+          {
+            "count": "2818714",
+            "item": "6"
+          },
+          {
+            "count": "1337563",
+            "item": "7"
+          },
+          {
+            "count": "1301710",
+            "item": "8"
+          },
+          {
+            "count": "501031",
+            "item": "0"
+          },
+          {
+            "count": "156790",
+            "item": "3"
+          },
+          {
+            "count": "129366",
+            "item": "5"
+          },
+          {
+            "count": "64651",
+            "item": "2"
+          },
+          {
+            "count": "27961",
+            "item": "1"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'direction_code_id' is a primary key field that identifies the route direction associated with the route path. Combined with the 'route_id' and 'variation' fields, it defines a unique path for route directions. It is obtained by consulting the apattern_id reported by the vehicle against the apattern table. It is also a software foreign key to the 'direction_codes' table.",
+      "fieldName": "direction_code_id",
+      "format": {},
+      "id": 554285019,
+      "name": "direction_code_id",
+      "position": 12,
+      "renderTypeName": "text",
+      "tableColumnId": 140521912
+    },
+    {
+      "cachedContents": {
+        "cardinality": "9591",
+        "count": "9197694",
+        "largest": "9999",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "872774",
+            "item": "0"
+          },
+          {
+            "count": "457850",
+            "item": "10"
+          },
+          {
+            "count": "452011",
+            "item": "9"
+          },
+          {
+            "count": "446066",
+            "item": "11"
+          },
+          {
+            "count": "406177",
+            "item": "12"
+          },
+          {
+            "count": "404385",
+            "item": "8"
+          },
+          {
+            "count": "364102",
+            "item": "13"
+          },
+          {
+            "count": "314197",
+            "item": "14"
+          },
+          {
+            "count": "285834",
+            "item": "7"
+          },
+          {
+            "count": "271132",
+            "item": "15"
+          },
+          {
+            "count": "236345",
+            "item": "16"
+          },
+          {
+            "count": "204122",
+            "item": "17"
+          },
+          {
+            "count": "175712",
+            "item": "18"
+          },
+          {
+            "count": "164884",
+            "item": "6"
+          },
+          {
+            "count": "153927",
+            "item": "19"
+          },
+          {
+            "count": "135175",
+            "item": "20"
+          },
+          {
+            "count": "120344",
+            "item": "21"
+          },
+          {
+            "count": "108506",
+            "item": "22"
+          },
+          {
+            "count": "97811",
+            "item": "23"
+          },
+          {
+            "count": "89830",
+            "item": "5"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'dwell_time' is the number of seconds between the earliest open door and latest close door at a given location.",
+      "fieldName": "dwell_time",
+      "format": {},
+      "id": 554284988,
+      "name": "dwell_time",
+      "position": 13,
+      "renderTypeName": "text",
+      "tableColumnId": 140521881
+    },
+    {
+      "cachedContents": {
+        "cardinality": "39789",
+        "count": "9197694",
+        "largest": "2633166",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "250050",
+            "item": "0"
+          },
+          {
+            "count": "3329",
+            "item": "2593864"
+          },
+          {
+            "count": "3202",
+            "item": "2588846"
+          },
+          {
+            "count": "3193",
+            "item": "2593836"
+          },
+          {
+            "count": "3122",
+            "item": "2588903"
+          },
+          {
+            "count": "3109",
+            "item": "2588843"
+          },
+          {
+            "count": "3067",
+            "item": "2593837"
+          },
+          {
+            "count": "3005",
+            "item": "2588898"
+          },
+          {
+            "count": "2944",
+            "item": "2594634"
+          },
+          {
+            "count": "2922",
+            "item": "2594707"
+          },
+          {
+            "count": "2917",
+            "item": "2588840"
+          },
+          {
+            "count": "2909",
+            "item": "2588895"
+          },
+          {
+            "count": "2871",
+            "item": "2594802"
+          },
+          {
+            "count": "2871",
+            "item": "2588839"
+          },
+          {
+            "count": "2857",
+            "item": "2588901"
+          },
+          {
+            "count": "2852",
+            "item": "2594796"
+          },
+          {
+            "count": "2847",
+            "item": "2589284"
+          },
+          {
+            "count": "2845",
+            "item": "2588842"
+          },
+          {
+            "count": "2822",
+            "item": "2588892"
+          },
+          {
+            "count": "2820",
+            "item": "2588894"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'ext_trip_id' is a customer trip identifier. It is defined during the schedule import process.",
+      "fieldName": "ext_trip_id",
+      "format": {},
+      "id": 554284991,
+      "name": "ext_trip_id",
+      "position": 14,
+      "renderTypeName": "text",
+      "tableColumnId": 140521884
+    },
+    {
+      "cachedContents": {
+        "cardinality": "4",
+        "count": "9197694",
+        "largest": "6",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "6210453",
+            "item": "1"
+          },
+          {
+            "count": "2750875",
+            "item": "4"
+          },
+          {
+            "count": "119136",
+            "item": "6"
+          },
+          {
+            "count": "117230",
+            "item": "0"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'garage_id' is the division assigned to this route/block.",
+      "fieldName": "garage_id",
+      "format": {},
+      "id": 554285022,
+      "name": "garage_id",
+      "position": 15,
+      "renderTypeName": "text",
+      "tableColumnId": 140521915
+    },
+    {
+      "cachedContents": {
+        "cardinality": "79",
+        "count": "9197694",
+        "largest": "985",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "716132",
+            "item": "300"
+          },
+          {
+            "count": "637835",
+            "item": "7"
+          },
+          {
+            "count": "627888",
+            "item": "10"
+          },
+          {
+            "count": "567129",
+            "item": "20"
+          },
+          {
+            "count": "526203",
+            "item": "801"
+          },
+          {
+            "count": "504590",
+            "item": "0"
+          },
+          {
+            "count": "448318",
+            "item": "1"
+          },
+          {
+            "count": "445468",
+            "item": "803"
+          },
+          {
+            "count": "352972",
+            "item": "3"
+          },
+          {
+            "count": "295588",
+            "item": "325"
+          },
+          {
+            "count": "281995",
+            "item": "311"
+          },
+          {
+            "count": "273672",
+            "item": "333"
+          },
+          {
+            "count": "225422",
+            "item": "337"
+          },
+          {
+            "count": "201504",
+            "item": "383"
+          },
+          {
+            "count": "200942",
+            "item": "4"
+          },
+          {
+            "count": "169856",
+            "item": "350"
+          },
+          {
+            "count": "158554",
+            "item": "2"
+          },
+          {
+            "count": "155254",
+            "item": "324"
+          },
+          {
+            "count": "146669",
+            "item": "17"
+          },
+          {
+            "count": "138332",
+            "item": "318"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'headsign_route' is an identifier that defines the alternate route id in a trip. If the alternate route id is not used, then the headsign_route equals the current route id.",
+      "fieldName": "headsign_route",
+      "format": {},
+      "id": 554285015,
+      "name": "headsign_route",
+      "position": 16,
+      "renderTypeName": "text",
+      "tableColumnId": 140521908
+    },
+    {
+      "cachedContents": {
+        "cardinality": "10",
+        "count": "9197694",
+        "largest": "7",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "8115740",
+            "item": "0"
+          },
+          {
+            "count": "372064",
+            "item": "7"
+          },
+          {
+            "count": "344700",
+            "item": "4"
+          },
+          {
+            "count": "198630",
+            "item": "6"
+          },
+          {
+            "count": "116612",
+            "item": "5"
+          },
+          {
+            "count": "35577",
+            "item": "16"
+          },
+          {
+            "count": "13785",
+            "item": "13"
+          },
+          {
+            "count": "444",
+            "item": "2"
+          },
+          {
+            "count": "100",
+            "item": "10"
+          },
+          {
+            "count": "42",
+            "item": "15"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'import_error' is a software foreign key to the 'apc_error_types' table. The 'apc_error_types' table describes the types of errors, if any, detected in correlating this door event.",
+      "fieldName": "import_error",
+      "format": {},
+      "id": 554284986,
+      "name": "import_error",
+      "position": 17,
+      "renderTypeName": "text",
+      "tableColumnId": 140521879
+    },
+    {
+      "cachedContents": {
+        "cardinality": "9",
+        "count": "9197694",
+        "largest": "8",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "8245340",
+            "item": "0"
+          },
+          {
+            "count": "422481",
+            "item": "3"
+          },
+          {
+            "count": "337535",
+            "item": "1"
+          },
+          {
+            "count": "144876",
+            "item": "12"
+          },
+          {
+            "count": "42440",
+            "item": "5"
+          },
+          {
+            "count": "4409",
+            "item": "6"
+          },
+          {
+            "count": "362",
+            "item": "2"
+          },
+          {
+            "count": "229",
+            "item": "8"
+          },
+          {
+            "count": "22",
+            "item": "7"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'import_trip_error' identifies the trip-level error, if any, associated with the current record.",
+      "fieldName": "import_trip_error",
+      "format": {},
+      "id": 554285006,
+      "name": "import_trip_error",
+      "position": 18,
+      "renderTypeName": "text",
+      "tableColumnId": 140521899
+    },
+    {
+      "cachedContents": {
+        "cardinality": "139445",
+        "count": "9197694",
+        "largest": "20220113233108",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210701002040",
+        "top": [
+          {
+            "count": "482",
+            "item": "20211118203115"
+          },
+          {
+            "count": "481",
+            "item": "20211028005113"
+          },
+          {
+            "count": "474",
+            "item": "20211027195120"
+          },
+          {
+            "count": "469",
+            "item": "20211030004113"
+          },
+          {
+            "count": "462",
+            "item": "20211117212111"
+          },
+          {
+            "count": "461",
+            "item": "20211009010117"
+          },
+          {
+            "count": "457",
+            "item": "20211009005109"
+          },
+          {
+            "count": "451",
+            "item": "20211025205113"
+          },
+          {
+            "count": "450",
+            "item": "20211201204118"
+          },
+          {
+            "count": "446",
+            "item": "20211112010115"
+          },
+          {
+            "count": "445",
+            "item": "20211211005113"
+          },
+          {
+            "count": "443",
+            "item": "20211119210113"
+          },
+          {
+            "count": "441",
+            "item": "20211006214110"
+          },
+          {
+            "count": "440",
+            "item": "20211108203112"
+          },
+          {
+            "count": "439",
+            "item": "20211005203115"
+          },
+          {
+            "count": "438",
+            "item": "20210922003127"
+          },
+          {
+            "count": "436",
+            "item": "20211014003129"
+          },
+          {
+            "count": "435",
+            "item": "20210831062114"
+          },
+          {
+            "count": "432",
+            "item": "20211002010113"
+          },
+          {
+            "count": "432",
+            "item": "20211008190111"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'insert_date_time' is the date and time of when the whole trip record is ready for insert into the database. The same timestamp is used for each trip.",
+      "fieldName": "insert_date_time",
+      "format": {},
+      "id": 554285026,
+      "name": "insert_date_time",
+      "position": 19,
+      "renderTypeName": "text",
+      "tableColumnId": 140521919
+    },
+    {
+      "cachedContents": {
+        "cardinality": "139",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "1911421",
+            "item": "0"
+          },
+          {
+            "count": "736435",
+            "item": "2"
+          },
+          {
+            "count": "734133",
+            "item": "3"
+          },
+          {
+            "count": "702145",
+            "item": "4"
+          },
+          {
+            "count": "702026",
+            "item": "1"
+          },
+          {
+            "count": "651884",
+            "item": "5"
+          },
+          {
+            "count": "588369",
+            "item": "6"
+          },
+          {
+            "count": "519659",
+            "item": "7"
+          },
+          {
+            "count": "449123",
+            "item": "8"
+          },
+          {
+            "count": "383659",
+            "item": "9"
+          },
+          {
+            "count": "323134",
+            "item": "10"
+          },
+          {
+            "count": "268932",
+            "item": "11"
+          },
+          {
+            "count": "222142",
+            "item": "12"
+          },
+          {
+            "count": "182229",
+            "item": "13"
+          },
+          {
+            "count": "148577",
+            "item": "14"
+          },
+          {
+            "count": "121858",
+            "item": "15"
+          },
+          {
+            "count": "99108",
+            "item": "16"
+          },
+          {
+            "count": "80447",
+            "item": "17"
+          },
+          {
+            "count": "65445",
+            "item": "18"
+          },
+          {
+            "count": "53114",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'max_load' is the load balanced current number of passengers that are on the vehicle (onboard count) after being adjusted by the number of passengers that boarded or alighted at this location if the balance_load flag is enabled in the apattern table. Otherwise, the max_load equals the raw_max_load.",
+      "fieldName": "max_load",
+      "format": {},
+      "id": 554285008,
+      "name": "max_load",
+      "position": 20,
+      "renderTypeName": "text",
+      "tableColumnId": 140521901
+    },
+    {
+      "cachedContents": {
+        "cardinality": "555",
+        "count": "9197694",
+        "largest": "95.051704",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0.0",
+        "top": [
+          {
+            "count": "9196361",
+            "item": "0.0"
+          },
+          {
+            "count": "499",
+            "item": "100.0"
+          },
+          {
+            "count": "67",
+            "item": "0.000189"
+          },
+          {
+            "count": "33",
+            "item": "200.0"
+          },
+          {
+            "count": "14",
+            "item": "26.686932"
+          },
+          {
+            "count": "11",
+            "item": "31.55928"
+          },
+          {
+            "count": "9",
+            "item": "0.000379"
+          },
+          {
+            "count": "9",
+            "item": "0.002273"
+          },
+          {
+            "count": "8",
+            "item": "0.000378"
+          },
+          {
+            "count": "8",
+            "item": "0.349053"
+          },
+          {
+            "count": "6",
+            "item": "0.000758"
+          },
+          {
+            "count": "6",
+            "item": "5.744318"
+          },
+          {
+            "count": "5",
+            "item": "0.85947"
+          },
+          {
+            "count": "5",
+            "item": "53.489395"
+          },
+          {
+            "count": "5",
+            "item": "300.0"
+          },
+          {
+            "count": "5",
+            "item": "0.004167"
+          },
+          {
+            "count": "3",
+            "item": "0.002083"
+          },
+          {
+            "count": "3",
+            "item": "0.003409"
+          },
+          {
+            "count": "3",
+            "item": "0.268182"
+          },
+          {
+            "count": "3",
+            "item": "0.5"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'non_rev_distance' is the number of miles or kilometers (based on value of rep_odometer_units) on a non_revenue trip that will be traveled by the 'max_load' number of passengers after this location to the next location. Either this field or 'rev_distance' will be zero.",
+      "fieldName": "non_rev_distance",
+      "format": {},
+      "id": 554285017,
+      "name": "non_rev_distance",
+      "position": 21,
+      "renderTypeName": "text",
+      "tableColumnId": 140521910
+    },
+    {
+      "cachedContents": {
+        "cardinality": "2957",
+        "count": "9197694",
+        "largest": "999915533",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "9192522",
+            "item": "0"
+          },
+          {
+            "count": "23",
+            "item": "1"
+          },
+          {
+            "count": "18",
+            "item": "35"
+          },
+          {
+            "count": "18",
+            "item": "3"
+          },
+          {
+            "count": "17",
+            "item": "7"
+          },
+          {
+            "count": "17",
+            "item": "9"
+          },
+          {
+            "count": "17",
+            "item": "5"
+          },
+          {
+            "count": "16",
+            "item": "2"
+          },
+          {
+            "count": "16",
+            "item": "4"
+          },
+          {
+            "count": "15",
+            "item": "27"
+          },
+          {
+            "count": "15",
+            "item": "16"
+          },
+          {
+            "count": "15",
+            "item": "29"
+          },
+          {
+            "count": "15",
+            "item": "30"
+          },
+          {
+            "count": "15",
+            "item": "44"
+          },
+          {
+            "count": "14",
+            "item": "6"
+          },
+          {
+            "count": "14",
+            "item": "99"
+          },
+          {
+            "count": "14",
+            "item": "53"
+          },
+          {
+            "count": "14",
+            "item": "40"
+          },
+          {
+            "count": "13",
+            "item": "95"
+          },
+          {
+            "count": "13",
+            "item": "20"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'non_rev_seconds' is the number of seconds on a non_revenue trip that it took to travel to the next location with the 'max_load' number of passengers. Either this field or 'rev_seconds' will be zero.",
+      "fieldName": "non_rev_seconds",
+      "format": {},
+      "id": 554285028,
+      "name": "non_rev_seconds",
+      "position": 22,
+      "renderTypeName": "text",
+      "tableColumnId": 140521921
+    },
+    {
+      "cachedContents": {
+        "cardinality": "13",
+        "count": "9197694",
+        "largest": "9",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "1834723",
+            "item": "8"
+          },
+          {
+            "count": "1530901",
+            "item": "7"
+          },
+          {
+            "count": "1526757",
+            "item": "9"
+          },
+          {
+            "count": "1307116",
+            "item": "6"
+          },
+          {
+            "count": "1038470",
+            "item": "10"
+          },
+          {
+            "count": "915032",
+            "item": "5"
+          },
+          {
+            "count": "516689",
+            "item": "4"
+          },
+          {
+            "count": "209743",
+            "item": "11"
+          },
+          {
+            "count": "191277",
+            "item": "3"
+          },
+          {
+            "count": "83609",
+            "item": "0"
+          },
+          {
+            "count": "31036",
+            "item": "12"
+          },
+          {
+            "count": "11501",
+            "item": "2"
+          },
+          {
+            "count": "840",
+            "item": "1"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'num_sat' indicates the number of satellites currently being used.",
+      "fieldName": "num_sat",
+      "format": {},
+      "id": 554285016,
+      "name": "num_sat",
+      "position": 23,
+      "renderTypeName": "text",
+      "tableColumnId": 140521909
+    },
+    {
+      "cachedContents": {
+        "cardinality": "131",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "4300490",
+            "item": "0"
+          },
+          {
+            "count": "2736954",
+            "item": "1"
+          },
+          {
+            "count": "1038415",
+            "item": "2"
+          },
+          {
+            "count": "468616",
+            "item": "3"
+          },
+          {
+            "count": "244671",
+            "item": "4"
+          },
+          {
+            "count": "140866",
+            "item": "5"
+          },
+          {
+            "count": "86074",
+            "item": "6"
+          },
+          {
+            "count": "54677",
+            "item": "7"
+          },
+          {
+            "count": "36193",
+            "item": "8"
+          },
+          {
+            "count": "24594",
+            "item": "9"
+          },
+          {
+            "count": "16908",
+            "item": "10"
+          },
+          {
+            "count": "12101",
+            "item": "11"
+          },
+          {
+            "count": "8396",
+            "item": "12"
+          },
+          {
+            "count": "6203",
+            "item": "13"
+          },
+          {
+            "count": "4622",
+            "item": "14"
+          },
+          {
+            "count": "3464",
+            "item": "15"
+          },
+          {
+            "count": "2684",
+            "item": "16"
+          },
+          {
+            "count": "2121",
+            "item": "17"
+          },
+          {
+            "count": "1557",
+            "item": "18"
+          },
+          {
+            "count": "1250",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'offs' is the load balanced number of passengers that alighted through all doors at this location if the balance_load flag is enabled in the apattern table. If the balance_load flag is not enabled, then the offs equals the raw_off.",
+      "fieldName": "offs",
+      "format": {},
+      "id": 554284990,
+      "name": "offs",
+      "position": 24,
+      "renderTypeName": "text",
+      "tableColumnId": 140521883
+    },
+    {
+      "cachedContents": {
+        "cardinality": "152",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "4463896",
+            "item": "0"
+          },
+          {
+            "count": "2620380",
+            "item": "1"
+          },
+          {
+            "count": "978031",
+            "item": "2"
+          },
+          {
+            "count": "454071",
+            "item": "3"
+          },
+          {
+            "count": "243569",
+            "item": "4"
+          },
+          {
+            "count": "143607",
+            "item": "5"
+          },
+          {
+            "count": "90284",
+            "item": "6"
+          },
+          {
+            "count": "59019",
+            "item": "7"
+          },
+          {
+            "count": "39697",
+            "item": "8"
+          },
+          {
+            "count": "27166",
+            "item": "9"
+          },
+          {
+            "count": "19188",
+            "item": "10"
+          },
+          {
+            "count": "13565",
+            "item": "11"
+          },
+          {
+            "count": "9969",
+            "item": "12"
+          },
+          {
+            "count": "7395",
+            "item": "13"
+          },
+          {
+            "count": "5538",
+            "item": "14"
+          },
+          {
+            "count": "4181",
+            "item": "15"
+          },
+          {
+            "count": "3187",
+            "item": "16"
+          },
+          {
+            "count": "2454",
+            "item": "17"
+          },
+          {
+            "count": "2059",
+            "item": "18"
+          },
+          {
+            "count": "1594",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'ons' is the load balanced number of passengers that boarded through all doors at this location if the balance_load flag is enabled in the apattern table. If the balance_load flag is not enabled, then the ons equals the raw_on.",
+      "fieldName": "ons",
+      "format": {},
+      "id": 554285020,
+      "name": "ons",
+      "position": 25,
+      "renderTypeName": "text",
+      "tableColumnId": 140521913
+    },
+    {
+      "cachedContents": {
+        "cardinality": "6114700",
+        "count": "9197694",
+        "largest": "20211230235945",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20051231180159",
+        "top": [
+          {
+            "count": "17",
+            "item": "20211103075651"
+          },
+          {
+            "count": "16",
+            "item": "20210915224501"
+          },
+          {
+            "count": "16",
+            "item": "20210722231501"
+          },
+          {
+            "count": "16",
+            "item": "20211211073801"
+          },
+          {
+            "count": "15",
+            "item": "20210701231501"
+          },
+          {
+            "count": "15",
+            "item": "20210713224501"
+          },
+          {
+            "count": "15",
+            "item": "20210729211501"
+          },
+          {
+            "count": "14",
+            "item": "20210810152902"
+          },
+          {
+            "count": "14",
+            "item": "20210818224501"
+          },
+          {
+            "count": "13",
+            "item": "20210818115521"
+          },
+          {
+            "count": "13",
+            "item": "20211208231501"
+          },
+          {
+            "count": "13",
+            "item": "20210707224501"
+          },
+          {
+            "count": "13",
+            "item": "20211018075853"
+          },
+          {
+            "count": "13",
+            "item": "20210924150827"
+          },
+          {
+            "count": "13",
+            "item": "20210804224501"
+          },
+          {
+            "count": "13",
+            "item": "20211016224501"
+          },
+          {
+            "count": "12",
+            "item": "20210715072901"
+          },
+          {
+            "count": "12",
+            "item": "20211111150321"
+          },
+          {
+            "count": "12",
+            "item": "20211202161534"
+          },
+          {
+            "count": "12",
+            "item": "20210804080313"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'open_date_time' is the date/time when the door was opened. If more than one door opened at a location, then this is the earliest door opening.",
+      "fieldName": "open_date_time",
+      "format": {},
+      "id": 554285002,
+      "name": "open_date_time",
+      "position": 26,
+      "renderTypeName": "text",
+      "tableColumnId": 140521895
+    },
+    {
+      "cachedContents": {
+        "cardinality": "1076",
+        "count": "9197694",
+        "largest": "9991",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "116774",
+            "item": "0"
+          },
+          {
+            "count": "33771",
+            "item": "312620"
+          },
+          {
+            "count": "28718",
+            "item": "309620"
+          },
+          {
+            "count": "27594",
+            "item": "310150"
+          },
+          {
+            "count": "27318",
+            "item": "303100"
+          },
+          {
+            "count": "26582",
+            "item": "311850"
+          },
+          {
+            "count": "26216",
+            "item": "301580"
+          },
+          {
+            "count": "24970",
+            "item": "304390"
+          },
+          {
+            "count": "23277",
+            "item": "311060"
+          },
+          {
+            "count": "23035",
+            "item": "302990"
+          },
+          {
+            "count": "23013",
+            "item": "308270"
+          },
+          {
+            "count": "22934",
+            "item": "303390"
+          },
+          {
+            "count": "22708",
+            "item": "302750"
+          },
+          {
+            "count": "21940",
+            "item": "307960"
+          },
+          {
+            "count": "21814",
+            "item": "312700"
+          },
+          {
+            "count": "21633",
+            "item": "300770"
+          },
+          {
+            "count": "21507",
+            "item": "300660"
+          },
+          {
+            "count": "21312",
+            "item": "301600"
+          },
+          {
+            "count": "21260",
+            "item": "307440"
+          },
+          {
+            "count": "21202",
+            "item": "302840"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'operator_id' is the driver logged on when the APC data was collected. If the vehicle is logged off this will be zero.",
+      "fieldName": "operator_id",
+      "format": {},
+      "id": 554284987,
+      "name": "operator_id",
+      "position": 27,
+      "renderTypeName": "text",
+      "tableColumnId": 140521880
+    },
+    {
+      "cachedContents": {
+        "cardinality": "3",
+        "count": "9197694",
+        "largest": "7",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "1",
+        "top": [
+          {
+            "count": "6581299",
+            "item": "7"
+          },
+          {
+            "count": "2406201",
+            "item": "1"
+          },
+          {
+            "count": "210194",
+            "item": "6"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'position_source' is used to indicate where the vehicle positioning is coming from. The values are 0=Error; 1-GPS; 2-INS device; 3=LORAN; 4=GLONASS; 5=Odometer; 6=Dead Reckoning; 7=RSA; 8=Data Not Available.",
+      "fieldName": "position_source",
+      "format": {},
+      "id": 554285009,
+      "name": "position_source",
+      "position": 28,
+      "renderTypeName": "text",
+      "tableColumnId": 140521902
+    },
+    {
+      "cachedContents": {
+        "cardinality": "5",
+        "count": "9197694",
+        "largest": "6",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "8663347",
+            "item": "6"
+          },
+          {
+            "count": "311815",
+            "item": "0"
+          },
+          {
+            "count": "125489",
+            "item": "5"
+          },
+          {
+            "count": "65973",
+            "item": "4"
+          },
+          {
+            "count": "31070",
+            "item": "3"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'quality_indicator' is used only if the position_source field is equal to 'GPS' or 'RSA' and is used to determine the margin of error for the GPS signal. The values are 0=GPS device has never had a valid fix; 1=Invalid data; 2=No fix; 3=2D fix (altitude not available); 4=3D fix (latitude, longitude, altitude); 5=2D fix (differentially corrected); 6=3D fix (differentially corrected).",
+      "fieldName": "quality_indicator",
+      "format": {},
+      "id": 554285012,
+      "name": "quality_indicator",
+      "position": 29,
+      "renderTypeName": "text",
+      "tableColumnId": 140521905
+    },
+    {
+      "cachedContents": {
+        "cardinality": "139",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "1911421",
+            "item": "0"
+          },
+          {
+            "count": "736435",
+            "item": "2"
+          },
+          {
+            "count": "734133",
+            "item": "3"
+          },
+          {
+            "count": "702145",
+            "item": "4"
+          },
+          {
+            "count": "702026",
+            "item": "1"
+          },
+          {
+            "count": "651884",
+            "item": "5"
+          },
+          {
+            "count": "588369",
+            "item": "6"
+          },
+          {
+            "count": "519659",
+            "item": "7"
+          },
+          {
+            "count": "449123",
+            "item": "8"
+          },
+          {
+            "count": "383659",
+            "item": "9"
+          },
+          {
+            "count": "323134",
+            "item": "10"
+          },
+          {
+            "count": "268932",
+            "item": "11"
+          },
+          {
+            "count": "222142",
+            "item": "12"
+          },
+          {
+            "count": "182229",
+            "item": "13"
+          },
+          {
+            "count": "148577",
+            "item": "14"
+          },
+          {
+            "count": "121858",
+            "item": "15"
+          },
+          {
+            "count": "99108",
+            "item": "16"
+          },
+          {
+            "count": "80447",
+            "item": "17"
+          },
+          {
+            "count": "65445",
+            "item": "18"
+          },
+          {
+            "count": "53114",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'raw_max_load' is the current number of passengers that are on the vehicle after being adjusted by the number of passengers that boarded or alighted at this location.",
+      "fieldName": "raw_max_load",
+      "format": {},
+      "id": 554285011,
+      "name": "raw_max_load",
+      "position": 30,
+      "renderTypeName": "text",
+      "tableColumnId": 140521904
+    },
+    {
+      "cachedContents": {
+        "cardinality": "131",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "4300490",
+            "item": "0"
+          },
+          {
+            "count": "2736954",
+            "item": "1"
+          },
+          {
+            "count": "1038415",
+            "item": "2"
+          },
+          {
+            "count": "468616",
+            "item": "3"
+          },
+          {
+            "count": "244671",
+            "item": "4"
+          },
+          {
+            "count": "140866",
+            "item": "5"
+          },
+          {
+            "count": "86074",
+            "item": "6"
+          },
+          {
+            "count": "54677",
+            "item": "7"
+          },
+          {
+            "count": "36193",
+            "item": "8"
+          },
+          {
+            "count": "24594",
+            "item": "9"
+          },
+          {
+            "count": "16908",
+            "item": "10"
+          },
+          {
+            "count": "12101",
+            "item": "11"
+          },
+          {
+            "count": "8396",
+            "item": "12"
+          },
+          {
+            "count": "6203",
+            "item": "13"
+          },
+          {
+            "count": "4622",
+            "item": "14"
+          },
+          {
+            "count": "3464",
+            "item": "15"
+          },
+          {
+            "count": "2684",
+            "item": "16"
+          },
+          {
+            "count": "2121",
+            "item": "17"
+          },
+          {
+            "count": "1557",
+            "item": "18"
+          },
+          {
+            "count": "1250",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'raw_off' is the number of passengers that alighted through all doors at this location. It is limited by the 'max_offs' field of the 'system_parameters' table.",
+      "fieldName": "raw_off",
+      "format": {},
+      "id": 554285023,
+      "name": "raw_off",
+      "position": 31,
+      "renderTypeName": "text",
+      "tableColumnId": 140521916
+    },
+    {
+      "cachedContents": {
+        "cardinality": "152",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "4463896",
+            "item": "0"
+          },
+          {
+            "count": "2620380",
+            "item": "1"
+          },
+          {
+            "count": "978031",
+            "item": "2"
+          },
+          {
+            "count": "454071",
+            "item": "3"
+          },
+          {
+            "count": "243569",
+            "item": "4"
+          },
+          {
+            "count": "143607",
+            "item": "5"
+          },
+          {
+            "count": "90284",
+            "item": "6"
+          },
+          {
+            "count": "59019",
+            "item": "7"
+          },
+          {
+            "count": "39697",
+            "item": "8"
+          },
+          {
+            "count": "27166",
+            "item": "9"
+          },
+          {
+            "count": "19188",
+            "item": "10"
+          },
+          {
+            "count": "13565",
+            "item": "11"
+          },
+          {
+            "count": "9969",
+            "item": "12"
+          },
+          {
+            "count": "7395",
+            "item": "13"
+          },
+          {
+            "count": "5538",
+            "item": "14"
+          },
+          {
+            "count": "4181",
+            "item": "15"
+          },
+          {
+            "count": "3187",
+            "item": "16"
+          },
+          {
+            "count": "2454",
+            "item": "17"
+          },
+          {
+            "count": "2059",
+            "item": "18"
+          },
+          {
+            "count": "1594",
+            "item": "19"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'raw_on' is the number of passengers that boarded through all doors at this location. It is limited by the 'max_ons' field of the 'system_parameters' table.",
+      "fieldName": "raw_on",
+      "format": {},
+      "id": 554284998,
+      "name": "raw_on",
+      "position": 32,
+      "renderTypeName": "text",
+      "tableColumnId": 140521891
+    },
+    {
+      "cachedContents": {
+        "cardinality": "469719",
+        "count": "9197694",
+        "largest": "9e-06",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0.0",
+        "top": [
+          {
+            "count": "2036800",
+            "item": "0.0"
+          },
+          {
+            "count": "23970",
+            "item": "0.306021"
+          },
+          {
+            "count": "22223",
+            "item": "0.35239"
+          },
+          {
+            "count": "18807",
+            "item": "0.239131"
+          },
+          {
+            "count": "14129",
+            "item": "0.148484"
+          },
+          {
+            "count": "14128",
+            "item": "0.342166"
+          },
+          {
+            "count": "13733",
+            "item": "0.288262"
+          },
+          {
+            "count": "12446",
+            "item": "0.560652"
+          },
+          {
+            "count": "11830",
+            "item": "0.486156"
+          },
+          {
+            "count": "11513",
+            "item": "0.527078"
+          },
+          {
+            "count": "10836",
+            "item": "0.132933"
+          },
+          {
+            "count": "10527",
+            "item": "0.533667"
+          },
+          {
+            "count": "9601",
+            "item": "0.351851"
+          },
+          {
+            "count": "9586",
+            "item": "0.909864"
+          },
+          {
+            "count": "9413",
+            "item": "0.565669"
+          },
+          {
+            "count": "8736",
+            "item": "0.51877"
+          },
+          {
+            "count": "8646",
+            "item": "0.222395"
+          },
+          {
+            "count": "8548",
+            "item": "0.745809"
+          },
+          {
+            "count": "8546",
+            "item": "0.398426"
+          },
+          {
+            "count": "8527",
+            "item": "0.287863"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'rev_dist' is the number of miles or kilometers (based on value of rep_odometer_units) on a revenue trip that will be traveled by the 'max_load' number of passengers after this location to the next location. Either this field or \u2018non_revenue_dist\u2019 will be zero.",
+      "fieldName": "rev_distance",
+      "format": {},
+      "id": 554284996,
+      "name": "rev_distance",
+      "position": 33,
+      "renderTypeName": "text",
+      "tableColumnId": 140521889
+    },
+    {
+      "cachedContents": {
+        "cardinality": "6460",
+        "count": "9197694",
+        "largest": "9999",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "2034650",
+            "item": "0"
+          },
+          {
+            "count": "27116",
+            "item": "106"
+          },
+          {
+            "count": "27085",
+            "item": "97"
+          },
+          {
+            "count": "27079",
+            "item": "108"
+          },
+          {
+            "count": "27058",
+            "item": "99"
+          },
+          {
+            "count": "27028",
+            "item": "79"
+          },
+          {
+            "count": "27018",
+            "item": "113"
+          },
+          {
+            "count": "26994",
+            "item": "104"
+          },
+          {
+            "count": "26980",
+            "item": "116"
+          },
+          {
+            "count": "26971",
+            "item": "109"
+          },
+          {
+            "count": "26966",
+            "item": "98"
+          },
+          {
+            "count": "26953",
+            "item": "111"
+          },
+          {
+            "count": "26944",
+            "item": "78"
+          },
+          {
+            "count": "26942",
+            "item": "110"
+          },
+          {
+            "count": "26937",
+            "item": "65"
+          },
+          {
+            "count": "26927",
+            "item": "82"
+          },
+          {
+            "count": "26922",
+            "item": "114"
+          },
+          {
+            "count": "26910",
+            "item": "75"
+          },
+          {
+            "count": "26908",
+            "item": "123"
+          },
+          {
+            "count": "26895",
+            "item": "76"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'rev_seconds' is the number of seconds on a revenue trip that it took to travel to the next location with the 'max_load' number of passengers. Either this field or 'non_rev_seconds' will be zero.",
+      "fieldName": "rev_seconds",
+      "format": {},
+      "id": 554285021,
+      "name": "rev_seconds",
+      "position": 34,
+      "renderTypeName": "text",
+      "tableColumnId": 140521914
+    },
+    {
+      "cachedContents": {
+        "cardinality": "97",
+        "count": "9197694",
+        "largest": "985",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "738034",
+            "item": "300"
+          },
+          {
+            "count": "666887",
+            "item": "7"
+          },
+          {
+            "count": "654184",
+            "item": "10"
+          },
+          {
+            "count": "585960",
+            "item": "20"
+          },
+          {
+            "count": "547616",
+            "item": "801"
+          },
+          {
+            "count": "469889",
+            "item": "1"
+          },
+          {
+            "count": "468689",
+            "item": "803"
+          },
+          {
+            "count": "367058",
+            "item": "333"
+          },
+          {
+            "count": "328800",
+            "item": "3"
+          },
+          {
+            "count": "303801",
+            "item": "325"
+          },
+          {
+            "count": "290925",
+            "item": "311"
+          },
+          {
+            "count": "210196",
+            "item": "4"
+          },
+          {
+            "count": "208728",
+            "item": "383"
+          },
+          {
+            "count": "183280",
+            "item": "937"
+          },
+          {
+            "count": "175064",
+            "item": "350"
+          },
+          {
+            "count": "169469",
+            "item": "2"
+          },
+          {
+            "count": "162284",
+            "item": "6"
+          },
+          {
+            "count": "160057",
+            "item": "324"
+          },
+          {
+            "count": "154249",
+            "item": "17"
+          },
+          {
+            "count": "144731",
+            "item": "318"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'route_id' is a foreign key field to the route table. Valid \u201croute_id\u201d are numbers between 1 and 65,535. Combined with the 'block_id' field, it is the primary key of the 'block' table. This is a static field defined upon record creation.",
+      "fieldName": "route_id",
+      "format": {},
+      "id": 554285007,
+      "name": "route_id",
+      "position": 35,
+      "renderTypeName": "text",
+      "tableColumnId": 140521900
+    },
+    {
+      "cachedContents": {
+        "cardinality": "1698",
+        "count": "9197694",
+        "largest": "985403",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "116612",
+            "item": "0"
+          },
+          {
+            "count": "32905",
+            "item": "300001"
+          },
+          {
+            "count": "29889",
+            "item": "300005"
+          },
+          {
+            "count": "29341",
+            "item": "300003"
+          },
+          {
+            "count": "28142",
+            "item": "300002"
+          },
+          {
+            "count": "27909",
+            "item": "300031"
+          },
+          {
+            "count": "27749",
+            "item": "300020"
+          },
+          {
+            "count": "27320",
+            "item": "300004"
+          },
+          {
+            "count": "27226",
+            "item": "20031"
+          },
+          {
+            "count": "26938",
+            "item": "7034"
+          },
+          {
+            "count": "26897",
+            "item": "1031"
+          },
+          {
+            "count": "26839",
+            "item": "300033"
+          },
+          {
+            "count": "26833",
+            "item": "20032"
+          },
+          {
+            "count": "26437",
+            "item": "300051"
+          },
+          {
+            "count": "26344",
+            "item": "7030"
+          },
+          {
+            "count": "26307",
+            "item": "300030"
+          },
+          {
+            "count": "26240",
+            "item": "300034"
+          },
+          {
+            "count": "26021",
+            "item": "20002"
+          },
+          {
+            "count": "25783",
+            "item": "7004"
+          },
+          {
+            "count": "25737",
+            "item": "1032"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'run_id' is the run number that the target is logged onto. If the vehicle is logged off, this will be zero.",
+      "fieldName": "run_id",
+      "format": {},
+      "id": 554284985,
+      "name": "run_id",
+      "position": 36,
+      "renderTypeName": "text",
+      "tableColumnId": 140521878
+    },
+    {
+      "cachedContents": {
+        "cardinality": "4925025",
+        "count": "9197694",
+        "largest": "20211230235952",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210621041800",
+        "top": [
+          {
+            "count": "2281",
+            "item": "20211103143000"
+          },
+          {
+            "count": "2262",
+            "item": "20210621160000"
+          },
+          {
+            "count": "2240",
+            "item": "20210621150000"
+          },
+          {
+            "count": "2230",
+            "item": "20210621170000"
+          },
+          {
+            "count": "2223",
+            "item": "20211103173000"
+          },
+          {
+            "count": "2201",
+            "item": "20210621120000"
+          },
+          {
+            "count": "2196",
+            "item": "20210621143000"
+          },
+          {
+            "count": "2188",
+            "item": "20210621180000"
+          },
+          {
+            "count": "2184",
+            "item": "20210621130000"
+          },
+          {
+            "count": "2179",
+            "item": "20210621140000"
+          },
+          {
+            "count": "2164",
+            "item": "20211103150000"
+          },
+          {
+            "count": "2158",
+            "item": "20210621110000"
+          },
+          {
+            "count": "2154",
+            "item": "20210621153000"
+          },
+          {
+            "count": "2149",
+            "item": "20210621173000"
+          },
+          {
+            "count": "2143",
+            "item": "20211103153000"
+          },
+          {
+            "count": "2142",
+            "item": "20211103103000"
+          },
+          {
+            "count": "2139",
+            "item": "20210621123000"
+          },
+          {
+            "count": "2130",
+            "item": "20211103123000"
+          },
+          {
+            "count": "2124",
+            "item": "20210621133000"
+          },
+          {
+            "count": "2103",
+            "item": "20211103130000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'sched_time' is the schedule arrival time at the timepoint if the current bus stop record is also a timepoint.",
+      "fieldName": "sched_time",
+      "format": {},
+      "id": 554284993,
+      "name": "sched_time",
+      "position": 37,
+      "renderTypeName": "text",
+      "tableColumnId": 140521886
+    },
+    {
+      "cachedContents": {
+        "cardinality": "1555017",
+        "count": "9197694",
+        "largest": "20211230235947",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210621041800",
+        "top": [
+          {
+            "count": "7523",
+            "item": "20211103153000"
+          },
+          {
+            "count": "7513",
+            "item": "20211103150000"
+          },
+          {
+            "count": "7486",
+            "item": "20210621170000"
+          },
+          {
+            "count": "7345",
+            "item": "20211103170000"
+          },
+          {
+            "count": "7274",
+            "item": "20211103173000"
+          },
+          {
+            "count": "7145",
+            "item": "20210621160000"
+          },
+          {
+            "count": "7105",
+            "item": "20211103143000"
+          },
+          {
+            "count": "7103",
+            "item": "20211103160000"
+          },
+          {
+            "count": "6928",
+            "item": "20210621150000"
+          },
+          {
+            "count": "6897",
+            "item": "20211103163000"
+          },
+          {
+            "count": "6836",
+            "item": "20210621140000"
+          },
+          {
+            "count": "6777",
+            "item": "20211103180000"
+          },
+          {
+            "count": "6474",
+            "item": "20211103133000"
+          },
+          {
+            "count": "6414",
+            "item": "20211103140000"
+          },
+          {
+            "count": "6362",
+            "item": "20210621180000"
+          },
+          {
+            "count": "6337",
+            "item": "20210621130000"
+          },
+          {
+            "count": "6329",
+            "item": "20210621143000"
+          },
+          {
+            "count": "6312",
+            "item": "20210621153000"
+          },
+          {
+            "count": "6239",
+            "item": "20211103123000"
+          },
+          {
+            "count": "6175",
+            "item": "20210621163000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'seg_arr_time' is the scheduled arrival time at the beginning of a segment.",
+      "fieldName": "seg_arr_time",
+      "format": {},
+      "id": 554285003,
+      "name": "seg_arr_time",
+      "position": 38,
+      "renderTypeName": "text",
+      "tableColumnId": 140521896
+    },
+    {
+      "cachedContents": {
+        "cardinality": "1555021",
+        "count": "9197694",
+        "largest": "20211230235947",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20210621043200",
+        "top": [
+          {
+            "count": "4323",
+            "item": "20210621170000"
+          },
+          {
+            "count": "4054",
+            "item": "20210621160000"
+          },
+          {
+            "count": "3881",
+            "item": "20211103150000"
+          },
+          {
+            "count": "3837",
+            "item": "20211103174500"
+          },
+          {
+            "count": "3795",
+            "item": "20211103171500"
+          },
+          {
+            "count": "3711",
+            "item": "20210621164500"
+          },
+          {
+            "count": "3630",
+            "item": "20210621141500"
+          },
+          {
+            "count": "3618",
+            "item": "20210621153000"
+          },
+          {
+            "count": "3583",
+            "item": "20211103144500"
+          },
+          {
+            "count": "3575",
+            "item": "20210621161500"
+          },
+          {
+            "count": "3529",
+            "item": "20211103173000"
+          },
+          {
+            "count": "3488",
+            "item": "20210621171500"
+          },
+          {
+            "count": "3485",
+            "item": "20211103151500"
+          },
+          {
+            "count": "3479",
+            "item": "20211103143000"
+          },
+          {
+            "count": "3472",
+            "item": "20210621154000"
+          },
+          {
+            "count": "3470",
+            "item": "20210621173000"
+          },
+          {
+            "count": "3459",
+            "item": "20210621170500"
+          },
+          {
+            "count": "3441",
+            "item": "20210621154500"
+          },
+          {
+            "count": "3435",
+            "item": "20210621180000"
+          },
+          {
+            "count": "3432",
+            "item": "20211103153000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'seg_dep_time' is the scheduled departure time at the end of a segment.",
+      "fieldName": "seg_dep_time",
+      "format": {},
+      "id": 554285001,
+      "name": "seg_dep_time",
+      "position": 39,
+      "renderTypeName": "text",
+      "tableColumnId": 140521894
+    },
+    {
+      "cachedContents": {
+        "cardinality": "73752",
+        "count": "9197694",
+        "largest": "19000101235959",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "19000101000000",
+        "top": [
+          {
+            "count": "64291",
+            "item": "19000101143000"
+          },
+          {
+            "count": "63993",
+            "item": "19000101170000"
+          },
+          {
+            "count": "61153",
+            "item": "19000101160000"
+          },
+          {
+            "count": "60964",
+            "item": "19000101150000"
+          },
+          {
+            "count": "60711",
+            "item": "19000101140000"
+          },
+          {
+            "count": "60206",
+            "item": "19000101173000"
+          },
+          {
+            "count": "60096",
+            "item": "19000101133000"
+          },
+          {
+            "count": "59605",
+            "item": "19000101153000"
+          },
+          {
+            "count": "59604",
+            "item": "19000101163000"
+          },
+          {
+            "count": "57467",
+            "item": "19000101130000"
+          },
+          {
+            "count": "55333",
+            "item": "19000101123000"
+          },
+          {
+            "count": "55151",
+            "item": "19000101113000"
+          },
+          {
+            "count": "54823",
+            "item": "19000101093000"
+          },
+          {
+            "count": "53619",
+            "item": "19000101103000"
+          },
+          {
+            "count": "52932",
+            "item": "19000101180000"
+          },
+          {
+            "count": "52878",
+            "item": "19000101120000"
+          },
+          {
+            "count": "51675",
+            "item": "19000101110000"
+          },
+          {
+            "count": "51488",
+            "item": "19000101090000"
+          },
+          {
+            "count": "50162",
+            "item": "19000101070000"
+          },
+          {
+            "count": "49681",
+            "item": "19000101100000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'start_trip_time' is a timestamp that equals the scheduled time associated to the first timepoint of the trip. The date portion of the timestamp is not used.",
+      "fieldName": "start_trip_time",
+      "format": {},
+      "id": 554285000,
+      "name": "start_trip_time",
+      "position": 40,
+      "renderTypeName": "text",
+      "tableColumnId": 140521893
+    },
+    {
+      "cachedContents": {
+        "cardinality": "6",
+        "count": "9197694",
+        "largest": "6",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "1",
+        "top": [
+          {
+            "count": "3339514",
+            "item": "3"
+          },
+          {
+            "count": "1828295",
+            "item": "4"
+          },
+          {
+            "count": "1718791",
+            "item": "5"
+          },
+          {
+            "count": "1467773",
+            "item": "2"
+          },
+          {
+            "count": "610366",
+            "item": "6"
+          },
+          {
+            "count": "232955",
+            "item": "1"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'time_id' is an identifier for a specific time period during the day. A numeric identifier for time periods such as AM Peak, MidDay, PM Peak, etc.. Current project values are given in the time_period table.",
+      "fieldName": "time_id",
+      "format": {},
+      "id": 554285014,
+      "name": "time_id",
+      "position": 41,
+      "renderTypeName": "text",
+      "tableColumnId": 140521907
+    },
+    {
+      "cachedContents": {
+        "cardinality": "412",
+        "count": "9197694",
+        "largest": "99",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0",
+        "top": [
+          {
+            "count": "6354515",
+            "item": "0"
+          },
+          {
+            "count": "60757",
+            "item": "361"
+          },
+          {
+            "count": "42536",
+            "item": "13940"
+          },
+          {
+            "count": "42158",
+            "item": "64"
+          },
+          {
+            "count": "35689",
+            "item": "356"
+          },
+          {
+            "count": "32077",
+            "item": "12708"
+          },
+          {
+            "count": "30680",
+            "item": "7306"
+          },
+          {
+            "count": "29425",
+            "item": "267"
+          },
+          {
+            "count": "26245",
+            "item": "12644"
+          },
+          {
+            "count": "25759",
+            "item": "143"
+          },
+          {
+            "count": "25642",
+            "item": "12848"
+          },
+          {
+            "count": "24735",
+            "item": "170"
+          },
+          {
+            "count": "24239",
+            "item": "11556"
+          },
+          {
+            "count": "23962",
+            "item": "31"
+          },
+          {
+            "count": "23853",
+            "item": "7234"
+          },
+          {
+            "count": "23819",
+            "item": "350"
+          },
+          {
+            "count": "22684",
+            "item": "61"
+          },
+          {
+            "count": "22287",
+            "item": "8623"
+          },
+          {
+            "count": "22277",
+            "item": "17931"
+          },
+          {
+            "count": "21767",
+            "item": "12806"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'tp_id' is the timepoint identification number assigned to a particular geographical timepoint within a service region. If the bus stop is also a timepoint, then the tp_id is assigned. Otherwise, it is '0'. It is defined during the schedule import process.",
+      "fieldName": "tp_id",
+      "format": {},
+      "id": 554284997,
+      "name": "tp_id",
+      "position": 42,
+      "renderTypeName": "text",
+      "tableColumnId": 140521890
+    },
+    {
+      "cachedContents": {
+        "cardinality": "196",
+        "count": "9197694",
+        "largest": "20211230000000",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "20051230000000",
+        "top": [
+          {
+            "count": "63056",
+            "item": "20211026000000"
+          },
+          {
+            "count": "62981",
+            "item": "20211025000000"
+          },
+          {
+            "count": "62806",
+            "item": "20211006000000"
+          },
+          {
+            "count": "62191",
+            "item": "20211005000000"
+          },
+          {
+            "count": "62105",
+            "item": "20211028000000"
+          },
+          {
+            "count": "61869",
+            "item": "20211004000000"
+          },
+          {
+            "count": "61385",
+            "item": "20211020000000"
+          },
+          {
+            "count": "61369",
+            "item": "20211027000000"
+          },
+          {
+            "count": "61231",
+            "item": "20211029000000"
+          },
+          {
+            "count": "61227",
+            "item": "20211012000000"
+          },
+          {
+            "count": "61132",
+            "item": "20211022000000"
+          },
+          {
+            "count": "61120",
+            "item": "20211007000000"
+          },
+          {
+            "count": "60989",
+            "item": "20210901000000"
+          },
+          {
+            "count": "60937",
+            "item": "20211021000000"
+          },
+          {
+            "count": "60788",
+            "item": "20211013000000"
+          },
+          {
+            "count": "60639",
+            "item": "20211018000000"
+          },
+          {
+            "count": "60611",
+            "item": "20210902000000"
+          },
+          {
+            "count": "60450",
+            "item": "20211019000000"
+          },
+          {
+            "count": "60397",
+            "item": "20211001000000"
+          },
+          {
+            "count": "60238",
+            "item": "20210915000000"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'transit_date_time' is the day of the month associated to the schedule being used on the vehicle. For a given date/time, the transit day would be the same day or the day before. The transit day will be the day before in the early morning time periods.",
+      "fieldName": "transit_date_time",
+      "format": {},
+      "id": 554285027,
+      "name": "transit_date_time",
+      "position": 43,
+      "renderTypeName": "text",
+      "tableColumnId": 140521920
+    },
+    {
+      "cachedContents": {
+        "cardinality": "192",
+        "count": "9197694",
+        "largest": "9300__",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "______",
+        "top": [
+          {
+            "count": "501031",
+            "item": "______"
+          },
+          {
+            "count": "348613",
+            "item": "39300_"
+          },
+          {
+            "count": "339160",
+            "item": "9300__"
+          },
+          {
+            "count": "319082",
+            "item": "30010_"
+          },
+          {
+            "count": "310439",
+            "item": "2007__"
+          },
+          {
+            "count": "309091",
+            "item": "1010__"
+          },
+          {
+            "count": "298112",
+            "item": "39007_"
+          },
+          {
+            "count": "291730",
+            "item": "6020__"
+          },
+          {
+            "count": "275558",
+            "item": "34020_"
+          },
+          {
+            "count": "263868",
+            "item": "30801_"
+          },
+          {
+            "count": "262599",
+            "item": "1801__"
+          },
+          {
+            "count": "228591",
+            "item": "1803__"
+          },
+          {
+            "count": "224361",
+            "item": "1001__"
+          },
+          {
+            "count": "224082",
+            "item": "30001_"
+          },
+          {
+            "count": "217062",
+            "item": "30803_"
+          },
+          {
+            "count": "176842",
+            "item": "1003__"
+          },
+          {
+            "count": "176194",
+            "item": "35003_"
+          },
+          {
+            "count": "149671",
+            "item": "30325_"
+          },
+          {
+            "count": "145982",
+            "item": "2325__"
+          },
+          {
+            "count": "142357",
+            "item": "30311_"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'variation' is a primary key field that differentiates a route path from others on the same route and direction. Combined with the 'route_id' and 'direction_code_id' fields, it defines a unique path for route directions. It is obtained by consulting the apattern_id reported by the vehicle against the apattern table.",
+      "fieldName": "variation",
+      "format": {},
+      "id": 554285018,
+      "name": "variation",
+      "position": 44,
+      "renderTypeName": "text",
+      "tableColumnId": 140521911
+    },
+    {
+      "cachedContents": {
+        "cardinality": "151989",
+        "count": "9197694",
+        "largest": "31.105972",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0.0",
+        "top": [
+          {
+            "count": "38683",
+            "item": "30.236221"
+          },
+          {
+            "count": "28455",
+            "item": "30.283227"
+          },
+          {
+            "count": "24077",
+            "item": "30.286128"
+          },
+          {
+            "count": "20937",
+            "item": "30.259368"
+          },
+          {
+            "count": "19178",
+            "item": "30.267795"
+          },
+          {
+            "count": "17785",
+            "item": "0.0"
+          },
+          {
+            "count": "16422",
+            "item": "30.291162"
+          },
+          {
+            "count": "15281",
+            "item": "30.269218"
+          },
+          {
+            "count": "14834",
+            "item": "30.266263"
+          },
+          {
+            "count": "14287",
+            "item": "30.230529"
+          },
+          {
+            "count": "14197",
+            "item": "30.238027"
+          },
+          {
+            "count": "13358",
+            "item": "30.275074"
+          },
+          {
+            "count": "12995",
+            "item": "30.354257"
+          },
+          {
+            "count": "10777",
+            "item": "30.236988"
+          },
+          {
+            "count": "10747",
+            "item": "30.230312"
+          },
+          {
+            "count": "10340",
+            "item": "30.350099"
+          },
+          {
+            "count": "10335",
+            "item": "30.222978"
+          },
+          {
+            "count": "10294",
+            "item": "30.232664"
+          },
+          {
+            "count": "9871",
+            "item": "30.222759"
+          },
+          {
+            "count": "9661",
+            "item": "30.239669"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'veh_lat' is the latitude reported by the vehicle. It defaults to zero.",
+      "fieldName": "veh_lat",
+      "format": {},
+      "id": 554284984,
+      "name": "veh_lat",
+      "position": 45,
+      "renderTypeName": "text",
+      "tableColumnId": 140521877
+    },
+    {
+      "cachedContents": {
+        "cardinality": "33643",
+        "count": "9197694",
+        "largest": "-98.476829",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "0.0",
+        "top": [
+          {
+            "count": "39583",
+            "item": "-97.703666"
+          },
+          {
+            "count": "28768",
+            "item": "-97.734001"
+          },
+          {
+            "count": "22288",
+            "item": "-97.748947"
+          },
+          {
+            "count": "20751",
+            "item": "-97.741539"
+          },
+          {
+            "count": "20055",
+            "item": "-97.746795"
+          },
+          {
+            "count": "18803",
+            "item": "-97.741287"
+          },
+          {
+            "count": "17785",
+            "item": "0.0"
+          },
+          {
+            "count": "16929",
+            "item": "-97.738433"
+          },
+          {
+            "count": "15756",
+            "item": "-97.74604"
+          },
+          {
+            "count": "15494",
+            "item": "-97.732101"
+          },
+          {
+            "count": "15468",
+            "item": "-97.741775"
+          },
+          {
+            "count": "15120",
+            "item": "-97.74382"
+          },
+          {
+            "count": "14717",
+            "item": "-97.741767"
+          },
+          {
+            "count": "14412",
+            "item": "-97.758895"
+          },
+          {
+            "count": "14346",
+            "item": "-97.732292"
+          },
+          {
+            "count": "14284",
+            "item": "-97.754333"
+          },
+          {
+            "count": "13583",
+            "item": "-97.74414"
+          },
+          {
+            "count": "13432",
+            "item": "-97.741348"
+          },
+          {
+            "count": "13359",
+            "item": "-97.741226"
+          },
+          {
+            "count": "13339",
+            "item": "-97.741676"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'veh_long' is the longitude reported by the vehicle. It defaults to zero.",
+      "fieldName": "veh_long",
+      "format": {},
+      "id": 554285005,
+      "name": "veh_long",
+      "position": 46,
+      "renderTypeName": "text",
+      "tableColumnId": 140521898
+    },
+    {
+      "cachedContents": {
+        "cardinality": "441",
+        "count": "9197694",
+        "largest": "9428",
+        "non_null": "9197694",
+        "null": "0",
+        "smallest": "10101",
+        "top": [
+          {
+            "count": "39785",
+            "item": "2870"
+          },
+          {
+            "count": "38821",
+            "item": "2862"
+          },
+          {
+            "count": "38576",
+            "item": "2705"
+          },
+          {
+            "count": "38468",
+            "item": "2860"
+          },
+          {
+            "count": "37465",
+            "item": "2867"
+          },
+          {
+            "count": "37401",
+            "item": "2633"
+          },
+          {
+            "count": "37335",
+            "item": "2055"
+          },
+          {
+            "count": "36649",
+            "item": "2856"
+          },
+          {
+            "count": "36606",
+            "item": "2702"
+          },
+          {
+            "count": "36464",
+            "item": "2871"
+          },
+          {
+            "count": "35942",
+            "item": "2703"
+          },
+          {
+            "count": "35923",
+            "item": "2631"
+          },
+          {
+            "count": "35909",
+            "item": "2866"
+          },
+          {
+            "count": "35885",
+            "item": "2639"
+          },
+          {
+            "count": "35662",
+            "item": "2869"
+          },
+          {
+            "count": "35625",
+            "item": "2858"
+          },
+          {
+            "count": "35551",
+            "item": "2859"
+          },
+          {
+            "count": "35531",
+            "item": "2627"
+          },
+          {
+            "count": "35458",
+            "item": "2224"
+          },
+          {
+            "count": "35424",
+            "item": "2636"
+          }
+        ]
+      },
+      "dataTypeName": "text",
+      "description": "'vehicle_id' is a numeric key which identifies the vehicle that was picking up and dropping off passengers. The valid range is 1 to 65,535. This is a soft key to the 'vehicle' table.",
+      "fieldName": "vehicle_id",
+      "format": {},
+      "id": 554284983,
+      "name": "vehicle_id",
+      "position": 47,
+      "renderTypeName": "text",
+      "tableColumnId": 140521876
+    }
+  ],
+  "createdAt": 1642177100,
+  "description": "This Capital Metro Automatic Passenger Counter (APC) Ridership data set is unprocessed, pure, raw, flaws and all straight from our Automatic Vehicle Location (AVL) system. Capital Metro, in partnership with a third-party vendor, applies a process that reviews the data to determine the validity and flags various elements to ensure final reported data has any bad elements excluded. Utilizing this data without applying your own methods to remove errors WILL NOT produce results corresponding to the published Ridership Reports.\n\nhttps://www.capmetro.org/facts/#!",
+  "diciBackend": false,
+  "displayType": "table",
+  "downloadCount": 1277,
+  "flags": [
+    "default",
+    "ownerMayBeContacted",
+    "restorable",
+    "restorePossibleForType"
+  ],
+  "grants": [
+    {
+      "flags": [
+        "public"
+      ],
+      "inherited": false,
+      "type": "viewer"
+    }
+  ],
+  "hideFromCatalog": false,
+  "hideFromDataJson": false,
+  "id": "im6q-3pc9",
+  "license": {
+    "name": "See Terms of Use"
+  },
+  "licenseId": "SEE_TERMS_OF_USE",
+  "locked": false,
+  "metadata": {
+    "availableDisplayTypes": [
+      "table",
+      "fatrow",
+      "page"
+    ],
+    "custom_fields": {
+      "Dataset Category": {
+        "Agency": "Capital Metropolitan Transportation Authority",
+        "Category Tile": "Transportation"
+      }
+    },
+    "rowLabel": "Field Descriptions: apc_date_time 'apc_date_time' is a date field describing the date on which the vehicle data was collected. The date comes from the System Date in the Data Logging files.  day_type_vs 'day_type_vs' is an identification number for both the day of the week and the schedule number for that day for vehicle schedules. It matches the id field in the day_type_vs table.  vehicle_id 'vehicle_id' is a numeric key which identifies the vehicle that was picking up and dropping off passengers. The valid range is 1 to 65,535. This is a soft key to the 'vehicle' table.  route_id 'route_id' is a foreign key field to the route table. Valid \u201croute_id\u201d are numbers between 1 and 65,535. Combined with the 'block_id' field, it is the primary key of the 'block' table. This is a static field defined upon record creation.  block_id 'block_id' is the block identification number assigned that uniquely defines a particular route/block combination. A block usually identifies a unique schedule from other blocks upon a common primary route. Valid values for the \u201cblock_id\u201d are between 1 and 999,999. Combined with the 'route_id' field, it is the primary key of the 'block' table.  current_route_id The 'current_route_id' is the trip route for a specified entry.  direction_code_id 'direction_code_id' is a primary key field that identifies the route direction associated with the route path. Combined with the 'route_id' and 'variation' fields, it defines a unique path for route directions. It is obtained by consulting the apattern_id reported by the vehicle against the apattern table. It is also a software foreign key to the 'direction_codes' table.  variation 'variation' is a primary key field that differentiates a route path from others on the same route and direction. Combined with the 'route_id' and 'direction_code_id' fields, it defines a unique path for route directions. It is obtained by consulting the apattern_id reported by the vehicle against the apattern table.  start_trip_time 'start_trip_time' is a timestamp that equals the scheduled time associated to the first timepoint of the trip. The date portion of the timestamp is not used.  actual_sequence 'actual_sequence' is the numeric ordering of door events/logons/trips collected in the vehicle data logging files. This is the actual sequence, not the scheduled sequence of bus stops as in the 'bus_stop_pattern' table.  bs_id 'bs_id' is the bus stop identification number assigned to a particular geographical bus stop within a service region. It may be matched against bs_id field in the bus_stop_data table, along with other items, to acquire detailed information about a stop.  import_error 'import_error' is a software foreign key to the 'apc_error_types' table. The 'apc_error_types' table describes the types of errors, if any, detected in correlating this door event.  garage_id 'garage_id' is the division assigned to this route/block.  transit_date_time 'transit_date_time' is the day of the month associated to the schedule being used on the vehicle. For a given date/time, the transit day would be the same day or the day before. The transit day will be the day before in the early morning time periods.  run_id 'run_id' is the run number that the target is logged onto. If the vehicle is logged off, this will be zero.  operator_id 'operator_id' is the driver logged on when the APC data was collected. If the vehicle is logged off this will be zero.  open_date_time 'open_date_time' is the date/time when the door was opened. If more than one door opened at a location, then this is the earliest door opening.  close_date_time 'close_date_time' is the date/time when the door was closed. If more than one door closed at a location, then this is the latest door closing.  time_id 'time_id' is an identifier for a specific time period during the day. A numeric identifier for time periods such as AM Peak, MidDay, PM Peak, etc.. Current project values are given in the time_period table.  dwell_time 'dwell_time' is the number of seconds between the earliest open door and latest close door at a given location.  ons 'ons' is the load balanced number of passengers that boarded through all doors at this location if the balance_load flag is enabled in the apattern table. If the balance_load flag is not enabled, then the ons equals the raw_on.  offs 'offs' is the load balanced number of passengers that alighted through all doors at this location if the balance_load flag is enabled in the apattern table. If the balance_load flag is not enabled, then the offs equals the raw_off.  max_load 'max_load' is the load balanced current number of passengers that are on the vehicle (onboard count) after being adjusted by the number of passengers that boarded or alighted at this location if the balance_load flag is enabled in the apattern table. Otherwise, the max_load equals the raw_max_load.  rev_distance 'rev_dist' is the number of miles or kilometers (based on value of rep_odometer_units) on a revenue trip that will be traveled by the 'max_load' number of passengers after this location to the next location. Either this field or \u2018non_revenue_dist\u2019 will be zero.  non_rev_distance 'non_rev_distance' is the number of miles or kilometers (based on value of rep_odometer_units) on a non_revenue trip that will be traveled by the 'max_load' number of passengers after this location to the next location. Either this field or 'rev_distance' will be zero.  rev_seconds 'rev_seconds' is the number of seconds on a revenue trip that it took to travel to the next location with the 'max_load' number of passengers. Either this field or 'non_rev_seconds' will be zero.  non_rev_seconds 'non_rev_seconds' is the number of seconds on a non_revenue trip that it took to travel to the next location with the 'max_load' number of passengers. Either this field or 'rev_seconds' will be zero.  num_sat 'num_sat' indicates the number of satellites currently being used.  position_source 'position_source' is used to indicate where the vehicle positioning is coming from. The values are 0=Error; 1-GPS; 2-INS device; 3=LORAN; 4=GLONASS; 5=Odometer; 6=Dead Reckoning; 7=RSA; 8=Data Not Available.  quality_indicator 'quality_indicator' is used only if the position_source field is equal to 'GPS' or 'RSA' and is used to determine the margin of error for the GPS signal. The values are 0=GPS device has never had a valid fix; 1=Invalid data; 2=No fix; 3=2D fix (altitude not available); 4=3D fix (latitude, longitude, altitude); 5=2D fix (differentially corrected); 6=3D fix (differentially corrected).  raw_on 'raw_on' is the number of passengers that boarded through all doors at this location. It is limited by the 'max_ons' field of the 'system_parameters' table.  raw_off 'raw_off' is the number of passengers that alighted through all doors at this location. It is limited by the 'max_offs' field of the 'system_parameters' table.  raw_max_load 'raw_max_load' is the current number of passengers that are on the vehicle after being adjusted by the number of passengers that boarded or alighted at this location.  booking_num 'booking_num' is a number field that uniquely identifies an imported schedule. This is reported by the vehicle as part of the correlation process, and can be examined in the booking table to get the booking id and booking start date.  ext_trip_id 'ext_trip_id' is a customer trip identifier. It is defined during the schedule import process.  headsign_route 'headsign_route' is an identifier that defines the alternate route id in a trip. If the alternate route id is not used, then the headsign_route equals the current route id.  sched_time 'sched_time' is the schedule arrival time at the timepoint if the current bus stop record is also a timepoint.  tp_id 'tp_id' is the timepoint identification number assigned to a particular geographical timepoint within a service region. If the bus stop is also a timepoint, then the tp_id is assigned. Otherwise, it is '0'. It is defined during the schedule import process.  seg_arr_time 'seg_arr_time' is the scheduled arrival time at the beginning of a segment.  seg_dep_time 'seg_dep_time' is the scheduled departure time at the end of a segment.  booking_id 'booking_id' is a short text description for the imported booking (i.e. SPR098). The booking_num is reported by the vehicle as part of the correlation process, and can be examined in the booking table to get the booking id and booking start date.  booking_start_date 'booking_start_date' is a timestamp equaling the date the booking and its associated schedules become active. The booking_num is reported by the vehicle as part of the correlation process and can be examined in the booking table to get the booking id and booking start date.  act_trip_start_time 'act_trip_start_time' is a timestamp that is the actual trip start time.  import_trip_error 'import_trip_error' identifies the trip-level error, if any, associated with the current record.  veh_lat 'veh_lat' is the latitude reported by the vehicle. It defaults to zero.  veh_long 'veh_long' is the longitude reported by the vehicle. It defaults to zero.  insert_date_time 'insert_date_time' is the date and time of when the whole trip record is ready for insert into the database. The same timestamp is used for each trip."
+  },
+  "name": "APC Raw July 2021 - December 2021",
+  "newBackend": true,
+  "numberOfComments": 0,
+  "oid": 38103378,
+  "owner": {
+    "displayName": "cmta_apc",
+    "flags": [
+      "acceptedEula",
+      "mayBeStoriesCoOwner"
+    ],
+    "id": "rvbk-5kuv",
+    "screenName": "cmta_apc",
+    "type": "interactive"
+  },
+  "provenance": "official",
+  "publicationAppendEnabled": false,
+  "publicationDate": 1642192118,
+  "publicationGroup": 18565781,
+  "publicationStage": "published",
+  "query": {},
+  "rights": [
+    "read"
+  ],
+  "rowsUpdatedAt": 1642182125,
+  "tableAuthor": {
+    "displayName": "cmta_apc",
+    "flags": [
+      "acceptedEula",
+      "mayBeStoriesCoOwner"
+    ],
+    "id": "rvbk-5kuv",
+    "screenName": "cmta_apc",
+    "type": "interactive"
+  },
+  "tableId": 18565781,
+  "tags": [
+    "transit",
+    "apc",
+    "ridership"
+  ],
+  "totalTimesRated": 0,
+  "viewCount": 1528,
+  "viewLastModified": 1646234415,
+  "viewType": "tabular"
+}
