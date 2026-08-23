@@ -78,10 +78,12 @@ No checkpoint has been overwritten. Existing checkpoints are under:
 
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-201254_baseline_before_texas_implementation`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-205643_pre_manuscript_after_public_data_pipeline`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-212903_final_post_commit_pre_push`
 
-Each checkpoint includes repository/source state, hashes, and a recovery note.
-A third final checkpoint will be created after the branch commit and before the
-first remote push.
+The final checkpoint contains a verified all-ref Git bundle, a committed-source
+archive, the original manuscript PDF, and a compressed copy of the actual raw
+and processed CapMetro/NOAA data. Its payload hashes and recovery note are stored
+inside the checkpoint folder.
 
 ## Recommended Next Order
 
@@ -114,7 +116,10 @@ first remote push.
 - Full LaTeX compilation: not available locally because no TeX engine is
   installed and the active graphic assets above are absent; Overleaf compilation
   with the complete `Figures` folder remains required.
-- Remote publication: pending the final re-audit, final backup, and commit.
+- Remote publication target:
+  `dataset/texas-capmetro-801` on `https://github.com/khalil-badal/MARL`.
+  Only this branch is authorized; the final remote hash must be verified after
+  every push and reported in the task handoff.
 - Pull request/merge: intentionally not created. `main` must remain untouched.
 
 Update this file before any later branch push that materially changes these
