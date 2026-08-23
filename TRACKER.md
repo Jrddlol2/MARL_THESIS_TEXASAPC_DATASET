@@ -587,4 +587,33 @@ The current team report is `RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md`.
 
 ---
 
+## 2026-08-24 Complete CapMetro APC raw-source acquisition
+
+**Branch:** `dataset/texas-capmetro-801`
+
+**What was validated:** The replacement Texas Open Data CSV completed without
+the HTTP 500 footer present in earlier failed browser exports. A streaming audit
+reconciled all 9,197,694 data rows against the portal API, confirmed all 47
+columns, found zero malformed `apc_date_time` rows, and measured timestamp
+coverage from `20210701000004` through `20211230235955`.
+
+**Local preservation:** The supplied export was left untouched. A byte-identical
+copy was placed at
+`data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv`, which is excluded
+from Git. Both files have SHA-256
+`4c2cb9c27355dd8fe1f94ae0d06bc12726c3860153b48ec7f6dad6b1142bc8f7`.
+
+**Backup:** A compressed full-data backup and a pre-documentation committed-
+source checkpoint were created under
+`C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260824-verified_apc_full`.
+The data archive is 694,781,164 bytes with SHA-256
+`3152fb29dece228783cdb2ce62ea2c1152d2cd41cac8297ec345c8a897989d32`.
+
+**Scientific boundary:** The complete raw snapshot closes the APC archival gate,
+but it does not close the separate historical-GTFS, vehicle-capacity, SUMO
+calibration, training, or results gates. Routine processing should continue to
+use query-defined subsets so the full 9.2-million-row source remains immutable.
+
+---
+
 *Nothing follows.*

@@ -1,6 +1,6 @@
 # Thesis Revision Progress
 
-- **Last updated:** 2026-08-23
+- **Last updated:** 2026-08-24
 - **Working branch:** `dataset/texas-capmetro-801`
 - **Protected branch:** `main` remains at `a64f44c` and has not been edited or merged
 - **Case-study decision:** Full pivot to CapMetro Rapid Route 801, direction code 6
@@ -26,9 +26,12 @@ gates and are still stated as such in the manuscript.
 - Created a reproducible CapMetro/NOAA pipeline in
   `scripts/texas_capmetro_pipeline.py`, controlled by
   `config/texas_capmetro_801.json`.
-- Downloaded the official 47-field CapMetro APC source and preserved raw files
-  locally outside Git, with SHA-256 manifests and compact audit evidence in
-  `data/audit/texas_capmetro/`.
+- Validated and preserved the complete official 47-field CapMetro APC export:
+  9,197,694 rows, 3,708,582,383 bytes, and APC timestamps from
+  `20210701000004` through `20211230235955`. The local raw master has SHA-256
+  `4c2cb9c27355dd8fe1f94ae0d06bc12726c3860153b48ec7f6dad6b1142bc8f7`;
+  its source and backup hashes are recorded in
+  `data/audit/texas_capmetro/full_raw_manifest.json`.
 - Compared Routes 801 and 803 using the same declared cleaning rules. Route 801
   was chosen for its larger clean stop-event, boarding, and usable-segment
   samples, despite having fewer distinct trip-day pairs. This is a coverage
@@ -94,11 +97,18 @@ No checkpoint has been overwritten. Existing checkpoints are under:
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-220220_before_original_assets_import_dfca22e`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-222654_after_v3_assets_a572672`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-223405_before_change_report_a572672`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260824-verified_apc_monthly`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260824-verified_apc_full`
 
 The final checkpoint contains a verified all-ref Git bundle, a committed-source
 archive, the original manuscript PDF, and a compressed copy of the actual raw
 and processed CapMetro/NOAA data. Its payload hashes and recovery note are stored
 inside the checkpoint folder.
+
+The 2026-08-24 full-APC checkpoint contains a 662.59 MiB compressed copy of
+the verified 3.45 GiB raw export plus a committed-source snapshot made before
+this acquisition record was updated. The original user-supplied export also
+remains untouched outside the repository.
 
 ## Recommended Next Order
 
@@ -118,6 +128,8 @@ inside the checkpoint folder.
 ## Validation and Publication Record
 
 - Reproduced route and weather evidence: passed.
+- Complete APC raw-source validation: passed (9,197,694/9,197,694 rows,
+  47 columns, zero malformed `apc_date_time` rows, matching source/copy hash).
 - Python syntax check: passed.
 - Git whitespace/error check: passed; only expected Windows line-ending notices.
 - Bibliography duplicate/missing-key scan: passed.

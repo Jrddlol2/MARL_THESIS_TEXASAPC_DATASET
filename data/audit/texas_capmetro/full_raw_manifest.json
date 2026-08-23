@@ -1,0 +1,27 @@
+{
+  "acquired_utc": "2026-08-23T23:11:32.6127561Z",
+  "backup": {
+    "bytes": 694781164,
+    "path": "C:/Users/jared/Desktop/THESIS/Backups/MARL/Texas_CapMetro/20260824-verified_apc_full/APC_Raw_July_2021_December_2021_full_verified.zip",
+    "sha256": "3152fb29dece228783cdb2ce62ea2c1152d2cd41cac8297ec345c8a897989d32"
+  },
+  "column_count": 47,
+  "dataset_id": "im6q-3pc9",
+  "dataset_title": "APC Raw July 2021 - December 2021",
+  "endpoint": "https://data.texas.gov/resource/im6q-3pc9.csv",
+  "path": "data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv",
+  "raw_bytes": 3708582383,
+  "row_count": 9197694,
+  "sha256": "4c2cb9c27355dd8fe1f94ae0d06bc12726c3860153b48ec7f6dad6b1142bc8f7",
+  "source_export_filename": "APC_Raw_July_2021_-_December_2021_20260824.csv",
+  "timestamp_field": "apc_date_time",
+  "timestamp_max": "20211230235955",
+  "timestamp_min": "20210701000004",
+  "validation": {
+    "clean_csv_ending": true,
+    "expected_row_count": 9197694,
+    "malformed_timestamp_rows": 0,
+    "repository_copy_matches_source_sha256": true,
+    "row_count_matches_portal_api": true
+  }
+}

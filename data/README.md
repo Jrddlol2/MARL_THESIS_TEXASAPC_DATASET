@@ -30,6 +30,20 @@ Generated locations:
 - `config/texas_capmetro_801.json` - frozen route, weather, timezone, and GTFS
   gates.
 
+## Verified complete APC snapshot
+
+The complete 47-column Socrata export is stored locally, outside Git, at
+`data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv`. It contains
+9,197,694 data rows covering APC timestamps `20210701000004` through
+`20211230235955`. Its SHA-256 is
+`4c2cb9c27355dd8fe1f94ae0d06bc12726c3860153b48ec7f6dad6b1142bc8f7`.
+
+`data/audit/texas_capmetro/full_raw_manifest.json` records the source,
+validation results, raw-file checksum, and separate compressed-backup checksum.
+The full snapshot is an archival and reproducibility source; routine pipeline
+work should continue to use filtered API queries and compact derived subsets
+rather than loading all 9.2 million rows unnecessarily.
+
 ## Non-fabrication gates
 
 - Direction code `6` remains a code, not “northbound” or “southbound,” until a
