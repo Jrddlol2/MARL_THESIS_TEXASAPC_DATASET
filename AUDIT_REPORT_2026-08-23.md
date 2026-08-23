@@ -1,10 +1,10 @@
 # Manuscript and Repository Audit Report
 
-**Thesis:** *An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling Under Non-Ideal Conditions*  
-**Audit date:** 2026-08-23  
-**Audited repository baseline:** `main` at `a64f44c`  
-**Audit branch:** `audit/minor-fixes-progress-2026-08-23`  
-**RTC outcome:** Accepted with major revisions
+- **Thesis:** *An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling Under Non-Ideal Conditions*
+- **Audit date:** 2026-08-23
+- **Audited repository baseline:** `main` at `a64f44c`
+- **Audit branch:** `audit/minor-fixes-progress-2026-08-23`
+- **RTC outcome:** Accepted with major revisions
 
 ## Executive Summary
 

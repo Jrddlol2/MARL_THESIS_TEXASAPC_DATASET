@@ -618,7 +618,7 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 ---
 
 ## 2026-08-23 — Repository audit maintenance — problem.tex Section 2.1; methods.tex Sections 3.2.4 and 3.2.5
-**Commit:** pending first audit commit
+**Commit:** `7680bd0`
 
 ```diff
   This study develops and evaluates a MARL-based bus scheduling model on a calibrated stochastic simulation of the EDSA Carousel corridor, with non-ideal conditions operationalized as the simultaneous and independent injection of passenger demand surges, severe-weather travel-time skew, and Poisson-distributed bus breakdowns.

@@ -1,9 +1,9 @@
 # Thesis Revision Progress
 
-**Last updated:** 2026-08-23  
-**Working branch:** `audit/minor-fixes-progress-2026-08-23`  
-**Repository baseline:** `a64f44c` (`main` at audit start)  
-**Dataset decision:** Deferred - no public backup dataset has been selected or downloaded
+- **Last updated:** 2026-08-23
+- **Working branch:** `audit/minor-fixes-progress-2026-08-23`
+- **Repository baseline:** `a64f44c` (`main` at audit start)
+- **Dataset decision:** Deferred - no public backup dataset has been selected or downloaded
 
 ## Current Status
 
