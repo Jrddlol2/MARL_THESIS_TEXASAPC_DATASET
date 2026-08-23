@@ -190,3 +190,9 @@ that it is for pipeline development only and is not EDSA calibration evidence.
 The final branch validation results are recorded in `PROGRESS.md` and should be
 updated immediately before each push. At report creation time, no dataset had
 been downloaded and no simulation had been run.
+
+The audit branch is committed locally but is not yet published. GitHub rejected
+the push because the available `Jrddlol2` credential lacks write permission to
+`khalil-badal/MARL`; the browser session is signed out and no fork exists for
+that account. The branch can be pushed without redoing the audit after access is
+granted or a fork/pull-request route is approved.

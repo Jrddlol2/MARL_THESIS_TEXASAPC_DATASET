@@ -98,6 +98,13 @@ reopened below still require consistency or evidence checks before final signoff
   local audit environment. Compile and visually inspect in Overleaf before
   circulating the next PDF.
 - Dataset download: not performed.
-- Push status: pending.
+- Local audit commits: `7680bd0`, `1f843c3`.
+- Push status: blocked. GitHub returned HTTP 403 because the available Git
+  credential is authenticated as `Jrddlol2`, which does not have write access
+  to `khalil-badal/MARL`. The in-app GitHub session is signed out, and no
+  `Jrddlol2/MARL` fork currently exists.
+- Publication can resume after either `Jrddlol2` is added as a collaborator,
+  an authorized GitHub account is connected, or the team approves a fork and
+  pull-request workflow.
 
 Update this section immediately before every audit-branch push.
