@@ -1,0 +1,5 @@
+# Preserve binary manuscript assets byte-for-byte across Windows and Overleaf.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary

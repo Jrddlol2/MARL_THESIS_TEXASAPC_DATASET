@@ -758,4 +758,32 @@ remain implementation gates.
 
 ---
 
+## 2026-08-23 — V3 figure restoration and Texas alignment
+
+**Source:** `Jrddlol2/Group-B3---Manuscript-Draft-V3`, commit `9de47c5`
+
+The full V3 `Figures` asset set was imported. Compatible files were preserved
+byte-for-byte. Five diagrams were redrawn in the V3 monochrome style because
+their original content contradicted the approved Texas manuscript:
+
+```diff
+- EDSA calibration; Stage A ideal with eta = 0
++ CapMetro Route 801 calibration; Stage A D+T baseline
+
+- central joint state and one shared team reward
++ local transitions and per-agent rewards feeding one shared replay/learner
+
+- observed-vs-simulated continuous bus speed
++ held-out segment rev_seconds validation via RMSE
+
+- example NC/FH/EH/MARL numerical results
++ visibly empty reporting placeholders; no measured or simulated results
+```
+
+All active PDF figures were rendered and inspected. The two logos and every
+active `\includegraphics` target now exist locally. The pre-import recovery
+checkpoint is `20260823-220220_before_original_assets_import_dfca22e`.
+
+---
+
 *Nothing follows.*

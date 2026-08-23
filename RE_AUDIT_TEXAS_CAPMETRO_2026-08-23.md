@@ -180,13 +180,13 @@ human-readable direction label.
 - Verified the branch is `dataset/texas-capmetro-801` and `main` remains at
   `a64f44c`.
 
-A full LaTeX compile and visual page inspection could not be performed locally
-because no TeX engine is installed. The Git checkout also lacks nine active
-graphic assets: two title-page logos and seven manuscript diagrams. The existing
-tracker records that the original assets are maintained in the Overleaf
-`Figures` folder. Synchronize those assets and compile in Overleaf before a new
-manuscript PDF is circulated; this branch alone is not currently a self-contained
-LaTeX build.
+A full LaTeX compile could not be performed locally because no TeX engine is
+installed. The previous asset blocker is resolved: the two title-page logos and
+all seven active manuscript diagrams are now tracked in `Figures/`. The assets
+were sourced from the V3 manuscript repository; five diagrams with superseded
+EDSA or illustrative-result content were adapted to the Texas methods and
+rendered for visual QA. Compile once in Overleaf before circulation to verify
+whole-document page flow, but the branch is now asset-complete.
 
 ## Files Members Should Read First
 
@@ -214,5 +214,5 @@ feasibility, literature classifications, parameter summary, and major internal-
 consistency findings are addressed with reproducible or source-verified
 evidence. The branch is not empirically validated until historical operations
 inputs are sourced, justified placeholders are replaced, SUMO calibration and
-controller experiments are actually run, and the manuscript compiles cleanly in
-Overleaf with the complete graphics set.
+controller experiments are actually run, and the asset-complete manuscript
+compiles cleanly in Overleaf.

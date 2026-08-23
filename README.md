@@ -46,8 +46,9 @@ have already been found wrong by checking against the actual source PDFs
 Same files, different angle: `REVISION_QUEUE.md` records all 22 RTC text items
 as resolved. `PROGRESS.md` now separates that close-out from the work still
 needed for implementation: historical operations sources, justified scenario
-values, calibration, experiments, and an Overleaf compile with the complete
-graphics folder.
+values, calibration, experiments, and a final Overleaf compile. All active
+logos and figures are now version-controlled under `Figures/`; see
+`Figures/ASSET_PROVENANCE.md` for their source and adaptation record.
 `AUDIT_TRAIL_READABLE.md` is the fastest way to see what an AI session
 actually changed in plain English, without reading raw LaTeX diffs.
 

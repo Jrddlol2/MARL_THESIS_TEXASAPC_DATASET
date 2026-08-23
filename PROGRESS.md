@@ -53,6 +53,11 @@ gates and are still stated as such in the manuscript.
   are explicitly labeled adjacent B evidence; Shi et al. (2022) is D,T, not B.
 - Corrected Chapter 1 so W composes with the always-active empirical T baseline,
   matching Chapters 2 and 3 and the evaluation activation matrix.
+- Restored the complete active logo/figure set from the V3 manuscript source.
+  Exact V3 assets were preserved where compatible; five outdated diagrams were
+  redrawn in the same style to remove EDSA, shared-team-reward, continuous-speed,
+  ideal-condition, and example-result contradictions. Provenance and hashes are
+  recorded in `Figures/ASSET_PROVENANCE.md`.
 - Updated the revision queue, tracker, audit trails, repository guidance, data
   documentation, and team handoff report.
 
@@ -82,6 +87,8 @@ No checkpoint has been overwritten. Existing checkpoints are under:
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-205643_pre_manuscript_after_public_data_pipeline`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-212903_final_post_commit_pre_push`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-213632_before_rtc_tex_repairs`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-215122_after_rtc_tex_repairs_dfca22e`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-220220_before_original_assets_import_dfca22e`
 
 The final checkpoint contains a verified all-ref Git bundle, a committed-source
 archive, the original manuscript PDF, and a compressed copy of the actual raw
@@ -110,17 +117,18 @@ inside the checkpoint folder.
 - Git whitespace/error check: passed; only expected Windows line-ending notices.
 - Bibliography duplicate/missing-key scan: passed.
 - LaTeX label/reference and named-environment static checks: passed.
-- Active graphic audit: nine referenced assets (two title-page logos and seven
-  manuscript diagrams) are absent from this Git checkout. The tracker records
-  that these are maintained in the Overleaf `Figures` folder; synchronize them
-  before attempting a repository-only compile.
+- Active graphic audit: passed. All two title-page logos and seven active
+  manuscript diagrams are present and tracked; every active
+  `\includegraphics` target resolves locally.
+- Figure visual QA: passed. Every active PDF figure was rendered and inspected;
+  adapted templates explicitly avoid presenting illustrative values as results.
 - Full LaTeX compilation: not available locally because no TeX engine is
-  installed and the active graphic assets above are absent; Overleaf compilation
-  with the complete `Figures` folder remains required.
-- Remote publication target:
-  `dataset/texas-capmetro-801` on `https://github.com/khalil-badal/MARL`.
-  Only this branch is authorized; the final remote hash must be verified after
-  every push and reported in the task handoff.
+  installed. Overleaf compilation remains required for whole-manuscript page-
+  flow and line-breaking verification, but the checkout is now asset-complete.
+- Texas publication target: `dataset/texas-capmetro-801` on
+  `https://github.com/Jrddlol2/MARL_THESIS_TEXASAPC_DATASET`.
+  Only this branch is authorized; its remote hash must be verified after every
+  push and reported in the task handoff.
 - Pull request/merge: intentionally not created. `main` must remain untouched.
 
 Update this file before any later branch push that materially changes these

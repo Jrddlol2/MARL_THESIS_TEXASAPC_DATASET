@@ -48,6 +48,30 @@ though the task is technically satisfiable with placeholder-only language.
 ## Completed Changes
 
 ---
+### 2026-08-23 — Restore V3 logos/figures and align them with the Texas methods
+
+**Source:** `Jrddlol2/Group-B3---Manuscript-Draft-V3`, `main` at
+`9de47c5e3be001fdea0819149f506f6573996686`
+
+**What changed:**
+
+- Restored the two title-page logos and the complete active figure set.
+- Preserved compatible V3 figures exactly, including the SARL/MARL comparison
+  and AEC training diagram.
+- Updated five V3-styled diagrams whose old content conflicted with the current
+  Texas manuscript: pipeline, CTDE, calibration-output template, Stage A output
+  template, and evaluation roll-out.
+- Removed EDSA labels, joint-state/team-reward claims, speed-calibration claims,
+  “ideal, eta=0” language, and example performance numbers from those diagrams.
+- Rendered and visually inspected every active PDF figure. All active
+  `\includegraphics` targets now resolve locally.
+
+**Result:** The Git checkout is asset-complete for Overleaf. A TeX engine is
+still unavailable locally, so Overleaf remains the final whole-document compile
+and page-flow check. See `Figures/ASSET_PROVENANCE.md` for hashes and per-file
+provenance.
+
+---
 ### 2026-08-23 — RTC literature and parameter close-out (E2C4, E3C10, E3C15)
 
 **Files edited:** `introduction.tex`, `methods.tex`, `thesis_refs.bib`,

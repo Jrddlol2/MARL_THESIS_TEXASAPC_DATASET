@@ -608,4 +608,27 @@ claimed to be calibrated, trained, or evaluated.
 
 ---
 
+## 2026-08-23 — V3 logos and figures restored
+
+The authentic V3 manuscript repository supplied the missing logos and figures.
+Compatible images were copied unchanged. Five older diagrams were updated in
+the same black-and-gray visual style because their text no longer matched the
+Texas manuscript:
+
+- EDSA was replaced with CapMetro Route 801.
+- “Ideal” Stage A was replaced with the always-active demand and empirical
+  travel-time baseline.
+- Shared team reward and joint-state language was replaced with local
+  transitions, per-agent rewards, and the shared replay/learner design.
+- Continuous-speed calibration was replaced with the supported segment travel-
+  time validation method.
+- Example performance numbers were removed and replaced with unmistakable empty
+  result placeholders.
+
+Every active PDF figure was rendered and inspected. All active image references
+now resolve from the Git checkout, so members no longer need an external
+Overleaf-only `Figures` folder to compile the manuscript.
+
+---
+
 *Nothing follows.*
