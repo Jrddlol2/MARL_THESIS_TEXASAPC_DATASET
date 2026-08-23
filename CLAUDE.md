@@ -320,13 +320,11 @@ preamble, roughly lines 4–36 and 100–123):
 - titlesec (`[compact]`)
 - geometry (`[a4paper,top=2.8cm,bottom=2.8cm,left=3cm,right=3cm,marginparwidth=1.75cm]`)
 - acro, glossaries (`[acronym]`)
-- lineno (`[left]`) — already loaded, but `\linenumbers` itself is commented
-  out at line ~228. For E3C19, uncomment `\linenumbers` rather than
-  re-adding the package.
+- lineno (`[left]`) — loaded and `\linenumbers` is enabled for the current
+  non-final manuscript.
 
-`setspace` is NOT currently loaded. For E3C18 (1.5 spacing), add
-`\usepackage{setspace}` to the preamble and `\onehalfspacing` after
-`\begin{document}`.
+`setspace` is loaded and `\onehalfspacing` is enabled for the current
+non-final manuscript.
 
 ---
 
@@ -388,7 +386,8 @@ Example:
 - The DOTr FOI request has NOT been filed yet (or is pending).
 - All figures labeled "illustrative" remain illustrative.
 - The manuscript is written in LaTeX, compiled on Overleaf.
-- Target submission: August 8, 2026.
+- Original target submission: August 8, 2026. Confirm the extension or
+  replacement deadline before treating remaining tasks as formally overdue.
 - Line numbers and 1.5 spacing should be applied LAST (E3C18, E3C19)
   after all content edits are done, to avoid disrupting line references
   in TRACKER.md.

@@ -1,9 +1,10 @@
 # REVISION QUEUE — Group B3 Thesis Revision 1
-# Updated: 2026-08-06
-# Panel tasks (RTC-requested): 22 | Done: 19 | In Progress: 0 | Pending: 3
-# (E1C1/E2C5/E4C22 blocked — no dataset access. Everything else unblocked
-# is done.)
-# Self-identified notices (not RTC-requested): 2 | Done: 2 | Pending: 0
+# Updated: 2026-08-23
+# Panel tasks (RTC-requested): 22 | Done: 13 | In Progress: 6 | Pending: 3
+# E1C1/E2C5/E4C22 remain pending because the EDSA dataset has not been
+# acquired. Six previously completed items were reopened by the repository
+# audit because implementation, source-verification, or consistency gaps remain.
+# Self-identified notices (not RTC-requested): 2 | Done: 1 | In Progress: 1 | Pending: 0
 
 ---
 
@@ -60,7 +61,7 @@ parameterization of Patil et al. [50].
 
 ---
 
-## [x] E2C4 — Severe weather study in comparison table
+## [~] E2C4 — Severe weather study in comparison table
 **Examiner:** 2
 **Priority:** MEDIUM
 **File:** introduction.tex
@@ -70,6 +71,9 @@ discussion noting it covers W and B disturbances under heuristic
 (non-MARL) control. Add a footnote to Table 1.2 distinguishing
 MARL vs non-MARL entries if needed.
 **Constraint:** [25] is already in thesis_refs.bib.
+**Audit update (2026-08-23):** The comparison entry is present, but its W/B
+classification has not been independently verified against the source paper.
+Keep this item open until that claim is checked.
 
 ---
 
@@ -115,7 +119,7 @@ Do not invent new thresholds.
 
 ---
 
-## [x] E3C8 — Disturbance definitions and independence
+## [~] E3C8 — Disturbance definitions and independence
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** methods.tex
@@ -125,6 +129,10 @@ explicitly defining each disturbance (D, S, T, W, B), clarifying
 that generators are injected independently (no causal chain), and
 distinguishing stochastic baseline demand (D) from demand surge (S).
 **Constraint:** No new citations needed.
+**Audit update (2026-08-23):** The definitions and independence statement are
+present, but the operating-condition prose still conflicts over when S and T
+are active. Close this item only after one authoritative activation matrix is
+approved and propagated through the methods chapter.
 
 ---
 
@@ -141,7 +149,7 @@ Zheng [30], Verbich and El-Geneidy [25].
 
 ---
 
-## [x] E3C10 — Fix Table 1.2 breakdown column
+## [~] E3C10 — Fix Table 1.2 breakdown column
 **Examiner:** 3-RRW
 **Priority:** HIGH
 **File:** introduction.tex
@@ -151,6 +159,9 @@ accurately reflects only Shi et al. [46] as the sole MARL bus
 paper modeling discrete breakdowns. Add a clarifying footnote
 explaining why Cao et al. [39] (train, not bus) is excluded.
 **Constraint:** Do not add papers not in thesis_refs.bib.
+**Audit update (2026-08-23):** The manuscript explains why Shi, Cao, and
+Verbich are categorized differently, but the exact two breakdown papers shown
+in the defense deck have not been recorded and reconciled in this repository.
 
 ---
 
@@ -166,16 +177,21 @@ figure captions for consistent attribution.
 
 ---
 
-## [x] E3C12 — Explain Figure 1.3 concepts in text
+## [~] E3C12 — Explain SARL/MARL figure concepts in text
 **Examiner:** 3-RRW
 **Priority:** MEDIUM
 **File:** introduction.tex
 **Section:** 1.2.3
-**Instruction:** Add 2-3 sentences after the Figure 1.3 reference
+**Instruction:** Add 2-3 sentences after the SARL/MARL figure reference
 explaining what the per-bus state si and action ai represent in
 bus-control terms within the SARL vs MARL comparison.
 **Constraint:** Keep consistent with Section 3.2.7 definitions
 (State Space / Action Space subsections in methods.tex).
+**Current numbering:** The map inserted under E3C17 shifted the SARL/MARL
+figure from Figure 1.3 to Figure 1.4 and the CTDE figure to Figure 1.5.
+**Audit update (2026-08-23):** The requested explanation is present, but the
+adjacent CTDE caption still describes a shared reward and joint-state training,
+contradicting the per-agent reward/local-transition protocol in Section 3.2.7.
 
 ---
 
@@ -216,7 +232,7 @@ demand distributions already captured by calibration.
 
 ---
 
-## [x] E3C15 — Fixed and variable parameters summary table
+## [~] E3C15 — Fixed and variable parameters summary table
 **Examiner:** 3-Method
 **Priority:** HIGH
 **File:** methods.tex
@@ -228,6 +244,9 @@ from calibration. See CLAUDE.md panel recommendations for full
 column list.
 **Constraint:** Use %TODO-VAL for any value not yet confirmed.
 Do not fabricate specific numbers.
+**Audit update (2026-08-23):** The table is present, but $\sigma_d$ and
+$\sigma_s$ list clip ranges rather than actual standard deviations. Their
+values and the Stage A/Stage B activation rules remain unresolved.
 
 ---
 
@@ -289,7 +308,7 @@ around line 228. Uncomment it after all content edits are complete.
 
 ---
 
-## [x] E4C20 — Simulation mechanics explanation
+## [~] E4C20 — Simulation mechanics explanation
 **Examiner:** 4
 **Priority:** HIGH
 **File:** methods.tex
@@ -301,6 +320,9 @@ is the value sampled, what does it affect, how does it propagate
 through the simulation. Should read like an algorithm description
 in prose.
 **Constraint:** No data values. No new citations needed.
+**Audit update (2026-08-23):** Sampling mechanics are described, but the
+conflicting S/T activation rules and missing $\sigma_d$, $\sigma_s$, and
+$\lambda$ values prevent full reproducibility.
 
 ---
 
@@ -340,7 +362,7 @@ deadline pressure from the panel and should stay lowest priority unless
 the group decides otherwise. Do not present these in the conformity-of-
 revisions table as panel-requested changes — they are not.
 
-## [x] N1 — Reward function mechanics not explained
+## [~] N1 — Reward function mechanics and architecture consistency
 **Source:** User notice (not an RTC/examiner comment)
 **Priority:** LOWEST
 **File:** methods.tex
@@ -367,6 +389,10 @@ explicitly an implementation-phase deliverable per the existing text.
 Use %TODO-VAL for $w_1, w_2, w_3$. This task can be skipped or deferred
 past the August 8, 2026 submission if time runs short, since it responds
 to no panel requirement.
+**Audit update (2026-08-23):** The per-agent reward explanation is present,
+but Figure 1.5 and the CTDE prose still say that agents share one reward and
+train from joint-state information. The team must approve one architecture
+before this item can be closed consistently.
 
 ---
 

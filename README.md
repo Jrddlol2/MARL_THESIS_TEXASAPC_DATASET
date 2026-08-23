@@ -3,9 +3,13 @@
 **Title:** An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus
 Scheduling Under Non-Ideal Conditions
 **Institution:** University of Santo Tomas, ECE 21126
-**Status:** Undergraduate thesis proposal, ACCEPTED with major revisions —
-currently incorporating RTC panel feedback ahead of the August 8, 2026
-resubmission deadline.
+**Status:** Undergraduate thesis proposal, ACCEPTED with major revisions.
+The original August 8, 2026 resubmission deadline has passed; the team must
+confirm the extension or replacement deadline.
+
+**Current handoff:** [PROGRESS.md](PROGRESS.md) is the live next-step tracker.
+The detailed repository and manuscript findings are in
+[AUDIT_REPORT_2026-08-23.md](AUDIT_REPORT_2026-08-23.md).
 
 This repository holds the LaTeX manuscript **and** a structured workflow for
 using an AI coding assistant (Claude Code, or similar) to carry out the

@@ -8,6 +8,10 @@
 # prefix = unchanged context. GitHub renders `-` red and `+` green, so the
 # actual change is visually obvious. See AUDIT_TRAIL_READABLE.md for the
 # plain-English companion (bold-highlighted instead of diff syntax).
+#
+# Numbering note (2026-08-23): E3C17 later inserted the corridor map, shifting
+# the historical SARL/MARL and CTDE figure numbers from 1.3/1.4 to 1.4/1.5.
+# Historical entries retain the numbering used when the edits were made.
 
 ---
 
@@ -557,7 +561,7 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 
 ---
 
-## 2026-08-06 — N2 — problem.tex, Section 2.3 (Significance)
+## 2026-08-06 — N2 — problem.tex, Section 2.4 (Significance)
 **Commit:** not yet committed
 
 ```diff
@@ -610,6 +614,28 @@ Also added `\label{subsec:control-stop-selection}` to the previously-unlabeled "
 ```
 
 **Why:** the user supplied polished replacement prose for N1's content and asked that it be applied. The equation itself (Eq. eq:reward-form) is unchanged; the surrounding prose was rewritten for tone/flow, folding "additive formulation" language earlier into the structure paragraph and restating the mechanics/sign-convention paragraph in the user's own wording. Kept the `%TODO-VAL` placeholder tag on the weighting coefficients (the user's text didn't include it, but CLAUDE.md's placeholder convention requires it for greppability) and the existing citations/priority list in the untouched first half of the structure paragraph.
+
+---
+
+## 2026-08-23 — Repository audit maintenance — problem.tex Section 2.1; methods.tex Sections 3.2.4 and 3.2.5
+**Commit:** pending first audit commit
+
+```diff
+  This study develops and evaluates a MARL-based bus scheduling model on a calibrated stochastic simulation of the EDSA Carousel corridor, with non-ideal conditions operationalized as the simultaneous and independent injection of passenger demand surges, severe-weather travel-time skew, and Poisson-distributed bus breakdowns.
+- TThe objective is to quantify how MARL performance degrades from its ideal-condition baseline as disturbance intensity rises, producing the first integrated robustness characterization for MARL bus scheduling under this specific combination of disturbances.
++ The objective is to quantify how MARL performance degrades from its ideal-condition baseline as disturbance intensity rises, producing the first integrated robustness characterization for MARL bus scheduling under this specific combination of disturbances.
+
+- The Python environment still injects normal day-to-day variability through the calibrated per-segment distributions, so the ideal condition is \textit{stochastic but not disturbed} which comparable to a normal weekday with no incidents, severe weather, or surge events.
++ The Python environment still injects normal day-to-day variability through the calibrated per-segment distributions, so the ideal condition is \textit{stochastic but not disturbed}, which is comparable to a normal weekday with no incidents, severe weather, or surge events.
+
+- The baseline operating point for this study is established from a crowdsourced operational record collected from the EDSA Busway during July 2023 through the SafeTravelPH mobile application.
++ The baseline operating point will be established only after the intended July 2023 SafeTravelPH EDSA Busway record has been acquired and its schema and coverage verified; no calibration or dataset-specific statistics are claimed at this stage.
+```
+
+**Why:** repository audit maintenance requested by the user. Corrected two
+non-substantive language defects and removed a premature claim that the unseen
+EDSA dataset had already established the calibration baseline. No dataset was
+selected, characterized, or processed.
 
 ---
 

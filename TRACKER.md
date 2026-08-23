@@ -2,7 +2,7 @@
 # Thesis: An Evaluation of Multi-Agent Reinforcement Learning
 #         for Dynamic Bus Scheduling Under Non-Ideal Conditions
 # Start date: 2026-08-06
-# Target submission: August 8, 2026
+# Original target submission: August 8, 2026 (extension/replacement date to be confirmed)
 
 ---
 
@@ -10,9 +10,9 @@
 | Metric | Count |
 |--------|-------|
 | Total recommendations | 22 |
-| Completed | 19 |
-| In progress | 0 |
-| Pending | 3 (E1C1/E2C5/E4C22, all blocked on dataset access — see Reverted Work / REVISION_QUEUE.md) |
+| Completed | 13 |
+| In progress | 6 (reopened by the 2026-08-23 repository audit) |
+| Pending | 3 (E1C1/E2C5/E4C22, pending EDSA dataset access — see Reverted Work / REVISION_QUEUE.md) |
 
 ---
 
@@ -80,14 +80,14 @@ though the task is technically satisfiable with placeholder-only language.
 **Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
 
 ---
-### E3C12 — Explain Figure 1.3 concepts in text
+### E3C12 — Explain SARL/MARL figure concepts in text
 **Date:** 2026-08-06 (entry backfilled, same commit as above)
 **File edited:** introduction.tex
-**Section:** 1.2.3 (Multi-Agent Reinforcement Learning), after Figure 1.3
+**Section:** 1.2.3 (Multi-Agent Reinforcement Learning), after the SARL/MARL figure (currently Figure 1.4)
 **What was added/changed:**
-> Added a paragraph after Figure 1.3 explaining what the per-bus state and action mean in bus-control terms, tying the figure's $o_i$ notation to the formal $s_{i,t}$ notation defined in methods.tex's State Space subsection, and explaining the SARL-vs-MARL panel difference (concatenated global state vs. independent local processing).
+> Added a paragraph after the SARL/MARL figure explaining what the per-bus state and action mean in bus-control terms, tying the figure's $o_i$ notation to the formal $s_{i,t}$ notation defined in methods.tex's State Space subsection, and explaining the SARL-vs-MARL panel difference (concatenated global state vs. independent local processing).
 **Conformity table entry:**
-| 12 | "Explain the concepts in Figure 1.3, like the bus states and actions." | Added explanatory paragraph after Figure 1.3 tying its notation to the formal state/action-space definitions in Chapter 3. | 1.2.3 | TBD |
+| 12 | "Explain the concepts in Figure 1.3, like the bus states and actions." | Added explanatory paragraph after the SARL/MARL figure (currently Figure 1.4) tying its notation to the formal state/action-space definitions in Chapter 3. | 1.2.3 | TBD |
 **Commit message:** (included in `34017d3`, see AUDIT_TRAIL.md)
 
 ---
@@ -434,7 +434,7 @@ Overleaf project's Figures folder**, or the new figure won't compile there.
 ### N2 — MARL-vs-bus-scheduling framing ambiguity and Research Gap justification
 **Date:** 2026-08-06
 **File edited:** problem.tex
-**Section:** 2.3 (Significance of the Study, opening sentence) and 2.2 (Research Gap, end of first paragraph)
+**Section:** 2.4 (Significance of the Study, opening sentence) and 2.2 (Research Gap, end of first paragraph)
 **Source:** User notice, prompted by a recollection that a panelist questioned during Q&A whether the study reads as more focused on MARL than on bus scheduling. Not found verbatim anywhere in RTC_DECISION_LETTER.md's 22 official items — treated as an oral/impression-level comment, not a written requirement, so this stays an N-item rather than an E-item.
 **What was added/changed:**
 > (1) Significance section: added one sentence stating explicitly that MARL is the control method under evaluation and EDSA service reliability is the object of study, explaining why practical significance is presented before scientific significance. (2) Research Gap: appended two sentences grounding the "combined disturbance" framing in an EDSA-specific operational fact — the corridor has independently-documented weather-driven service disruptions (\cite{PhilstarTyphoon2024, PIA_Emergency2023}) and chronic mechanical-failure risk (\cite{Chua2026}) as concurrent ongoing realities — rather than presenting the combination as only a gap in prior comparison tables, while explicitly preserving the existing statement that the disturbance generators are independently sampled (no causal/temporal link claimed).
@@ -442,6 +442,30 @@ Overleaf project's Figures folder**, or the new figure won't compile there.
 **Constraint check:** No new numerical or empirical claims introduced; both new citations (`PhilstarTyphoon2024`, `PIA_Emergency2023`, `Chua2026`) were already load-bearing elsewhere in the manuscript for the same characterization, not newly invented uses.
 **Note:** Self-identified, not an RTC panel comment — do not add a row for this in the conformity-of-revisions table.
 **Commit message:** `N2: clarify MARL-vs-bus-scheduling framing and ground combined-disturbance gap in EDSA operational facts (2.2, 2.3)`
+
+---
+
+## 2026-08-23 Repository Audit Maintenance
+
+**Branch:** `audit/minor-fixes-progress-2026-08-23`
+
+**Manuscript edits:** Corrected the duplicated word in `problem.tex`, repaired
+one grammar error in the ideal-condition description, and changed the
+SafeTravelPH baseline sentence from completed/present tense to explicit pending
+language. No dataset was selected, downloaded, or characterized.
+
+**Tracking corrections:** Reopened E2C4, E3C8, E3C10, E3C12, E3C15, and E4C20
+because source-verification, activation-matrix, presentation-reconciliation, or
+architecture-consistency gaps remain. Reopened N1 for the CTDE/reward conflict;
+corrected N2's Significance location to Section 2.4; and documented current
+Figure 1.4/1.5 numbering after the corridor-map insertion.
+
+**New handoff documents:** Added `PROGRESS.md` as the live status source and
+`AUDIT_REPORT_2026-08-23.md` as the team-readable audit report. These documents
+separate completed edits from unresolved scientific decisions and keep the
+public-backup dataset choice explicitly deferred.
+
+**Commit message:** `docs: add audit report and refresh revision progress`
 
 ---
 

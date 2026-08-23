@@ -16,6 +16,10 @@
 # AUDIT_TRAIL.md. This file is for reading, discussing, and drafting.
 # Keep both in sync: whenever AUDIT_TRAIL.md gets a new entry, add the same
 # entry here in this BEFORE/AFTER format.
+#
+# Numbering note (2026-08-23): the corridor map added under E3C17 shifted the
+# SARL/MARL and CTDE figures from 1.3/1.4 to their current numbers, 1.4/1.5.
+# Historical entries retain the numbering used when those edits were made.
 
 ---
 
@@ -402,7 +406,27 @@ The corridor was described in prose only, with no map figure. The Introduction h
 
 ---
 
-## 2026-08-06 — N2 (self-identified, not RTC) — problem.tex, Section 2.3 (Significance)
+## 2026-08-06 — N1 (self-identified, not RTC) — methods.tex, Section 3.2.7
+
+**BEFORE**
+
+The Reward Function subsection ended with: "This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized." Nothing after that explained how an agent actually receives its reward in practice.
+
+**AFTER**
+
+"This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized. **The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's local observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms:**
+
+**r(i, t+k) = −w₁ · (headway-irregularity term) − w₂ · (waiting-time term) − w₃ · (skip-degeneracy term)**
+
+**with weights w₁, w₂, w₃ left as placeholders to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.**"
+
+**Why:** self-identified gap, not an RTC comment. The existing text explained the reward's *priorities* and said the *weighting* is deferred to implementation, but never said whether the reward is individual or shared, how the priorities combine into one number, or the sign convention. Added those three things without touching the existing structure/weighting distinction or specifying any coefficient value.
+
+**Note:** since this isn't an RTC panel comment, it doesn't get a row in the conformity-of-revisions table.
+
+---
+
+## 2026-08-06 — N2 (self-identified, not RTC) — problem.tex, Section 2.4 (Significance)
 
 **BEFORE**
 
@@ -436,26 +460,6 @@ The same sentence stays, followed by: "**This joint-disturbance framing reflects
 
 ---
 
-## 2026-08-06 — N1 (self-identified, not RTC) — methods.tex, Section 3.2.7
-
-**BEFORE**
-
-The Reward Function subsection ended with: "This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized." Nothing after that explained how an agent actually receives its reward in practice.
-
-**AFTER**
-
-"This study defines the reward structure for the hybrid action space, the three component terms above, and treats their relative weighting, plus a sensitivity analysis over those weights, as the implementation-phase deliverable (EO 2.1). The component structure is fixed; the coefficients are not yet finalized. **The reward is computed individually for each agent at every control event, not as a shared team-level signal: r_i,t is agent i's own entry in the transition tuple written to the shared replay buffer, so each bus is scored on the consequences of its own action even though all agents update the same shared network. Locally-observable quantities already in the agent's local observation, principally the forward and backward headway components, let this individual signal still reflect corridor-wide regularity without requiring a centralized reward computation at execution time. The three priorities combine additively as a weighted sum of per-event penalty terms:**
-
-**r(i, t+k) = −w₁ · (headway-irregularity term) − w₂ · (waiting-time term) − w₃ · (skip-degeneracy term)**
-
-**with weights w₁, w₂, w₃ left as placeholders to be tuned as the Expected Output 2.1 sensitivity analysis. Each term is expressed as a non-positive penalty, so the agent maximizes its expected return by simultaneously minimizing headway irregularity, passenger waiting, and degenerate skipping; this sign convention, not the specific per-term formulas or their relative weights, is what this chapter fixes ahead of implementation.**"
-
-**Why:** self-identified gap, not an RTC comment. The existing text explained the reward's *priorities* and said the *weighting* is deferred to implementation, but never said whether the reward is individual or shared, how the priorities combine into one number, or the sign convention. Added those three things without touching the existing structure/weighting distinction or specifying any coefficient value.
-
-**Note:** since this isn't an RTC panel comment, it doesn't get a row in the conformity-of-revisions table.
-
----
-
 ## 2026-08-06 — N1 rewrite (user-provided prose) — methods.tex, Section 3.2.7
 
 **BEFORE**
@@ -471,6 +475,45 @@ The Reward Function subsection ended with: "This study defines the reward struct
 **The overall reward function is expressed as the weighted sum of three penalty terms:** [same equation as before, unchanged] **where w₁, w₂, and w₃ denote the weighting coefficients to be determined through the Expected Output 2.1 sensitivity analysis. Each component is formulated as a non-positive penalty, allowing the agent to maximize its cumulative return by minimizing headway irregularity, passenger waiting time, and unnecessary stop-skipping behavior. Consequently, this chapter establishes the reward formulation and its optimization objective, while the specific mathematical expressions and coefficient values are reserved for the implementation and evaluation phase.**"
 
 **Why:** the user supplied polished replacement prose for the N1 addition and asked that it be applied directly. The equation itself is unchanged — only the surrounding explanatory prose was rewritten, folding the "additive formulation" idea earlier into the structure paragraph and restating the mechanics/sign-convention explanation in the user's own words. The TODO-VAL placeholder tag on the coefficients was kept even though the user's text didn't include it, since CLAUDE.md's convention requires it so unresolved values stay greppable.
+
+---
+
+## 2026-08-23 — Repository audit maintenance — problem.tex Section 2.1; methods.tex Sections 3.2.4 and 3.2.5
+
+### Objective sentence
+
+**BEFORE**
+
+"TThe objective is to quantify how MARL performance degrades from its ideal-condition baseline as disturbance intensity rises, producing the first integrated robustness characterization for MARL bus scheduling under this specific combination of disturbances."
+
+**AFTER**
+
+"**The objective** is to quantify how MARL performance degrades from its ideal-condition baseline as disturbance intensity rises, producing the first integrated robustness characterization for MARL bus scheduling under this specific combination of disturbances."
+
+### Ideal-condition description
+
+**BEFORE**
+
+"The Python environment still injects normal day-to-day variability through the calibrated per-segment distributions, so the ideal condition is stochastic but not disturbed which comparable to a normal weekday with no incidents, severe weather, or surge events."
+
+**AFTER**
+
+"The Python environment still injects normal day-to-day variability through the calibrated per-segment distributions, so the ideal condition is stochastic but not disturbed**, which is comparable** to a normal weekday with no incidents, severe weather, or surge events."
+
+### Dataset-status sentence
+
+**BEFORE**
+
+"The baseline operating point for this study is established from a crowdsourced operational record collected from the EDSA Busway during July 2023 through the SafeTravelPH mobile application."
+
+**AFTER**
+
+"**The baseline operating point will be established only after the intended July 2023 SafeTravelPH EDSA Busway record has been acquired and its schema and coverage verified; no calibration or dataset-specific statistics are claimed at this stage.**"
+
+**Why:** repository audit maintenance requested by the user. Corrected two
+non-substantive language defects and removed a premature claim that the unseen
+EDSA dataset had already established the calibration baseline. No dataset was
+selected, characterized, or processed.
 
 ---
 
