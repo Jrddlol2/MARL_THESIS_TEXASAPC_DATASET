@@ -8,6 +8,9 @@ The original August 8, 2026 resubmission deadline has passed; the team must
 confirm the extension or replacement deadline.
 
 **Current handoff:** [PROGRESS.md](PROGRESS.md) is the live next-step tracker.
+For a complete explanation of every change from Khalil's main branch, including
+the RTC resolutions and their justification, read
+[CHANGE_REPORT_FROM_KHALIL_MARL_AND_RTC.md](CHANGE_REPORT_FROM_KHALIL_MARL_AND_RTC.md).
 The original audit is in [AUDIT_REPORT_2026-08-23.md](AUDIT_REPORT_2026-08-23.md);
 the Texas implementation and follow-up status are in
 [RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md](RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md).

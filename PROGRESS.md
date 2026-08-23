@@ -60,6 +60,9 @@ gates and are still stated as such in the manuscript.
   recorded in `Figures/ASSET_PROVENANCE.md`.
 - Updated the revision queue, tracker, audit trails, repository guidance, data
   documentation, and team handoff report.
+- Added CHANGE_REPORT_FROM_KHALIL_MARL_AND_RTC.md, a member-facing,
+  baseline-to-current explanation of the RTC revisions, Texas implementation,
+  figure restoration, justifications, evidence boundaries, and open work.
 
 ## Feasibility Decision
 
@@ -89,6 +92,8 @@ No checkpoint has been overwritten. Existing checkpoints are under:
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-213632_before_rtc_tex_repairs`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-215122_after_rtc_tex_repairs_dfca22e`
 - `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-220220_before_original_assets_import_dfca22e`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-222654_after_v3_assets_a572672`
+- `C:\Users\jared\Desktop\THESIS\Backups\MARL\Texas_CapMetro\20260823-223405_before_change_report_a572672`
 
 The final checkpoint contains a verified all-ref Git bundle, a committed-source
 archive, the original manuscript PDF, and a compressed copy of the actual raw
