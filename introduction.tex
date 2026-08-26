@@ -6,8 +6,6 @@
 
 %% MARQUEZ START
 \section{Background of the Study}\label{sec:background}
-High-frequency bus services are vulnerable to bus bunching because a small delay gives the affected bus more time to accumulate passengers, lengthens its dwell, and further reduces the gap to the following bus. Static timetables cannot directly correct this feedback once service is under way \cite{Ceder2007,Daganzo2009}. Dynamic holding and stop-skipping controllers therefore form a sequential Vehicle Scheduling Problem in which each decision changes later headways, queues, and passenger loads.
-
 Public transportation has long been an essential part of urban mobility, taking different forms and operating across different terrains, with routes generally determined by geographical conditions and commuter needs. As urbanization has increased over time, so has the demand for transportation, with growing urban populations relying increasingly on public transit---and high-frequency bus service in particular---to move through congested cities \cite{Cervero2000}. As the number of motor vehicles competing for the same road space continues to rise, traffic congestion correspondingly worsens, increasing the importance of reliable transportation for commuters seeking to reach their destinations.
 
 These transportation challenges are particularly evident in the Philippines. Despite a predicted decline in urbanization rates across Southeast Asia, the Philippines is experiencing the opposite trend \cite{UN_WUP2018}, concentrating growing transportation demand onto major corridors such as the EDSA Carousel in Metro Manila. In Metro Manila, severe traffic congestion, stemming from insufficient road infrastructure and poor traffic mitigation policies, has resulted in a highly inefficient public transport system \cite{Spatio2026}. As a response, the Philippine government launched the EDSA Bus Carousel in 2020. It is the only busway system in Metro Manila implemented by the government to have a designated lane, separated from other cars by concrete barriers \cite{Chua2026}. Throughout the years of implementation, a large number of commuters have utilized the system, with an average of 183{,}000 daily passengers, climbing up to 320{,}000 during peak periods, and a ridership of nearly 67 million in 2025, up from 63.02 million in 2024 (Figure~\ref{fig:bg-ridership}) \cite{DOTr2025Ridership}. With that amount of ridership, the EDSA Bus Carousel can be safely assumed to be one of the backbones of Metro Manila commuting.
@@ -71,7 +69,7 @@ Route 801 is CapMetro's high-frequency MetroRapid service along the North Lamar-
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\textwidth]{Figures/bg_capmetro_801_corridor.pdf}
+    \includegraphics[width=0.6\textwidth]{Figures/bg_capmetro_801_corridor.pdf}
     \caption[CapMetro Route 801 corridor]{CapMetro MetroRapid Route~801
     (North Lamar--South Congress). The eleven numbered markers are published
     schedule \emph{timepoints}; per the operator's legend, buses make additional
@@ -90,6 +88,8 @@ The remaining research question is not whether the public data contain every dis
 % Superseded EDSA-specific background retained temporarily in source history only.
 \iffalse
 The public transportation system has long been a commodity to people; it operates on different terrains, has different forms, and has predetermined routes depending on their geographical location and the needs of commuters \cite{Tironi2018}. With an increase in urbanization over time, the demand for transportation has also increased. Despite the predicted decline in urbanization rates in Southeast Asia, the Philippines is experiencing the opposite \cite{UN_WUP2018}. Due to the increased urbanization and the continuous increase in population (especially in urban areas), people start looking for different alternatives in transportation \cite{Cervero2000}. With the increasing number of motor vehicles on the road, the traffic congestion worsens, which leads to commuters finding other means to quickly reach their destination. In Metro Manila, severe traffic congestion, stemming from insufficient road infrastructure and poor traffic mitigation policies, has resulted in a highly inefficient public transport system \cite{Spatio2026}. As a response, the Philippine government launched the EDSA Bus Carousel in 2020. It is the only busway system in Metro Manila implemented by the government to have a designated lane, and separated from other cars by concrete barriers \cite{Chua2026}. Throughout the years of implementation, a large number of commuters have utilized the system with an average of 183,000 daily passengers, climbing up to 320,000 during peak periods, with a ridership of nearly 67 million in 2025, up from 63.02 million in 2024 (Figure~\ref{fig:bg-ridership}) \cite{DOTr2025Ridership}. With that amount of ridership, the EDSA Bus Carousel can be safely assumed to be one of the backbones of Metro Manila commuting.
+
+\pagebreak
 
 \begin{figure}[htbp]
     \centering
@@ -136,9 +136,9 @@ Traditionally, the VSP has been addressed through static scheduling, which utili
 
 Although recent studies have demonstrated the potential of MARL-based dynamic scheduling to improve transit adaptability and overall reliability, a critical research gap remains. Existing MARL bus scheduling models are primarily evaluated in controlled simulation settings and are typically tested against isolated disruptions. No prior work has evaluated these models under the combined, simultaneous severe disruptions such as heavy rain, mechanical breakdowns, traffic variations, and sudden passenger surges that portray real-world corridors like EDSA. Therefore, this study aims to evaluate a MARL-based dynamic bus scheduling model under these non-ideal, stochastic traffic conditions to mitigate bus bunching, minimize passenger waiting times, and improve overall dispatch efficiency on the EDSA Carousel.
 
-\fi
+
 %%MARQUEZ END
-\clearpage
+
 \section{Review of Related Work}
 This section surveys prior work on data-driven bus and traffic scheduling using a funnel structure. It starts from the broad transition from static scheduling toward adaptive and learning-based control, narrows to single-agent reinforcement learning and its known scalability limitations in large transit systems, narrows further to Multi-Agent Reinforcement Learning (MARL) and the assumptions commonly used in existing MARL bus-scheduling studies, and finally identifies the robustness gap addressed in this study.
 
@@ -439,7 +439,7 @@ Two considerations explain why the gap has persisted:
 
 \begin{enumerate}
 \item \textbf{Training instability under heavy-tailed returns.} Prior MARL bus-scheduling studies have typically used Poisson arrivals and Gaussian travel-time noise because these distributions generally produce more statistically stable training behavior than heavy-tailed disturbances. In reinforcement learning literature, heavy-tailed returns and stochastic gradients are known to introduce convergence difficulties and unstable optimization behavior during policy learning \cite{Henderson2018Matters,Agarwal2021Precipice}.
-\clearpage
+
 \item \textbf{Lack of temporally aligned anomaly data.} Historical severe-weather records are rarely aligned with operational bus data at the per-segment granularity needed for direct parameter estimation, making it difficult to fit an empirically grounded heavy-tailed disturbance distribution from corridor-specific data alone, especially given the short operational observation windows typically available. \textit{This study addresses the obstacle by adopting the lognormal travel-time parameterization that Patil et al.\ \cite{Patil2025Conformal} validated against INRIX freeway data via the Kolmogorov-Smirnov test, and then sweeping the disturbance intensity across a range of validated and extrapolated CV values rather than fitting a single point estimate. This characterizes controller behavior as a function of disturbance magnitude and avoids reliance on a corridor-specific severe-weather sample whose variance cannot be reliably resolved from a short observation window.}
 \end{enumerate}
 
