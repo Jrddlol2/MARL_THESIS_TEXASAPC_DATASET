@@ -22,28 +22,26 @@ The CapMetro and NOAA sources narrow that gap in two ways. First, they replace a
 
 \subsection{Main Objective}
 
-To evaluate a parameter-sharing Multi-Agent Reinforcement Learning scheduling model under baseline and disturbed operating conditions in a public-data-calibrated simulation of CapMetro Rapid Route 801 direction code 6.
+To evaluate a parameter-sharing Multi-Agent Reinforcement Learning scheduling model under baseline and disturbed operating conditions in a public-data-calibrated simulation of a defined traffic area.
+
 
 \subsection{Specific Objectives}
-
 \begin{enumerate}
-    \item \textbf{Environment construction:} construct a reproducible Route 801 simulation from the cleaned CapMetro APC subset and temporally aligned NOAA weather observations.
+   \item \textbf{Environment Construction:} To construct a stochastic traffic simulation environment representing a defined traffic area.
 
-    \textbf{Expected Output 1.1:} A documented acquisition and preprocessing pipeline with source URLs, queries, cleaning rules, row counts, checksums, field mappings, time-zone handling, and unresolved data gates.
+   \textbf{Expected Output 1.1:} A simulation model of a defined operational scope, validated against empirical traffic data to establish an environment that accurately approximates real-world traffic.
 
-    \textbf{Expected Output 1.2:} A corridor model validated against held-out empirical stop-event counts and segment travel times, with any schedule- or capacity-dependent value left as \%TODO-DATA until its source is verified.
+   \textbf{Expected Output 1.2:} An environment simulator capable of introducing environmental variability through adjustable parameters to simulate non-ideal operating conditions.
 
-    \textbf{Expected Output 1.3:} Configurable demand-surge, observed-weather, synthetic severe-weather, and synthetic breakdown components whose activation is explicit in each experiment.
+   \item \textbf{Algorithm Implementation:} To develop and implement a Multi-Agent Reinforcement Learning (MARL) approach for dynamic bus scheduling.
 
-    \item \textbf{Algorithm implementation:} develop a shared-parameter DDQN bus-control policy with per-agent local observations, per-agent rewards, a shared replay buffer, and decentralized execution.
+   \textbf{Expected Output 2.1:} A formulated agent architecture defining individual bus units as agents with discrete state and action space with a continuous reward function that punishes irregularities and passenger service delays.
 
-    \textbf{Expected Output 2.1:} A fully specified observation, action, reward, transition, and training protocol, including reward-weight sensitivity analysis and reproducible random-seed control.
+   \item \textbf{Performance Evaluation Under Ideal and Non-Ideal Conditions:} To evaluate the scheduling performance of the MARL approach under both ideal operating conditions and non-ideal conditions.
 
-    \item \textbf{Performance evaluation:} compare MARL with No Control, Forward Headway, and Even Headway controllers under a declared baseline, combined-disturbance test, and single-disturbance ablations.
+   \textbf{Expected Output 3.1:} A quantitative and statistical assessment of MARL scheduling performance under ideal conditions, measuring passenger waiting time, travel time, and headway coefficient of variation, tested against baseline methods.
 
-    \textbf{Expected Output 3.1:} Matched-seed estimates and uncertainty intervals for simulated passenger waiting time, bus travel time, and headway coefficient of variation under the baseline evaluation.
-
-    \textbf{Expected Output 3.2:} Matched-seed robustness estimates under combined and isolated demand, weather, and breakdown stress, reported relative to the baseline without labeling synthetic intensities as observed meteorological categories.
+   \textbf{Expected Output 3.2:} A quantitative and statistical assessment of MARL scheduling performance under non-ideal conditions, measuring passenger waiting time, travel time, and headway coefficient of variation, reported as degradation relative to ideal-conditions performance.
 \end{enumerate}
 
 \section{Significance of the Study}

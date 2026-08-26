@@ -245,7 +245,7 @@ The comparison separates evidence by function. Sun et al.~\cite{SunRain2025} emp
     policy $\pi_\theta(s)$ consumes the concatenated global state
     $s \in \mathbb{R}^{N \cdot d}$ and outputs a joint action covering every bus.
     (b) MARL with parameter sharing: a single set of weights $\theta$ is shared
-    across $N$ agents, each acting on its own local observation $o_i$. Authors' illustration.}
+    across $N$ agents, each acting on its own local observation $o_i$. Authors' illustration, after the parameter-sharing formulation of Gupta et al.~\cite{Gupta2017PS}; the combinatorial growth of the centralized single-agent formulation in panel~(a) follows Bu\c{s}oniu et al.~\cite{Busoniu2008Survey}.}
     \label{fig:sarl-vs-marl}
 \end{figure}
 
@@ -266,7 +266,7 @@ To address this, many formulations use \textbf{Centralized Training with Decentr
     transitions and per-agent rewards to one replay buffer that updates a shared
     set of policy weights $\theta$. (b) At deployment, the weights are frozen and
     each bus runs an identical copy of $\pi_\theta$ on its own local observation
-    $o_i$ alone, so no centralized real-time controller is required. Authors' illustration.}
+    $o_i$ alone, so no centralized real-time controller is required. Authors' illustration, after the centralized-training, decentralized-execution paradigm of Lowe et al.~\cite{Lowe2017MADDPG}.}
     \label{fig:ctde}
 \end{figure}
 
