@@ -5,7 +5,7 @@
 % =============================================================
 
 %% MARQUEZ START
-\section{Background of the Study}
+\section{Background of the Study}\label{sec:background}
 High-frequency bus services are vulnerable to bus bunching because a small delay gives the affected bus more time to accumulate passengers, lengthens its dwell, and further reduces the gap to the following bus. Static timetables cannot directly correct this feedback once service is under way \cite{Ceder2007,Daganzo2009}. Dynamic holding and stop-skipping controllers therefore form a sequential Vehicle Scheduling Problem in which each decision changes later headways, queues, and passenger loads.
 
 This study grounds that control problem in CapMetro Rapid Route 801 in Austin, Texas. CapMetro identifies Route 801 as its Rapid North Lamar/South Congress service \cite{CapMetroRapid}; however, current schedule information is not used to assign historical direction labels. The empirical source is CapMetro's public Automatic Passenger Counter (APC) dataset for July--December 2021 \cite{TexasCapMetroAPC2021}. The portal exposes 47 text-typed fields, including service and event timestamps, route and direction codes, stop IDs, boardings, alightings, onboard load, dwell time, revenue travel time and distance, event coordinates, and data-quality indicators.
@@ -33,16 +33,19 @@ High-quality GPS records & 98.136\% & 97.479\% \\
 
 The primary one-direction subset uses Route 801 direction code 6 and contains 229{,}421 clean stop events across 184 service-day codes and 29 distinct stop IDs. The code is intentionally not called northbound or southbound because a checksum-verified 2021 GTFS snapshot has not yet been acquired. The APC file also does not contain passenger arrival timestamps, vehicle capacity, breakdown events, or weather. These absences bound the study design: waiting time and breakdowns are simulation variables, capacity remains a separate source requirement, and weather is joined from an authoritative public source rather than imputed from APC data.
 
-Route 801 is CapMetro's high-frequency MetroRapid service along the North Lamar--South Congress corridor, one of Austin's principal arterial transit spines \cite{CapMetroRapid}. The direction-code-6 subset used in this study traverses 29 distinct stops over 184 service-day codes. Consistent with the data-provenance discipline above, these stops are identified by their APC stop ID rather than by name or compass bearing until a checksum-verified 2021 GTFS snapshot is obtained; Figure~\ref{fig:corridor-map} shows the corridor and its stop sequence schematically.
+Route 801 is CapMetro's high-frequency MetroRapid service along the North Lamar--South Congress corridor, one of Austin's principal arterial transit spines \cite{CapMetroRapid}. The direction-code-6 subset used in this study traverses 29 distinct stops over 184 service-day codes. Consistent with the data-provenance discipline above, these stops are identified by their APC stop ID rather than by name or compass bearing until a checksum-verified 2021 GTFS snapshot is obtained. Figure~\ref{fig:corridor-map} shows the published Route~801 alignment; its eleven numbered markers are schedule \emph{timepoints}\footnote{The numbered markers on the published map are schedule timepoints---selected stops a bus may not depart before the scheduled time, used to hold the route on schedule---not the full stop set. Buses serve additional stops between them, so the direction-code-6 subset comprises 29 distinct stop IDs in the APC data~\cite{CapMetroRapid}.}, while the direction-code-6 subset modelled here comprises the 29 distinct stop IDs served between and including them.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.92\textwidth]{Figures/bg_capmetro_801_corridor.pdf}
-    \caption[CapMetro Route 801 study corridor]{Schematic of the CapMetro
-    MetroRapid Route 801 study corridor (North Lamar--South Congress). The
-    direction-code-6 subset comprises 29 stops; stop names and compass
-    orientation are withheld pending a checksum-verified 2021 GTFS snapshot, so
-    the diagram is schematic and not to scale. Authors' illustration.}
+    \caption[CapMetro Route 801 corridor]{CapMetro MetroRapid Route~801
+    (North Lamar--South Congress). The eleven numbered markers are published
+    schedule \emph{timepoints}; per the operator's legend, buses make additional
+    stops between them, giving the 29 distinct stop IDs in the direction-code-6
+    subset modelled here. Map source: Capital Metropolitan Transportation
+    Authority~\cite{CapMetroRapid}, reproduced for academic use. The current
+    published alignment is shown; 2021 direction labels and stop names remain
+    gated pending a checksum-verified 2021 GTFS snapshot.}
     \label{fig:corridor-map}
 \end{figure}
 
