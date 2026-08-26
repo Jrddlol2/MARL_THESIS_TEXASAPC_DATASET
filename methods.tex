@@ -135,26 +135,26 @@ X
 \multicolumn{4}{l}{\textit{Fixed simulation parameters}} \\
 \midrule
 
-Simulation horizon & --- & Single observed Route 801 service window (\texttt{\%TODO-DATA}: select start/end after historical schedule and timestamp-basis validation) & Section~\ref{sec:research-design} \\
+Simulation horizon & --- & Single observed Route 801 service window (to be finalized (data pending): select start/end after historical schedule and timestamp-basis validation) & Section~\ref{sec:research-design} \\
 Total distinct stop IDs (direction code 6) & $M$ & 29 & Reproduced CapMetro APC audit \\
-Fleet size (active buses) & $N$ & \%TODO-DATA: derive from concurrent Route 801 vehicle activity and verified schedule & CapMetro APC + historical GTFS \\
-Control stop count & --- & \texttt{\%TODO-VAL}: select from 29 observed stop IDs using Section~\ref{subsec:control-stop-selection} criteria after calibration/validation & Section~\ref{subsec:control-stop-selection} \\
-Scheduled headway & $H_0$ & \%TODO-DATA: 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
-Bus passenger capacity & --- & \%TODO-DATA: verified vehicle/fleet specification & CapMetro fleet specification \\
-Maximum holding duration & $\Delta T$ & \%TODO-VAL: to be set during implementation & Section~\ref{subsec:marl-arch} (Action Space) \\
+Fleet size (active buses) & $N$ & to be finalized (data pending): derive from concurrent Route 801 vehicle activity and verified schedule & CapMetro APC + historical GTFS \\
+Control stop count & --- & to be finalized (design): select from 29 observed stop IDs using Section~\ref{subsec:control-stop-selection} criteria after calibration/validation & Section~\ref{subsec:control-stop-selection} \\
+Scheduled headway & $H_0$ & to be finalized (data pending): 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
+Bus passenger capacity & --- & to be finalized (data pending): verified vehicle/fleet specification & CapMetro fleet specification \\
+Maximum holding duration & $\Delta T$ & to be finalized (design) during implementation & Section~\ref{subsec:marl-arch} (Action Space) \\
 Holding action bins & $\Omega$ & $\{0.0, 0.1, 0.2, 0.3, 0.4\}$ & Section~\ref{subsec:marl-arch} (Action Space) \\
 Action space size per agent & $|A_i|$ & 10 (5 hold $\times$ 2 skip) & Section~\ref{subsec:marl-arch} (Action Space) \\
 Monte Carlo runs per cell & $N_{\text{runs}}$ & $\geq 30$ & Section~\ref{sec:research-design} \\
-Discount / event-based discount & $\gamma$, $\beta$ & \%TODO-VAL: tuned during implementation & Section~\ref{subsec:marl-arch} \\
+Discount / event-based discount & $\gamma$, $\beta$ & to be finalized (design): tuned during implementation & Section~\ref{subsec:marl-arch} \\
 
 \midrule
 \multicolumn{4}{l}{\textit{Swept / variable parameters}} \\
 \midrule
 
 Synthetic severe-weather intensity & $\eta$ & $\{0.0, 0.3, 0.6, 1.0, 1.3\}$; values above observed support are stress tests & Section~\ref{subsec:stochastic-vars} \\
-Demand-surge scale & $f_d$ & $\mathcal{N}(1,\sigma_d^2)$ with \%TODO-VAL $\sigma_d$ and support clipped to $[1,3]$ & Section~\ref{subsec:stochastic-vars} \\
-Traffic-speed stress scale & $f_s$ & $\mathcal{N}(1,\sigma_s^2)$ with \%TODO-VAL $\sigma_s$ and support clipped to $[0.8,1.2]$ & Section~\ref{subsec:stochastic-vars} \\
-Breakdown rate & $\lambda$ & \texttt{\%TODO-VAL}: declared scenario rate (events per bus-hour); APC contains no failure events & Section~\ref{subsec:stochastic-vars} \\
+Demand-surge scale & $f_d$ & $\mathcal{N}(1,\sigma_d^2)$ with a design-phase $\sigma_d$ and support clipped to $[1,3]$ & Section~\ref{subsec:stochastic-vars} \\
+Traffic-speed stress scale & $f_s$ & $\mathcal{N}(1,\sigma_s^2)$ with a design-phase $\sigma_s$ and support clipped to $[0.8,1.2]$ & Section~\ref{subsec:stochastic-vars} \\
+Breakdown rate & $\lambda$ & to be finalized (design): declared scenario rate (events per bus-hour); APC contains no failure events & Section~\ref{subsec:stochastic-vars} \\
 
 \midrule
 \multicolumn{4}{l}{\textit{Derived empirical/calibration parameters}} \\
@@ -162,7 +162,7 @@ Breakdown rate & $\lambda$ & \texttt{\%TODO-VAL}: declared scenario rate (events
 
 Baseline inter-stop travel time & $\mu$ & Per-segment, time-of-day, and day-type bin, to be computed & CapMetro \texttt{rev\_seconds} \\
 Baseline travel-time std.\ dev.\ & $\sigma$ & Per-segment, time-of-day, and day-type bin, to be computed & CapMetro \texttt{rev\_seconds} \\
-Baseline coefficient of variation & $CV_0$ & $\sigma/\mu$ per segment, \%TODO-DATA & Computed from dataset \\
+Baseline coefficient of variation & $CV_0$ & $\sigma/\mu$ per segment, to be finalized (data pending) & Computed from dataset \\
 Lognormal shape parameter & $\sigma_{ln}$ & $\sqrt{\ln(\eta^2+1)}$ (Eq.~\ref{eq:sigma_ln}) & Method of moments \\
 Lognormal unit-mean factor location & $\mu_{ln}$ & $-\sigma_{ln}^2/2$ (Eq.~\ref{eq:mu_ln}) & Method of moments \\
 
@@ -170,7 +170,7 @@ Lognormal unit-mean factor location & $\mu_{ln}$ & $-\sigma_{ln}^2/2$ (Eq.~\ref{
 \end{tabularx}
 \end{table}
 
-Table~\ref{tab:sim-parameters} is the parameter reference for this chapter. A \texttt{\%TODO-VAL} is a design value still requiring an explicitly justified experimental choice; a \texttt{\%TODO-DATA} is a value blocked on an external source or unfinished empirical derivation. These visible RTC-compliant placeholders prevent unsupported target values from being mistaken for observed CapMetro quantities. The 29-stop count is reproduced from the clean direction-code 6 subset. The demand and speed clip supports are not standard deviations: $\sigma_d$ and $\sigma_s$ remain separate distribution parameters and cannot be replaced by their clip bounds.
+Table~\ref{tab:sim-parameters} is the parameter reference for this chapter. Values marked ``to be finalized'' are intentionally deferred at this proposal stage and will be set during the implementation phase: those noted \emph{data pending} await a verified external source or an unfinished empirical derivation, while those noted \emph{design} are experimental choices, several fixed through the Expected~Output~2.1 sensitivity analysis. Marking them explicitly keeps unsupported target values from being mistaken for observed CapMetro quantities. The 29-stop count is reproduced from the clean direction-code 6 subset. The demand and speed clip supports are not standard deviations: $\sigma_d$ and $\sigma_s$ remain separate distribution parameters and cannot be replaced by their clip bounds.
 
 \subsection{Data Processing}
 
@@ -183,7 +183,7 @@ The MARL framework is trained and evaluated on a single stream of input data pre
 
 \item \textbf{NOAA LCDv2 weather.} Camp Mabry (USW00013958) is the primary station and Austin-Bergstrom (USW00013904) is the sensitivity station \cite{NOAALCDv2}. NOAA timestamps are local standard time with no daylight-saving adjustment. They are interpreted as UTC$-06{:}00$, converted to \texttt{America/Chicago}, and joined to APC event time by nearest observation within 90 minutes. Both stations matched all 229{,}421 primary events in the feasibility audit; 11{,}804 events matched a Camp Mabry rain flag.
 
-\item \textbf{Historical schedule and fleet metadata.} A 2021-compatible GTFS snapshot is required for authoritative direction labels, stop names, route shape, and scheduled headway; a verified fleet source is required for capacity. The current GTFS asset \cite{CapMetroGTFS} is not substituted for a historical snapshot. Until those gates close, direction 6 remains code-only and schedule/capacity parameters remain \%TODO-DATA.
+\item \textbf{Historical schedule and fleet metadata.} A 2021-compatible GTFS snapshot is required for authoritative direction labels, stop names, route shape, and scheduled headway; a verified fleet source is required for capacity. The current GTFS asset \cite{CapMetroGTFS} is not substituted for a historical snapshot. Until those gates close, direction 6 remains code-only and schedule/capacity parameters remain to be finalized (data pending).
 \end{enumerate}
 
 Table~\ref{tab:field-mapping-texas} summarizes how each verified CapMetro and NOAA field maps to the quantity derived from it and the role, and limitation, that quantity carries in the model.
@@ -223,7 +223,7 @@ Passenger arrival timestamps, waiting time, capacity, and breakdown events are a
 
 \end{itemize}
 
-Table~\ref{tab:field-mapping} maps each required raw field to the parameter derived from it and the MARL component that parameter feeds into, connecting the data requirements above to the disturbance generators (Section~\ref{subsec:stochastic-vars}), the control-stop selection criteria (Section~\ref{subsec:control-stop-selection}), and the agent observation vector (Section~\ref{subsec:state-space}). The mapping reflects the study's design intent, not properties of a processed dataset; specific statistics remain \%TODO-DATA pending dataset acquisition.
+Table~\ref{tab:field-mapping} maps each required raw field to the parameter derived from it and the MARL component that parameter feeds into, connecting the data requirements above to the disturbance generators (Section~\ref{subsec:stochastic-vars}), the control-stop selection criteria (Section~\ref{subsec:control-stop-selection}), and the agent observation vector (Section~\ref{subsec:state-space}). The mapping reflects the study's design intent, not properties of a processed dataset; specific statistics remain data-pending until dataset acquisition.
 
 \begin{table}[htbp]
 \centering
@@ -406,11 +406,11 @@ A stored master seed initializes named NumPy child streams for D, S, T, W, B, pa
 
 \subsubsection{Passenger Demand}
 
-The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$ and clipped to $[1, 3]$, following the Gaussian demand-scaling mechanism of Wang and Sun~\cite{Wangsun}; the clip bounds $[1,3]$ are this study's own design choice rather than a value taken from that work. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3, corresponding to roughly a tripling of baseline boarding rates, is this study's own design choice (\%TODO-VAL: revisit during implementation) rather than a value drawn from prior work. Sampling occurs at the start of each simulation run, producing varied demand profiles across episodes. In implementation, the scaling factor $f_d \sim \mathcal{N}(1, \sigma_d^2)$ is sampled once per episode at initialization and applied uniformly to every per-stop, per-time-of-day arrival rate for the duration of that simulated operating day, so all stops experience the same proportional demand shift within a single run while the shift itself varies across runs.
+The baseline empirical transit demand is perturbed each episode by a scaling factor sampled from $\mathcal{N}(1, \sigma_d^2)$ and clipped to $[1, 3]$, following the Gaussian demand-scaling mechanism of Wang and Sun~\cite{Wangsun}; the clip bounds $[1,3]$ are this study's own design choice rather than a value taken from that work. The asymmetric clip focuses the test on demand surges rather than symmetric variation, since demand drops produce lightly loaded conditions that do not stress-test the controller. The upper bound of 3, corresponding to roughly a tripling of baseline boarding rates, is this study's own design choice (to be revisited during implementation) rather than a value drawn from prior work. Sampling occurs at the start of each simulation run, producing varied demand profiles across episodes. In implementation, the scaling factor $f_d \sim \mathcal{N}(1, \sigma_d^2)$ is sampled once per episode at initialization and applied uniformly to every per-stop, per-time-of-day arrival rate for the duration of that simulated operating day, so all stops experience the same proportional demand shift within a single run while the shift itself varies across runs.
 
 \subsubsection{Traffic Delays}
 
-Ordinary inter-stop travel time is sampled from the empirical T distribution for the current segment, time-of-day, and day-type stratum. If a separate corridor-wide stress test is retained, $f_s \sim \mathcal{N}(1,\sigma_s^2)$ is sampled once per episode and clipped to $[0.8,1.2]$ \cite{Wangsun}; $\sigma_s$ is a \%TODO-VAL and is not equal to either clip bound. T remains active when W or B is enabled. Thus a weather run preserves ordinary empirical variability and applies its weather layer on top, avoiding the previous replacement/double-definition conflict.
+Ordinary inter-stop travel time is sampled from the empirical T distribution for the current segment, time-of-day, and day-type stratum. If a separate corridor-wide stress test is retained, $f_s \sim \mathcal{N}(1,\sigma_s^2)$ is sampled once per episode and clipped to $[0.8,1.2]$ \cite{Wangsun}; $\sigma_s$ is a design-phase parameter and is not equal to either clip bound. T remains active when W or B is enabled. Thus a weather run preserves ordinary empirical variability and applies its weather layer on top, avoiding the previous replacement/double-definition conflict.
 
 \subsubsection{Weather-Induced Anomalies}
 
@@ -587,7 +587,7 @@ r_{i,t+k} = -w_1 \cdot (\text{headway-irregularity term}) - w_2 \cdot (\text{wai
 \label{eq:reward-form}
 \end{equation}
 
-where $w_1$, $w_2$, and $w_3$ denote the weighting coefficients (\%TODO-VAL) to be determined through the Expected Output 2.1 sensitivity analysis. Each component is formulated as a non-positive penalty, allowing the agent to maximize its cumulative return in Eq.~\eqref{eq:bellman} by minimizing headway irregularity, passenger waiting time, and unnecessary stop-skipping behavior. Consequently, this chapter establishes the reward formulation and its optimization objective, while the specific mathematical expressions and coefficient values are reserved for the implementation and evaluation phase.
+where $w_1$, $w_2$, and $w_3$ denote the weighting coefficients to be determined through the Expected Output 2.1 sensitivity analysis. Each component is formulated as a non-positive penalty, allowing the agent to maximize its cumulative return in Eq.~\eqref{eq:bellman} by minimizing headway irregularity, passenger waiting time, and unnecessary stop-skipping behavior. Consequently, this chapter establishes the reward formulation and its optimization objective, while the specific mathematical expressions and coefficient values are reserved for the implementation and evaluation phase.
 
 \subsubsection{Proposed Learning Algorithm}
 \label{subsec:proposed-algorithm}
