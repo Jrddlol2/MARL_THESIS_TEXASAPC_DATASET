@@ -32,12 +32,23 @@ Ys = (co["mean_lat"] - lat0) * 110540
 DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for i in range(len(STOPS)-1)]
 SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i])) for i in range(len(STOPS))}
+DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
 H0, NBUS, CVD, CAP, BIG, TBREAK = 300.0, 8, 0.6, 0.4, 600.0, 400.0
 
 def eh_hold(h): return 0.0 if h >= H0 else float(min(H0 - h, CAP * H0))
 def weather_factor(rng):
     if ETA <= 0: return 1.0
     s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
+
+os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger files so this runs standalone
+open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+_p = ["<additional>"]
+for i in range(len(STOPS) - 1):
+    K = int(round(NBUS * DEM[STOPS[i]]))
+    if K > 0:
+        _p.append(f'<personFlow id="f{i}" begin="0" end="{int(H0*(NBUS-1))}" number="{K}">'
+                  f'<stop busStop="{STOPS[i]}" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
+open("sumo/persons.add.xml", "w").write("\n".join(_p + ["</additional>"]))
 
 rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
