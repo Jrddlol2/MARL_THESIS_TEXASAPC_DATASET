@@ -57,6 +57,8 @@ traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
              "--start", "--delay", "80", "--no-warnings", "true", "-e", "22000"],
             port=sumolib.miscutils.getFreeSocketPort())
 traci.route.add("corr", EDGES)
+try: traci.gui.setBoundary("View #0", -50.0, -160.0, sum(DIST) + 560.0, 160.0)   # frame the corridor so it's visible
+except Exception: pass
 print(f"Watching: controller={CTRL}, scenario={SCEN}  (close the window to stop)")
 departs = {f"b{i}": i*H0 for i in range(NBUS)}
 added, toinit, idx, prev, arr, tarr, target, resumed, dwell = set(), set(), {}, {}, {s: [] for s in STOPS}, {}, {}, set(), {}
