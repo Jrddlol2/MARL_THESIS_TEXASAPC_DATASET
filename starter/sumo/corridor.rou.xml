@@ -1,0 +1,12 @@
+<routes>
+  <vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30"/>
+  <route id="r" edges="e0 e1 e2 e3 e4 e5"/>
+  <vehicle id="b0" type="bus" route="r" depart="0">
+    <stop busStop="5857" duration="20"/>
+    <stop busStop="5858" duration="17"/>
+    <stop busStop="4540" duration="36"/>
+    <stop busStop="467" duration="17"/>
+    <stop busStop="5859" duration="30"/>
+    <stop busStop="5606" duration="22"/>
+  </vehicle>
+</routes>

@@ -1,0 +1,5 @@
+FROZEN CHECKPOINT — DO NOT EDIT OR MOVE.
+This is the exact proposal-revision package SUBMITTED on 2026-08-29 (course Week 3):
+  - B3-Post-Revision-Manuscript_AS-SUBMITTED.pdf   (the manuscript as submitted)
+  - B3-Conformity-of-Revisions_AS-SUBMITTED.pdf    (the 22-item conformity form as submitted)
+Preserved as the current-state checkpoint. Later edits happen in the .tex sources, not here.
