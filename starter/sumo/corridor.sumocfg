@@ -4,5 +4,5 @@
   <route-files value="corridor.rou.xml"/>
   <additional-files value="stops.add.xml"/>
  </input>
- <time><begin value="0"/><end value="5000"/></time>
+ <time><begin value="0"/><end value="9000"/></time>
 </configuration>

@@ -16,7 +16,7 @@ import traci
 from sumolib import checkBinary
 
 NC, SUMO = checkBinary("netconvert"), checkBinary("sumo")
-CORRIDOR = [l.strip() for l in open("reduced_corridor.txt") if l.strip()]
+CORRIDOR = [l.strip() for l in open("corridor.txt") if l.strip()]   # full 26-stop dir-6 corridor
 os.makedirs("sumo", exist_ok=True)
 
 coords = pd.read_csv("sim_inputs/stop_coordinates.csv").set_index("bs_id")
@@ -48,10 +48,10 @@ def build_and_run(speeds):
         f'  <vehicle id="b0" type="bus" route="r" depart="0">\n{stopxml}  </vehicle>\n</routes>\n')
     open("sumo/corridor.sumocfg", "w").write(
         '<configuration>\n <input>\n  <net-file value="corridor.net.xml"/>\n  <route-files value="corridor.rou.xml"/>\n'
-        '  <additional-files value="stops.add.xml"/>\n </input>\n <time><begin value="0"/><end value="5000"/></time>\n</configuration>\n')
+        '  <additional-files value="stops.add.xml"/>\n </input>\n <time><begin value="0"/><end value="9000"/></time>\n</configuration>\n')
     traci.start([SUMO, "-c", "sumo/corridor.sumocfg", "--no-warnings", "true", "--no-step-log", "true"])
     arr, dep, prev, t = [], [], False, 0
-    while traci.simulation.getMinExpectedNumber() > 0 and t < 5000:
+    while traci.simulation.getMinExpectedNumber() > 0 and t < 9000:
         traci.simulationStep(); t = traci.simulation.getTime()
         s = traci.vehicle.isStopped("b0") if "b0" in traci.vehicle.getIDList() else False
         if s and not prev: arr.append(t)
@@ -63,14 +63,21 @@ def build_and_run(speeds):
 
 def main():
     speeds = [dist[i] / target[i] for i in range(len(dist))] + [10.0]
-    for it in range(1, 8):
+    for it in range(1, 13):
         M = build_and_run(speeds); k = len(M); C = target[:k]
         geh = np.sqrt(2 * (M - C) ** 2 / (M + C))
         rmspe = np.sqrt(np.mean(((M - C) / C) ** 2)) * 100
         ok = np.mean(geh < 5) * 100
-        print(f"iter {it}: sim={[round(v) for v in M]} GEH={[round(g,2) for g in geh]} <5:{ok:.0f}% RMSPE={rmspe:.1f}%")
-        if ok >= 85 and rmspe < 10:
-            print("calibration criterion met -> sumo/corridor.* is the calibrated scenario"); return
+        print(f"iter {it}: <5:{ok:.0f}% RMSPE={rmspe:.2f}% GEHmax={geh.max():.2f}")
+        if ok >= 85 and rmspe < 2.0:
+            print(f"calibration criterion met (RMSPE {rmspe:.2f}%, GEH<5 on {ok:.0f}%) -> sumo/corridor.* is calibrated")
+            print("final segment times (s):", [round(v) for v in M])
+            os.makedirs("results", exist_ok=True)
+            with open("results/calibration.csv", "w") as fh:
+                fh.write("segment,observed_s,simulated_s,geh,pct_err\n")
+                for i in range(k):
+                    fh.write(f"{CORRIDOR[i]}-{CORRIDOR[i+1]},{C[i]:.0f},{M[i]:.0f},{geh[i]:.2f},{(M[i]-C[i])/C[i]*100:+.1f}\n")
+            print(f"wrote results/calibration.csv (RMSPE {rmspe:.2f}%)"); return
         for i in range(k): speeds[i] *= M[i] / C[i]
 
 

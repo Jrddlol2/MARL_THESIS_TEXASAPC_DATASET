@@ -22,7 +22,7 @@ SCEN = sys.argv[2] if len(sys.argv) > 2 else "Weather+Breakdown"
 ETA  = 0.8 if "Weather" in SCEN else 0.0
 BREAKDOWN = "Breakdown" in SCEN
 
-STOPS = ["5857", "5858", "4540", "467", "5859", "5606"]
+STOPS = [l.strip() for l in open("corridor.txt") if l.strip()]   # full 26-stop dir-6 corridor
 EDGES = [f"e{i}" for i in range(len(STOPS))]
 co = pd.read_csv("sim_inputs/stop_coordinates.csv").set_index("bs_id").loc[[int(s) for s in STOPS]]
 d  = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[[int(s) for s in STOPS]]
@@ -33,7 +33,7 @@ DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for
 SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i])) for i in range(len(STOPS))}
 DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
-H0, NBUS, CVD, CAP, BIG, TBREAK = 300.0, 8, 0.6, 0.4, 600.0, 400.0
+H0, NBUS, CVD, CAP, BIG, TBREAK = 300.0, 12, 0.6, 0.4, 600.0, 400.0
 
 def eh_hold(h): return 0.0 if h >= H0 else float(min(H0 - h, CAP * H0))
 def weather_factor(rng):
@@ -54,7 +54,7 @@ rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
 traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
              "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml",
-             "--start", "--delay", "80", "--no-warnings", "true", "-e", "22000"],
+             "--start", "--delay", "80", "--no-warnings", "true", "-e", "36000"],
             port=sumolib.miscutils.getFreeSocketPort())
 traci.route.add("corr", EDGES)
 try: traci.gui.setBoundary("View #0", -50.0, -160.0, sum(DIST) + 560.0, 160.0)   # frame the corridor so it's visible
@@ -62,9 +62,9 @@ except Exception: pass
 print(f"Watching: controller={CTRL}, scenario={SCEN}  (close the window to stop)")
 departs = {f"b{i}": i*H0 for i in range(NBUS)}
 added, toinit, idx, prev, arr, tarr, target, resumed, dwell = set(), set(), {}, {}, {s: [] for s in STOPS}, {}, {}, set(), {}
-bk, bks = f"b{rng.integers(2, NBUS-1)}", (int(rng.integers(1, 5)) if BREAKDOWN else -1)
+bk, bks = f"b{rng.integers(2, NBUS-1)}", (int(rng.integers(1, len(STOPS)-1)) if BREAKDOWN else -1)
 t = 0.0
-while t < H0*NBUS + 16000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
+while t < H0*NBUS + 30000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
     for v, dep in departs.items():
         if v not in added and t >= dep:
             traci.vehicle.add(v, "corr", typeID="bus", line="801"); added.add(v); toinit.add(v)

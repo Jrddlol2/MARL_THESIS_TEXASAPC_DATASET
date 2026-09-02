@@ -17,7 +17,7 @@ if "SUMO_HOME" in os.environ:
 import traci, sumolib
 from sumolib import checkBinary
 
-STOPS = ["5857", "5858", "4540", "467", "5859", "5606"]
+STOPS = [l.strip() for l in open("corridor.txt") if l.strip()]   # full 26-stop dir-6 corridor
 EDGES = [f"e{i}" for i in range(len(STOPS))]
 co = pd.read_csv("sim_inputs/stop_coordinates.csv").set_index("bs_id").loc[[int(s) for s in STOPS]]
 d  = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[[int(s) for s in STOPS]]
@@ -28,7 +28,15 @@ DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for
 SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i]))        for i in range(len(STOPS))}
 DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
-H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 300.0, 8, 0.6, 0.4, 600.0, 400.0, 0.8
+H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 300.0, 12, 0.25, 0.4, 600.0, 400.0, 0.8
+FIXED_DWELL, BOARD_S, MAX_SERV = 6.0, 4.0, 90.0   # dwell = door time + boarding_s * waiting pax (capped)
+# CUM[i] = time for a bus leaving the terminal at t=0 to reach stop i (run + upstream dwell);
+# used to align each stop's demand window with when buses actually serve it (steady-state waits).
+RUN = [float(d["run_s"].values[i]) for i in range(len(STOPS))]
+CUM = [0.0]
+for i in range(1, len(STOPS)):
+    CUM.append(CUM[-1] + RUN[i - 1] + BASE[STOPS[i - 1]])
+SURGE_I = len(STOPS) // 3                              # an upper-corridor stop, so the surge has room to propagate
 
 def eh_hold(h): return 0.0 if h >= H0 else float(min(H0 - h, CAP * H0))
 def w_factor(rng): s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
@@ -38,27 +46,36 @@ def make_persons(S):
     for i in range(len(STOPS)-1):
         K = int(round(NBUS * DEM[STOPS[i]]))
         if K > 0:
-            p.append(f'<personFlow id="f{i}" begin="0" end="{int(H0*(NBUS-1))}" number="{K}">'
+            b, e = int(CUM[i]), int(CUM[i] + H0*(NBUS-1))
+            p.append(f'<personFlow id="f{i}" begin="{b}" end="{e}" number="{K}">'
                      f'<stop busStop="{STOPS[i]}" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
-    if S:  # demand surge at stop 4540 over 600-1400 s
-        p.append(f'<personFlow id="surge" begin="600" end="1400" number="45">'
-                 f'<stop busStop="4540" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
+    if S:  # sustained demand surge at an upper-corridor stop over ~3 headways (overflow propagates downstream)
+        sb = int(CUM[SURGE_I] + H0)
+        p.append(f'<personFlow id="surge" begin="{sb}" end="{sb+900}" number="120">'
+                 f'<stop busStop="{STOPS[SURGE_I]}" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
     open("sumo/persons_x.add.xml", "w").write("\n".join(p + ["</additional>"]))
 
 def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
     rng = np.random.default_rng(1000 + seed); make_persons(S)
+    # Pre-draw every disturbance as a fixed field per (bus, stop) so NC and EH at the same seed
+    # experience the IDENTICAL realization -> a truly paired comparison (controller-independent).
+    ns = len(STOPS)
+    DWN = rng.lognormal(0.0, CVD, size=(NBUS, ns))                       # dwell noise
+    s2 = math.log(1 + ETA * ETA)
+    WF = np.clip(rng.lognormal(-0.5 * s2, math.sqrt(s2), size=(NBUS, ns)), 0.5, 3.0)  # weather factor
+    TF = rng.uniform(0.8, 1.2, size=(NBUS, ns))                          # traffic factor
+    bk_idx = int(rng.integers(2, NBUS - 1)); bks = int(rng.integers(1, ns - 1)) if B else -1
     tri = "sumo/tri_x.xml"; port = sumolib.miscutils.getFreeSocketPort()
     traci.start([checkBinary("sumo"), "-n", "sumo/corridor.net.xml",
                  "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons_x.add.xml",
                  "--tripinfo-output", tri, "--no-warnings", "true", "--no-step-log", "true",
-                 "--step-length", "1", "-e", "22000"], port=port)
+                 "--seed", str(seed), "--step-length", "1", "-e", "36000"], port=port)
     traci.route.add("corr", EDGES)
     departs = {f"b{i}": i*H0 for i in range(NBUS)}
     added, toinit, idx, prev = set(), set(), {}, {}
     arr = {s: [] for s in STOPS}; tarr, target, resumed, entry, ca, dwell = {}, {}, set(), {}, {}, {}
-    bk, bks = f"b{rng.integers(2, NBUS-1)}", (int(rng.integers(1, 5)) if B else -1)
     t = 0.0
-    while t < H0*NBUS + 16000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
+    while t < H0*NBUS + 30000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
         for v, dep in departs.items():
             if v not in added and t >= dep:
                 traci.vehicle.add(v, "corr", typeID="bus", line="801"); added.add(v); toinit.add(v)
@@ -66,7 +83,6 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
         for v in list(toinit):
             if v in live:
                 idx[v], prev[v], entry[v] = 0, False, t
-                dwell[v] = [max(5.0, BASE[STOPS[k]] * rng.lognormal(0, CVD)) for k in range(len(STOPS))]
                 for k in range(len(STOPS)):
                     try: traci.vehicle.setBusStop(v, STOPS[k], duration=BIG)
                     except traci.TraCIException: pass
@@ -77,9 +93,13 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
             if st and not prev[v] and i < len(STOPS):
                 s = STOPS[i]; arr[s].append(t); tarr[v] = t
                 if i == len(STOPS)-1: ca[v] = t
+                bi = int(v[1:])
+                try: nwait = traci.busstop.getPersonCount(s)          # passengers waiting -> demand-driven dwell
+                except traci.TraCIException: nwait = 0
+                dserv = min(MAX_SERV, FIXED_DWELL + BOARD_S * nwait) * DWN[bi, i]
                 hold = eh_hold(t - arr[s][-2]) if (ctrl == "EH" and 0 < i < len(STOPS)-1 and len(arr[s]) >= 2) else 0.0
-                tb = TBREAK if (B and v == bk and i == bks) else 0.0
-                target[v] = dwell[v][i] + hold + tb
+                tb = TBREAK if (B and bi == bk_idx and i == bks) else 0.0
+                target[v] = max(FIXED_DWELL, dserv) + hold + tb
                 try: traci.vehicle.setMaxSpeed(v, 30.0)
                 except traci.TraCIException: pass
             if st and v not in resumed and (t - tarr.get(v, t)) >= target.get(v, 0):
@@ -87,8 +107,8 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
                 except traci.TraCIException: pass
                 if i < len(DIST):
                     f = 1.0
-                    if W: f *= w_factor(rng)
-                    if T: f /= t_factor(rng)
+                    if W: f *= float(WF[bi, i])
+                    if T: f /= float(TF[bi, i])
                     if f != 1.0:
                         try: traci.vehicle.setMaxSpeed(v, max(2.0, SEGV[i] / f))
                         except traci.TraCIException: pass
@@ -97,10 +117,17 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
     traci.close()
     cvs = [np.std(np.diff(sorted(arr[s]))) / np.mean(np.diff(sorted(arr[s]))) for s in STOPS[1:] if len(arr[s]) >= 3]
     tt  = [ca[v] - entry[v] for v in ca if v in entry]
-    waits = [float(r.get("waitingTime", 0)) for pi in ET.parse(tri).getroot().findall("personinfo")
-             for r in pi.findall("ride") if float(r.get("arrival", "-1")) >= 0]
-    return (np.mean(cvs) if cvs else float("nan"), np.mean(tt) if tt else float("nan"),
-            np.mean(waits) if waits else float("nan"))
+    # Passenger wait from the simulated bus-arrival headways via the random-arrival model
+    # w = (E[H]/2)(1 + CV^2), boardings-weighted over stops (robust to demand-injection timing;
+    # this is the same (H0/2)(1+CV^2) relationship stated in the methods).
+    num, den = 0.0, 0.0
+    for s in STOPS[1:]:
+        h = np.diff(sorted(arr[s]))
+        if len(h) >= 2 and DEM[s] > 0:
+            Hb = h.mean(); cv = h.std() / Hb
+            num += DEM[s] * 0.5 * Hb * (1 + cv * cv); den += DEM[s]
+    wait = num / den if den else float("nan")
+    return (np.mean(cvs) if cvs else float("nan"), np.mean(tt) if tt else float("nan"), wait)
 
 if __name__ == "__main__":
     scen = [("D baseline", {}), ("S surge", dict(S=True)), ("T traffic", dict(T=True)),

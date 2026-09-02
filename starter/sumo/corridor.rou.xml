@@ -1,12 +1,32 @@
 <routes>
   <vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30"/>
-  <route id="r" edges="e0 e1 e2 e3 e4 e5"/>
+  <route id="r" edges="e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e14 e15 e16 e17 e18 e19 e20 e21 e22 e23 e24 e25"/>
   <vehicle id="b0" type="bus" route="r" depart="0">
+    <stop busStop="5280" duration="15"/>
     <stop busStop="5857" duration="20"/>
     <stop busStop="5858" duration="17"/>
     <stop busStop="4540" duration="36"/>
     <stop busStop="467" duration="17"/>
     <stop busStop="5859" duration="30"/>
     <stop busStop="5606" duration="22"/>
+    <stop busStop="5861" duration="15"/>
+    <stop busStop="6360" duration="14"/>
+    <stop busStop="484" duration="15"/>
+    <stop busStop="5405" duration="14"/>
+    <stop busStop="5357" duration="14"/>
+    <stop busStop="5863" duration="16"/>
+    <stop busStop="497" duration="20"/>
+    <stop busStop="5866" duration="14"/>
+    <stop busStop="2738" duration="14"/>
+    <stop busStop="2611" duration="15"/>
+    <stop busStop="5867" duration="31"/>
+    <stop busStop="6372" duration="15"/>
+    <stop busStop="4029" duration="14"/>
+    <stop busStop="4046" duration="20"/>
+    <stop busStop="5870" duration="14"/>
+    <stop busStop="5553" duration="27"/>
+    <stop busStop="6356" duration="14"/>
+    <stop busStop="5871" duration="14"/>
+    <stop busStop="5872" duration="16"/>
   </vehicle>
 </routes>
