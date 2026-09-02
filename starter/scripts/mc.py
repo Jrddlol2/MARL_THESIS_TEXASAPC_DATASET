@@ -15,9 +15,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from run_disturbances import run          # single source of truth for the simulation
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 30
-SCEN = [("Baseline", {}), ("Surge", dict(S=True)), ("Traffic", dict(T=True)),
-        ("Weather", dict(W=True)), ("Breakdown", dict(B=True)),
-        ("All", dict(S=True, T=True, W=True, B=True))]
+# Manuscript activation matrix (Ch.2 scope): D (demand) and T (traffic) are present in every cell;
+# Stage A is the ideal condition (D+T), the three ablations add one class each, Stage B is combined.
+SCEN = [("Stage A (D+T)",        dict(T=True)),
+        ("Ablation S (D+T+S)",   dict(T=True, S=True)),
+        ("Ablation W (D+T+W)",   dict(T=True, W=True)),
+        ("Ablation B (D+T+B)",   dict(T=True, B=True)),
+        ("Stage B (D+T+S+W+B)",  dict(T=True, S=True, W=True, B=True))]
+CTRLS = ["NC", "FH", "EH"]           # No-Control, Forward-Headway, Even-Headway
 os.makedirs("results", exist_ok=True)
 
 
@@ -46,7 +51,7 @@ def main():
     with open("results/mc_results.csv", "w", newline="") as fh:
         w = csv.writer(fh); w.writerow(["scenario", "controller", "seed", "headway_cv", "travel_s", "wait_s"])
         for name, kw in SCEN:
-            for c in ["NC", "EH"]:
+            for c in CTRLS:
                 ok = 0
                 for s in range(N):
                     try:
@@ -65,22 +70,25 @@ def main():
     L = ["| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | n |",
          "|---|---|---|---|---|--:|"]
     for name, _ in SCEN:
-        for c in ["NC", "EH"]:
+        for c in CTRLS:
             d = D[(name, c)]
             cv = boot_ci(d["cv"]); tt = boot_ci(d["tt"]); wt = boot_ci(d["wt"])
             n = sum(np.isfinite(v) for v in d["cv"])
             L.append(f"| {name} | {c} | {cv[0]:.3f} [{cv[1]:.3f}, {cv[2]:.3f}] | "
                      f"{tt[0]:.0f} [{tt[1]:.0f}, {tt[2]:.0f}] | {wt[0]:.0f} [{wt[1]:.0f}, {wt[2]:.0f}] | {n} |")
-    L += ["", "**EH vs NC, paired % change (negative = EH better):**", ""]
-    L.append("| Scenario | Δ Headway CV % [95% CI] | Δ Wait % [95% CI] |")
-    L.append("|---|---|---|")
+    L += ["", "**Paired % change vs No-Control (negative = controller better; CV with 95% CI):**", ""]
+    L.append("| Scenario | FH Δ CV % [95% CI] | FH Δ wait % | EH Δ CV % [95% CI] | EH Δ wait % |")
+    L.append("|---|---|---|---|---|")
     for name, _ in SCEN:
-        pc = paired_pct(D[(name, "NC")]["cv"], D[(name, "EH")]["cv"])
-        pw = paired_pct(D[(name, "NC")]["wt"], D[(name, "EH")]["wt"])
-        L.append(f"| {name} | {pc[0]:+.0f}% [{pc[1]:+.0f}%, {pc[2]:+.0f}%] | {pw[0]:+.0f}% [{pw[1]:+.0f}%, {pw[2]:+.0f}%] |")
+        fcv = paired_pct(D[(name, "NC")]["cv"], D[(name, "FH")]["cv"])
+        fwt = paired_pct(D[(name, "NC")]["wt"], D[(name, "FH")]["wt"])
+        ecv = paired_pct(D[(name, "NC")]["cv"], D[(name, "EH")]["cv"])
+        ewt = paired_pct(D[(name, "NC")]["wt"], D[(name, "EH")]["wt"])
+        L.append(f"| {name} | {fcv[0]:+.0f}% [{fcv[1]:+.0f}, {fcv[2]:+.0f}] | {fwt[0]:+.0f}% | "
+                 f"{ecv[0]:+.0f}% [{ecv[1]:+.0f}, {ecv[2]:+.0f}] | {ewt[0]:+.0f}% |")
     open("results/mc_summary.md", "w", encoding="utf-8").write("\n".join(L) + "\n")
     print("\n".join(L).encode("ascii", "replace").decode())     # console is cp1252-safe
-    print(f"\nMC done: {len(SCEN)}x2x{N} runs in {time.time()-t0:.0f}s -> results/mc_summary.md", flush=True)
+    print(f"\nMC done: {len(SCEN)}x{len(CTRLS)}x{N} runs in {time.time()-t0:.0f}s -> results/mc_summary.md", flush=True)
 
 
 if __name__ == "__main__":

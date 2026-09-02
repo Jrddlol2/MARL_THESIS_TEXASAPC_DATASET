@@ -38,7 +38,10 @@ for i in range(1, len(STOPS)):
     CUM.append(CUM[-1] + RUN[i - 1] + BASE[STOPS[i - 1]])
 SURGE_I = len(STOPS) // 3                              # an upper-corridor stop, so the surge has room to propagate
 
-def eh_hold(h): return 0.0 if h >= H0 else float(min(H0 - h, CAP * H0))
+def fh_hold(hf):                       # Forward-Headway: hold up to target headway behind the leader
+    return 0.0 if hf >= H0 else float(min(H0 - hf, CAP * H0))
+def eh_hold(hf, hb):                    # Even-Headway (two-way): center the bus between leader and follower
+    return float(max(0.0, min(0.5 * (hb - hf), CAP * H0)))
 def w_factor(rng): s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
 def t_factor(rng): return float(rng.uniform(0.8, 1.2))
 def make_persons(S):
@@ -74,6 +77,7 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
     departs = {f"b{i}": i*H0 for i in range(NBUS)}
     added, toinit, idx, prev = set(), set(), {}, {}
     arr = {s: [] for s in STOPS}; tarr, target, resumed, entry, ca, dwell = {}, {}, set(), {}, {}, {}
+    barr = {}                          # (bus_index, stop_index) -> arrival time, for leader/follower headways
     t = 0.0
     while t < H0*NBUS + 30000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
         for v, dep in departs.items():
@@ -93,11 +97,18 @@ def run(ctrl, D=True, S=False, T=False, W=False, B=False, seed=1):
             if st and not prev[v] and i < len(STOPS):
                 s = STOPS[i]; arr[s].append(t); tarr[v] = t
                 if i == len(STOPS)-1: ca[v] = t
-                bi = int(v[1:])
+                bi = int(v[1:]); barr[(bi, i)] = t
                 try: nwait = traci.busstop.getPersonCount(s)          # passengers waiting -> demand-driven dwell
                 except traci.TraCIException: nwait = 0
                 dserv = min(MAX_SERV, FIXED_DWELL + BOARD_S * nwait) * DWN[bi, i]
-                hold = eh_hold(t - arr[s][-2]) if (ctrl == "EH" and 0 < i < len(STOPS)-1 and len(arr[s]) >= 2) else 0.0
+                hold = 0.0
+                if ctrl in ("FH", "EH") and 0 < i < len(STOPS)-1 and bi > 0:
+                    hf = t - barr[(bi-1, i)] if (bi-1, i) in barr else H0             # gap to leader (this stop)
+                    if ctrl == "FH":
+                        hold = fh_hold(hf)
+                    else:                                                            # EH: gap to follower via previous stop
+                        hb = (barr[(bi, i-1)] - barr[(bi+1, i-1)]) if ((bi+1, i-1) in barr and (bi, i-1) in barr) else H0
+                        hold = eh_hold(hf, hb)
                 tb = TBREAK if (B and bi == bk_idx and i == bks) else 0.0
                 target[v] = max(FIXED_DWELL, dserv) + hold + tb
                 try: traci.vehicle.setMaxSpeed(v, 30.0)

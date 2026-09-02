@@ -50,8 +50,10 @@ for i in range(len(STOPS) - 1):
 p.append("</additional>")
 open("sumo/persons.add.xml", "w").write("\n".join(p))
 
-def eh_hold(h_fwd):
-    return 0.0 if h_fwd >= H0 else float(min(H0 - h_fwd, CAP * H0))
+def fh_hold(hf):                       # Forward-Headway: hold up to target headway behind the leader
+    return 0.0 if hf >= H0 else float(min(H0 - hf, CAP * H0))
+def eh_hold(hf, hb):                    # Even-Headway (two-way): center the bus between leader and follower
+    return float(max(0.0, min(0.5 * (hb - hf), CAP * H0)))
 
 def run(controller, seed=1):
     rng = np.random.default_rng(seed); tri = f"sumo/tripinfo_{controller}.xml"
@@ -63,7 +65,7 @@ def run(controller, seed=1):
     departs = {f"b{i}": i * H0 for i in range(NBUS)}
     added, toinit = set(), set()
     idx, prev, tarr, target, resumed, entry, corr_arr, dwell = {}, {}, {}, {}, set(), {}, {}, {}
-    arr = {s: [] for s in STOPS}
+    arr = {s: [] for s in STOPS}; barr = {}
     t = 0.0
     while t < H0 * NBUS + 20000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
         for v, dep in departs.items():
@@ -81,12 +83,19 @@ def run(controller, seed=1):
             if v not in live or v in toinit: continue
             st, i = traci.vehicle.isStopped(v), idx[v]
             if st and not prev[v] and i < len(STOPS):                          # arrived at STOPS[i]
-                s = STOPS[i]; arr[s].append(t); tarr[v] = t
+                s = STOPS[i]; arr[s].append(t); tarr[v] = t; bi = int(v[1:]); barr[(bi, i)] = t
                 if i == len(STOPS) - 1: corr_arr[v] = t
                 try: nwait = traci.busstop.getPersonCount(s)                    # demand-driven dwell
                 except traci.TraCIException: nwait = 0
                 dserv = min(MAX_SERV, FIXED_DWELL + BOARD_S * nwait) * rng.lognormal(0, CV_DWELL)
-                hold = eh_hold(t - arr[s][-2]) if (controller == "EH" and 0 < i < len(STOPS) - 1 and len(arr[s]) >= 2) else 0.0
+                hold = 0.0
+                if controller in ("FH", "EH") and 0 < i < len(STOPS) - 1 and bi > 0:
+                    hf = t - barr[(bi-1, i)] if (bi-1, i) in barr else H0
+                    if controller == "FH":
+                        hold = fh_hold(hf)
+                    else:
+                        hb = (barr[(bi, i-1)] - barr[(bi+1, i-1)]) if ((bi+1, i-1) in barr and (bi, i-1) in barr) else H0
+                        hold = eh_hold(hf, hb)
                 target[v] = max(FIXED_DWELL, dserv) + hold
             if st and v not in resumed and (t - tarr.get(v, t)) >= target.get(v, 0):
                 try: traci.vehicle.resume(v); resumed.add(v)
@@ -117,9 +126,10 @@ def run(controller, seed=1):
 if __name__ == "__main__":
     print("controller | headway CV | travel (s) | wait direct (s) | wait model (s) | boarded")
     R = {}
-    for c in ["NC", "EH"]:
+    for c in ["NC", "FH", "EH"]:
         r = run(c); R[c] = r
         print(f"   {c:3s}    |   {r['headway_cv']:6.3f}   |   {r['travel_s']:6.1f}  |     {r['wait_mean']:6.1f}      |     {r['wait_hw']:6.1f}     |  {r['boarded']}")
-    print(f"\nEH vs NC: headway CV {(R['NC']['headway_cv']-R['EH']['headway_cv'])/R['NC']['headway_cv']*100:+.0f}%, "
-          f"travel {(R['EH']['travel_s']-R['NC']['travel_s'])/R['NC']['travel_s']*100:+.0f}%, "
-          f"wait(model) {(R['EH']['wait_hw']-R['NC']['wait_hw'])/R['NC']['wait_hw']*100:+.0f}%")
+    for c in ["FH", "EH"]:
+        print(f"\n{c} vs NC: headway CV {(R[c]['headway_cv']-R['NC']['headway_cv'])/R['NC']['headway_cv']*100:+.0f}%, "
+              f"travel {(R[c]['travel_s']-R['NC']['travel_s'])/R['NC']['travel_s']*100:+.0f}%, "
+              f"wait(model) {(R[c]['wait_hw']-R['NC']['wait_hw'])/R['NC']['wait_hw']*100:+.0f}%")

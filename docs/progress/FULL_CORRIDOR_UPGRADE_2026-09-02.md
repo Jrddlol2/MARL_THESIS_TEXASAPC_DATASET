@@ -165,74 +165,66 @@ holding coexist. No-Control runs the fleet freely.
 **Paired design.** All disturbances are **pre-drawn as deterministic fields indexed by (bus, stop)
 from a per-seed RNG**, and `--seed` is passed to SUMO. NC and EH at the same seed therefore
 experience the *identical* disturbance and demand realization — a genuinely paired comparison. The
-Monte-Carlo (`scripts/mc.py`) runs `N = 30` paired replications over six scenarios
-(Baseline, Surge, Traffic, Weather, Breakdown, All), reporting bootstrap 95% CIs and the paired
-EH-vs-NC % change.
+Monte-Carlo (`scripts/mc.py`) runs `N = 30` paired replications over the five activation-matrix
+cells (Stage A, three ablations, Stage B — see §J) for each of the three baselines (NC / FH / EH),
+reporting bootstrap 95% CIs and the paired change vs No-Control.
 
-### G.1 Single-seed illustration (one realization; MC supersedes)
+### G.1 Monte-Carlo (N = 30 paired replications, bootstrap 95% CI)
 
-| Scenario | NC CV | EH CV | NC wait (s) | EH wait (s) |
-|---|---|---|---|---|
-| Baseline | 0.046 | 0.023 | 150 | 151 |
-| Surge | 0.182 | 0.147 | 155 | 157 |
-| Traffic | 0.267 | 0.156 | 157 | 160 |
-| Weather | 1.000 | 0.617 | 348 | 272 |
-| Breakdown | 0.219 | 0.161 | 164 | 163 |
-| All | 1.151 | 0.575 | 344 | 221 |
-
-*Single seeds are volatile for the combined scenarios (a given seed can draw an adverse breakdown
-location); the 30-seed CIs below are the reportable result.*
-
-### G.2 Monte-Carlo (N = 30 paired replications, bootstrap 95% CI)
-
-All 30 replications valid in every one of the 12 scenario×controller cells (no failed runs).
+Manuscript activation matrix, three baselines. All 30 replications valid in every one of the 15
+scenario×controller cells (no failed runs).
 
 | Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] |
 |---|---|---|---|---|
-| Baseline  | NC | 0.037 [0.034, 0.040] | 4528 [4527, 4529] | 150 [150, 151] |
-| Baseline  | EH | 0.020 [0.018, 0.022] | 4551 [4549, 4553] | 151 [151, 151] |
-| Surge     | NC | 0.169 [0.163, 0.177] | 4658 [4655, 4660] | 155 [154, 155] |
-| Surge     | EH | 0.137 [0.133, 0.141] | 4923 [4914, 4932] | 157 [157, 157] |
-| Traffic   | NC | 0.312 [0.292, 0.335] | 5038 [5023, 5053] | 164 [162, 166] |
-| Traffic   | EH | 0.154 [0.145, 0.163] | 5280 [5260, 5301] | 161 [160, 162] |
-| Weather   | NC | 0.963 [0.902, 1.026] | 6403 [6236, 6570] | 287 [264, 313] |
-| Weather   | EH | 0.625 [0.584, 0.668] | 7029 [6825, 7236] | 245 [229, 263] |
-| Breakdown | NC | 0.274 [0.220, 0.331] | 4580 [4576, 4586] | 167 [162, 172] |
-| Breakdown | EH | 0.210 [0.169, 0.253] | 4743 [4699, 4791] | 165 [162, 170] |
-| All       | NC | 0.963 [0.919, 1.004] | 6753 [6593, 6912] | 288 [270, 306] |
-| All       | EH | 0.684 [0.633, 0.740] | 7448 [7257, 7648] | 267 [246, 289] |
+| **Stage A** (D+T) | NC | 0.335 [0.312, 0.358] | 5042 [5031, 5053] | 166 [164, 168] |
+|                   | FH | 0.153 [0.145, 0.160] | 5279 [5261, 5297] | 161 [160, 162] |
+|                   | EH | 0.172 [0.163, 0.182] | 5201 [5187, 5215] | 159 [157, 160] |
+| Abl. S (D+T+S)    | NC | 0.369 [0.350, 0.387] | 5158 [5141, 5176] | 169 [167, 171] |
+|                   | FH | 0.231 [0.218, 0.243] | 5595 [5561, 5628] | 166 [165, 168] |
+|                   | EH | 0.242 [0.230, 0.255] | 5377 [5358, 5397] | 163 [161, 164] |
+| Abl. W (D+T+W)    | NC | 1.013 [0.951, 1.076] | 6457 [6313, 6606] | 306 [289, 323] |
+|                   | FH | 0.648 [0.595, 0.709] | 7045 [6849, 7241] | 256 [237, 276] |
+|                   | EH | 0.830 [0.742, 0.933] | 6656 [6512, 6800] | 280 [250, 319] |
+| Abl. B (D+T+B)    | NC | 0.442 [0.402, 0.483] | 5098 [5084, 5111] | 179 [175, 184] |
+|                   | FH | 0.253 [0.229, 0.279] | 5421 [5381, 5464] | 172 [169, 175] |
+|                   | EH | 0.289 [0.262, 0.318] | 5297 [5277, 5316] | 169 [166, 172] |
+| **Stage B** (all) | NC | 0.955 [0.894, 1.018] | 6813 [6638, 6983] | 283 [264, 302] |
+|                   | FH | 0.675 [0.628, 0.725] | 7426 [7243, 7612] | 264 [245, 285] |
+|                   | EH | 0.837 [0.788, 0.885] | 6997 [6850, 7148] | 268 [253, 284] |
 
-**Paired EH-vs-NC % change (negative = EH better; same seed = identical disturbance):**
+**Paired % change vs No-Control (negative = controller better; CV with 95% CI):**
 
-| Scenario | Δ Headway CV % [95% CI] | Δ Wait % [95% CI] |
-|---|---|---|
-| Baseline  | **−46%** [−51, −42] | +0% [+0, +0] |
-| Surge     | **−19%** [−21, −18] | +1% [+1, +1] |
-| Traffic   | **−51%** [−55, −46] | −2% [−3, −1] |
-| Weather   | **−35%** [−38, −32] | **−15%** [−20, −10] |
-| Breakdown | **−23%** [−26, −21] | −1% [−1, −0] |
-| All       | **−29%** [−34, −23] | −7% [−14, +0] |
+| Scenario | FH Δ CV % [95% CI] | FH Δ wait % | EH Δ CV % [95% CI] | EH Δ wait % |
+|---|---|---|---|---|
+| Stage A (D+T)       | **−54%** [−58, −51] | −3% | **−49%** [−53, −45] | −5% |
+| Abl. S (D+T+S)      | **−37%** [−42, −33] | −1% | **−34%** [−37, −31] | −4% |
+| Abl. W (D+T+W)      | **−36%** [−41, −31] | −16% | **−18%** [−26, −9] | −8% |
+| Abl. B (D+T+B)      | **−43%** [−46, −38] | −4% | **−35%** [−39, −30] | −6% |
+| Stage B (D+T+S+W+B) | **−29%** [−34, −24] | −7% | **−12%** [−18, −7] | −5% |
 
 Figures: `results/figures/mc_headway_cv.png`, `results/figures/mc_wait.png`.
 
 **Findings.**
-1. **Bunching scales with disturbance severity.** No-Control headway CV rises from 0.037 (ideal)
-   to ~0.96 under weather and under the combined scenario — a >25× increase — confirming the
-   thesis premise that controllers must be evaluated under *non-ideal* conditions.
-2. **Even-Headway significantly reduces bunching in every scenario** (all CV CIs exclude zero;
-   −19% to −51% paired reduction), and it also *tightens* the seed-to-seed spread of CV.
-3. **EH's passenger-wait benefit grows with disturbance severity.** Negligible under mild
-   disturbance (baseline/surge/traffic/breakdown ≈ 0), but a significant **−15%** under weather;
-   consistent with `wait = (H0/2)(1+CV²)`, where the CV² term only bites once bunching is severe.
-4. **EH pays a travel-time cost** (holding): ≈ +0.5% ideal, rising to ≈ +10% under weather / All.
-   So EH trades in-vehicle time for headway regularity, and its wait benefit appears only under
-   stress — exactly the imperfect trade-off a learned MARL controller is meant to improve.
-5. Weather is the dominant single disturbance; the combined "All" scenario is statistically
-   indistinguishable from Weather-alone in NC headway CV (weather saturates the bunching).
+1. **Bunching scales with disturbance severity.** No-Control headway CV rises from 0.34 (Stage A,
+   D+T) to ~1.0 under weather and ~0.96 under the combined scenario, confirming the thesis premise
+   that controllers must be evaluated under *non-ideal* conditions.
+2. **Both holding heuristics significantly reduce bunching in every cell** (all CV CIs exclude
+   zero), and both *tighten* the seed-to-seed spread of CV — but they are not equal.
+3. **Forward-Headway is the more robust heuristic under stress.** FH beats EH on headway CV in
+   every cell, and the gap *widens with severity*: under weather FH −36% vs EH −18%, and under the
+   combined Stage B FH −29% vs EH −12%. FH also gives the larger wait reduction under weather
+   (−16% vs −8%). Mechanistically, two-way EH depends on an *estimated* backward headway (the
+   follower's arrival at the previous stop), which becomes a noisy proxy under heavy-tailed weather;
+   FH needs only the cleanly-observed forward gap, so it degrades more gracefully.
+4. **Both pay a travel-time cost** (holding); FH holds harder → larger CV reduction *and* larger
+   travel cost (Stage A: FH +5% travel vs EH +3%). This is the regularity-vs-travel trade-off.
+5. **Neither heuristic is uniformly best**, and both leave large residual bunching under weather /
+   Stage B (CV still 0.65–0.84). A learned controller that adapts holding to observed conditions —
+   rather than applying a fixed one- or two-way rule — is exactly what these gaps motivate.
 
-*These are heuristic-vs-heuristic preliminary results (NC vs EH). They establish the environment,
-the disturbance suite, and the evaluation harness; the MARL-vs-EH comparison (the Dec 5 target)
-reuses this exact harness once the agent is trained.*
+*Heuristic-vs-heuristic preliminary results (NC / FH / EH), aligned to the manuscript activation
+matrix and baselines. They establish the environment, disturbance suite, and evaluation harness;
+the MARL comparison (Dec 5 target) drops in as a fourth controller on this same harness.*
 
 ---
 
@@ -247,3 +239,64 @@ python scripts/mc.py 30                 # 30-seed paired Monte-Carlo -> results/
 python scripts/figures.py              # calibration + MC figures -> results/figures/
 python scripts/watch.py EH Weather+Breakdown   # live sumo-gui view of any scenario
 ```
+
+---
+
+## I. Stop-count reconciliation (26 modeled vs "29 observed stop IDs")
+
+The manuscript scope states *"29 observed stop IDs."* The model uses **26**. A full scan of the raw
+asset (9,197,694 rows) resolves the difference conclusively:
+
+| Filter level | Distinct dir-6 stops |
+|---|---|
+| route + direction only (incl. `bs_id=0` null) | 30 |
+| `bs_id ≠ 0` (no error filter) | 29 |
+| full clean filter | **29** |
+| real stops dropped by the error filters | **0** |
+
+So direction 6 ever touched exactly **29 real stops** over the whole Jul–Dec 2021 window, and cleaning
+removed none of them. The corridor model excludes **3** of the 29 as non-revenue:
+
+- **5304** — origin-terminal layover (median dwell 781 s);
+- **5873** — destination-terminal layover (median dwell 583 s, `run_s = 0`);
+- **6361** — post-terminal sequence anomaly (`mean_seq` 21.44 > the terminal's 21.01; 0.19 mean boardings).
+
+The remaining **26 revenue stops** are the corridor. This is a documented modeling exclusion, not a
+data gap — no manuscript change is required beyond noting the two terminals and the anomaly are
+represented in the data but not simulated as served segments.
+
+## J. Manuscript activation matrix & the three baselines (SO3 alignment)
+
+The evaluation was re-aligned to the manuscript's fixed activation matrix (§2.5). **Demand (D) and
+traffic-speed variation (T) are present in every cell**; the ablations add one disturbance class each:
+
+| Cell | Active disturbances | Role |
+|---|---|---|
+| **Stage A** | D + T | ideal condition |
+| Ablation S | D + T + S | demand-surge only |
+| Ablation W | D + T + W | weather only |
+| Ablation B | D + T + B | breakdown only |
+| **Stage B** | D + T + S + W + B | combined non-ideal |
+
+(The earlier six-scenario set in §G used D-only as its baseline and applied S/W/B without T; those cells
+are superseded by the matrix above. "Traffic" ≡ Stage A and "All" ≡ Stage B carried over directly.)
+
+**Three baselines (NC / FH / EH) — and a definition correction.** The manuscript compares against
+No-Control, **Forward-Headway**, and **Even-Headway**. The holding rule used in the earlier results was
+in fact *forward-headway* control (it holds on the gap to the leader only). The two are now implemented
+as distinct controllers:
+
+```
+Forward-Headway (FH):  hold = min(H0 − h_fwd, 0.4·H0)      if h_fwd < H0     # one-way: gap to leader
+Even-Headway   (EH):   hold = clip( 0.5·(h_bwd − h_fwd), 0, 0.4·H0 )         # two-way: centre between neighbours
+```
+
+where `h_fwd` is the observed gap to the leader at the current stop and `h_bwd` is the gap to the
+follower (estimated from the follower's arrival at the previous stop; single-lane corridor preserves bus
+order, so leader = bus *i−1* and follower = *i+1*). So earlier "EH" figures were really **FH**; the MC
+below reports all three of NC/FH/EH.
+
+> **Deferred (labeled, not a blocker):** the weather generator is the *synthetic* heavy-tailed lognormal
+> regime the manuscript permits for out-of-support stress — it must be labeled synthetic. The manuscript's
+> *primary* weather exposure is an empirical NOAA rain join (Camp Mabry); that join is future work and
+> does not gate the preliminary comparison.
