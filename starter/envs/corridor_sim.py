@@ -14,7 +14,7 @@ takes effect if the caller enabled skipping (SKIP_ENABLED) — the fail-fast gat
 
 Run from the repo root (needs the calibrated sumo/ net + sim_inputs + corridor.txt).
 """
-import os, sys, math, numpy as np, pandas as pd
+import os, sys, math, numpy as np, pandas as pd, xml.etree.ElementTree as ET
 if "SUMO_HOME" in os.environ:
     sys.path.insert(0, os.path.join(os.environ["SUMO_HOME"], "tools"))
 import traci, sumolib
@@ -39,6 +39,10 @@ for i in range(1, len(STOPS)):
     CUM.append(CUM[-1] + RUN[i-1] + BASE[STOPS[i-1]])
 SURGE_I = len(STOPS) // 3
 INTERIOR = list(range(1, len(STOPS) - 1))            # stops eligible to be control points
+# Control stops derived from the four §3.2.2 criteria on the demand / through-volume profile:
+# origin terminal (idx 0); onset of each above-mean-demand segment (idx 1,5,9,17,20); drop high
+# through-volume (idx 9 removed); upstream-only for adjacent hubs (none). -> 5 stops.
+CONTROL_STOPS = [0, 1, 5, 17, 20]                    # bs_ids 5280, 5857, 5859, 5867, 4046
 
 os.makedirs("sumo", exist_ok=True)
 open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" '
@@ -79,11 +83,12 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     TF = rng.uniform(0.8, 1.2, size=(NBUS, ns))                          # traffic
     bk_idx = int(rng.integers(2, NBUS - 1)); bks = int(rng.integers(1, ns - 1)) if B else -1
     port = sumolib.miscutils.getFreeSocketPort(); started = False
+    tri = f"sumo/tri_{port}.xml"                                          # per-call, parallel-safe
     try:
         traci.start([checkBinary("sumo"), "-n", "sumo/corridor.net.xml",
                      "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons_x.add.xml",
-                     "--no-warnings", "true", "--no-step-log", "true", "--seed", str(seed),
-                     "--step-length", "1", "-e", "36000"], port=port); started = True
+                     "--tripinfo-output", tri, "--no-warnings", "true", "--no-step-log", "true",
+                     "--seed", str(seed), "--step-length", "1", "-e", "36000"], port=port); started = True
         traci.route.add("corr", EDGES)
         departs = {f"b{i}": i * H0 for i in range(NBUS)}
         added, toinit, idx, prev = set(), set(), {}, {}
@@ -142,14 +147,27 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
             except Exception: pass
     cvs = [np.std(np.diff(sorted(arr[s]))) / np.mean(np.diff(sorted(arr[s]))) for s in STOPS[1:] if len(arr[s]) >= 3]
     tt  = [ca[v] - entry[v] for v in ca if v in entry]
+    # wait_model: expected passenger wait under random arrivals given the *realized* bus headways,
+    #   w = (E[H]/2)(1+CV^2), boardings-weighted — robust to demand-injection timing (primary).
     num, den = 0.0, 0.0
     for s in STOPS[1:]:
         h = np.diff(sorted(arr[s]))
         if len(h) >= 2 and DEM[s] > 0:
             Hb = h.mean(); cv = h.std() / Hb; num += DEM[s] * 0.5 * Hb * (1 + cv * cv); den += DEM[s]
+    # wait_direct: SUMO's per-passenger recorded wait (cross-check; matches wait_model under mild
+    #   conditions, inflates under heavy weather where far-stop arrivals lag the injection window).
+    waits = []
+    try:
+        for pi in ET.parse(tri).getroot().findall("personinfo"):
+            for r in pi.findall("ride"):
+                if float(r.get("arrival", "-1")) >= 0: waits.append(float(r.get("waitingTime", 0)))
+    except Exception: pass
+    try: os.remove(tri)
+    except OSError: pass
     return dict(headway_cv=np.mean(cvs) if cvs else float("nan"),
                 travel_s=np.mean(tt) if tt else float("nan"),
-                wait_s=num / den if den else float("nan"))
+                wait_s=num / den if den else float("nan"),
+                wait_direct=float(np.mean(waits)) if waits else float("nan"))
 
 
 if __name__ == "__main__":
