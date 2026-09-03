@@ -34,12 +34,10 @@ dwell = d["dwell_s"].values
 
 def build_and_run(speeds):
     n = len(CORRIDOR)
-    # place nodes at the REAL projected stop coordinates so the corridor traces the actual route shape
-    # in 2-D (not a flat 1-D line); edge lengths equal the geometric distances, so calibration is unchanged.
-    pts = list(xy)
-    dx, dy = pts[-1][0] - pts[-2][0], pts[-1][1] - pts[-2][1]; L = math.hypot(dx, dy) or 1.0
-    pts = pts + [(pts[-1][0] + dx / L * 500, pts[-1][1] + dy / L * 500)]      # 500 m tail past the last stop
-    open("sumo/corridor.nod.xml", "w").write("<nodes>\n" + "".join(f'  <node id="n{i}" x="{x:.1f}" y="{y:.1f}"/>\n' for i, (x, y) in enumerate(pts)) + "</nodes>\n")
+    xs = [0.0]
+    for L in dist: xs.append(xs[-1] + L)
+    xs.append(xs[-1] + 500)
+    open("sumo/corridor.nod.xml", "w").write("<nodes>\n" + "".join(f'  <node id="n{i}" x="{x:.1f}" y="0"/>\n' for i, x in enumerate(xs)) + "</nodes>\n")
     open("sumo/corridor.edg.xml", "w").write("<edges>\n" + "".join(f'  <edge id="e{i}" from="n{i}" to="n{i+1}" numLanes="1" speed="{speeds[i]:.2f}"/>\n' for i in range(n)) + "</edges>\n")
     subprocess.run([NC, "--node-files=sumo/corridor.nod.xml", "--edge-files=sumo/corridor.edg.xml", "--output-file=sumo/corridor.net.xml"], check=True, capture_output=True)
     open("sumo/stops.add.xml", "w").write("<additional>\n" + "".join(f'  <busStop id="{CORRIDOR[i]}" lane="e{i}_0" startPos="5" endPos="25"/>\n' for i in range(n)) + "</additional>\n")

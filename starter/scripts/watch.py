@@ -40,20 +40,8 @@ def weather_factor(rng):
     if ETA <= 0: return 1.0
     s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
 
-os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger + view files so this runs standalone
-open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" guiShape="bus" length="12" width="2.5" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
-open("sumo/view.xml", "w").write(                                    # dark scheme + enlarged buses/stops/riders
-    '<viewsettings>\n'
-    '  <scheme name="thesis">\n'
-    '    <background backgroundColor="33,37,45" showGrid="0"/>\n'
-    '    <edges laneShowBorders="1" widthExaggeration="6.0"/>\n'
-    '    <vehicles vehicleQuality="2" vehicle_minSize="8.0" vehicle_exaggeration="9.0" '
-    'vehicleName_show="1" vehicleName_size="70.0" vehicleName_color="235,235,235"/>\n'
-    '    <persons personQuality="2" person_minSize="5.0" person_exaggeration="7.0"/>\n'
-    '    <additionals add_minSize="6.0" add_exaggeration="3.0" addName_show="0"/>\n'
-    '  </scheme>\n'
-    '  <delay value="80"/>\n'
-    '</viewsettings>\n')
+os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger files so this runs standalone
+open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
 _p = ["<additional>"]
 for i in range(len(STOPS) - 1):
     K = int(round(NBUS * DEM[STOPS[i]]))
@@ -66,14 +54,10 @@ rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
 traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
              "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml",
-             "--gui-settings-file", "sumo/view.xml",
              "--start", "--delay", "80", "--no-warnings", "true", "-e", "36000"],
             port=sumolib.miscutils.getFreeSocketPort())
 traci.route.add("corr", EDGES)
-try:                                                                 # frame the full 2-D corridor extent
-    x0, x1 = float(Xs.min()) - 900, float(Xs.max()) + 900
-    y0, y1 = float(Ys.min()) - 900, float(Ys.max()) + 900
-    traci.gui.setBoundary("View #0", x0, y0, x1, y1)
+try: traci.gui.setBoundary("View #0", -50.0, -160.0, sum(DIST) + 560.0, 160.0)   # frame the corridor so it's visible
 except Exception: pass
 print(f"Watching: controller={CTRL}, scenario={SCEN}  (close the window to stop)")
 departs = {f"b{i}": i*H0 for i in range(NBUS)}

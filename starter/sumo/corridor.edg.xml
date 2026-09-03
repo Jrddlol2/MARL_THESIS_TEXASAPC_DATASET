@@ -4,7 +4,7 @@
   <edge id="e2" from="n2" to="n3" numLanes="1" speed="8.22"/>
   <edge id="e3" from="n3" to="n4" numLanes="1" speed="7.27"/>
   <edge id="e4" from="n4" to="n5" numLanes="1" speed="10.97"/>
-  <edge id="e5" from="n5" to="n6" numLanes="1" speed="8.13"/>
+  <edge id="e5" from="n5" to="n6" numLanes="1" speed="8.17"/>
   <edge id="e6" from="n6" to="n7" numLanes="1" speed="7.80"/>
   <edge id="e7" from="n7" to="n8" numLanes="1" speed="5.56"/>
   <edge id="e8" from="n8" to="n9" numLanes="1" speed="5.27"/>
