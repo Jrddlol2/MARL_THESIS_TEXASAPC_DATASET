@@ -66,6 +66,9 @@ def main():
         w = csv.writer(fh)
         w.writerow(["scenario", "controller", "seed", "headway_cv", "travel_s", "wait_s", "wait_direct"])
         if JOBS > 1:
+            # persistent workers (no max_tasks_per_child: with a balanced pool all workers hit the
+            # recycle limit simultaneously and deadlock on Windows). Memory stays flat because each
+            # run opens+closes its own SUMO subprocess, so nothing accumulates in the worker.
             with ProcessPoolExecutor(max_workers=JOBS) as ex:
                 futs = [ex.submit(_run_one, t) for t in tasks]
                 for k, fut in enumerate(as_completed(futs), 1):

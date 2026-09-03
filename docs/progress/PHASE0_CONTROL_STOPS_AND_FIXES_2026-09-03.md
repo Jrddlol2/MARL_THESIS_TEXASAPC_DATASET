@@ -71,8 +71,37 @@ applied to segment **travel times** as a closeness statistic with RMSPE binding 
 (`calibrate_corridor.py`) — rather than to counts. This is a wording reconciliation; the calibration
 itself (all 25 segments GEH < 5, RMSPE 0.75%) stands.
 
-## D. Baseline results at the designated control stops — **PENDING (N=30 re-run in progress)**
+## D. Baseline results at the designated control stops (N=30 paired, 95% CI)
 
-> The N=30 paired Monte-Carlo (NC/FH/EH × Stage A / ablations / Stage B) restricted to the 5 control
-> stops is running; this section and the figures will be filled from `results/mc_summary.md`. These
-> become the fixed comparison target the MARL is evaluated against.
+All 450 runs valid (5 scenarios × NC/FH/EH × 30 seeds), 29 min at 6 parallel workers.
+
+**Headway CV, paired % change vs No-Control (negative = better; * = 95% CI excludes 0):**
+
+| Scenario | NC CV | FH Δ CV | EH Δ CV |
+|---|---|---|---|
+| Stage A (D+T) | 0.331 | **−28%** [−35, −21] * | **−18%** [−25, −11] * |
+| Ablation S (D+T+S) | 0.364 | **−17%** [−22, −11] * | **−13%** [−19, −7] * |
+| Ablation B (D+T+B) | 0.442 | **−17%** [−23, −12] * | **−15%** [−19, −10] * |
+| Ablation W (D+T+W) | 0.977 | −6% [−12, +1] | −9% [−17, +1] |
+| Stage B (D+T+S+W+B) | 0.941 | −1% [−6, +3] | −1% [−7, +5] |
+
+Figures: `results/figures/mc_headway_cv.png`, `mc_wait.png`.
+
+**The finding (this is the MARL motivation).** At the five designated control stops — the minimal
+intervention the criteria prescribe — the fixed heuristics **significantly reduce bunching under mild
+non-ideal conditions** (Stage A, surge, breakdown: 13–28%, all CIs exclude zero) but their benefit
+**vanishes under severe disturbance**: under weather and the combined Stage B the paired reductions are
+statistically indistinguishable from zero (CIs span 0). Sparse, fixed, headway-only control at a few
+points cannot counter weather-driven heavy-tailed delay. This is exactly the gap a learned controller
+is meant to close: acting at the *same* five points but *adaptively*, using the weather and breakdown
+flags in its observation (Table 3.6) — which the fixed rules ignore. It is a cleaner motivation than
+the earlier all-24-stop result, where FH already succeeded and left little headroom.
+
+**Wait metric.** `wait_s` (headway model) is the sensible primary (160–296 s); `wait_dir` (SUMO
+per-passenger) agrees under mild conditions but inflates to 475–828 s under weather/Stage B — the
+documented far-stop injection-window artifact, reported transparently rather than hidden.
+
+**Status vs prior baseline.** This supersedes the earlier all-interior NC/FH/EH table
+(`FULL_CORRIDOR_UPGRADE_2026-09-02.md` §G.1); those held at all 24 interior stops, which is not the
+manuscript's designated-control-stop rule. This 5-stop table is the fixed comparison target the MARL
+is evaluated against.

@@ -1,6 +1,6 @@
 sumo/vtype.add.xml
 sumo/persons.add.xml
-sumo/persons_x.add.xml
-sumo/tri_x.xml
+sumo/persons_*.xml
+sumo/tri_*.xml
 sumo/tripinfo_*.xml
 sumo/mc_*.xml
