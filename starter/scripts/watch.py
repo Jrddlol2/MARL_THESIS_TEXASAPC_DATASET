@@ -41,7 +41,7 @@ def weather_factor(rng):
     s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
 
 os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger files so this runs standalone
-open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="30" width="20" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
 _p = ["<additional>"]
 for i in range(len(STOPS) - 1):
     K = int(round(NBUS * DEM[STOPS[i]]))
