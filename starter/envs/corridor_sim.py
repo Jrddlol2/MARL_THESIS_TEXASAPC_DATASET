@@ -45,8 +45,9 @@ INTERIOR = list(range(1, len(STOPS) - 1))            # stops eligible to be cont
 CONTROL_STOPS = [0, 1, 5, 17, 20]                    # bs_ids 5280, 5857, 5859, 5867, 4046
 
 os.makedirs("sumo", exist_ok=True)
-open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" '
-    'accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+if not os.path.exists("sumo/vtype.add.xml"):                         # guard: parallel workers don't race
+    open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" '
+        'accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
 
 # ---- baseline decide functions (a controller is just decide: obs -> (hold_s, skip)) --------------
 def fh_hold(hf): return 0.0 if hf >= H0 else float(min(H0 - hf, CAP * H0))
@@ -57,7 +58,7 @@ def eh_decide(o): return eh_hold(o["hf"], o["hb"]), 0
 BASELINES = {"NC": nc_decide, "FH": fh_decide, "EH": eh_decide}
 
 
-def _make_persons(S):
+def _make_persons(S, path):
     p = ["<additional>"]
     for i in range(len(STOPS) - 1):
         K = int(round(NBUS * DEM[STOPS[i]]))
@@ -69,13 +70,13 @@ def _make_persons(S):
         sb = int(CUM[SURGE_I] + H0)
         p.append(f'<personFlow id="surge" begin="{sb}" end="{sb+900}" number="120">'
                  f'<stop busStop="{STOPS[SURGE_I]}" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
-    open("sumo/persons_x.add.xml", "w").write("\n".join(p + ["</additional>"]))
+    open(path, "w").write("\n".join(p + ["</additional>"]))
 
 
 def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None):
     """Drive the corridor with controller `decide`. Returns metrics dict (headway_cv, travel_s, wait_s)."""
     control_stops = set(INTERIOR if control_stops is None else control_stops)
-    rng = np.random.default_rng(1000 + seed); _make_persons(S)
+    rng = np.random.default_rng(1000 + seed)
     ns = len(STOPS)
     DWN = rng.lognormal(0.0, CVD, size=(NBUS, ns))                       # dwell noise (pre-drawn field)
     s2 = math.log(1 + ETA * ETA)
@@ -83,10 +84,11 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     TF = rng.uniform(0.8, 1.2, size=(NBUS, ns))                          # traffic
     bk_idx = int(rng.integers(2, NBUS - 1)); bks = int(rng.integers(1, ns - 1)) if B else -1
     port = sumolib.miscutils.getFreeSocketPort(); started = False
-    tri = f"sumo/tri_{port}.xml"                                          # per-call, parallel-safe
+    tri = f"sumo/tri_{port}.xml"; persons = f"sumo/persons_{port}.xml"    # per-call, parallel-safe
+    _make_persons(S, persons)
     try:
         traci.start([checkBinary("sumo"), "-n", "sumo/corridor.net.xml",
-                     "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons_x.add.xml",
+                     "-a", f"sumo/vtype.add.xml,sumo/stops.add.xml,{persons}",
                      "--tripinfo-output", tri, "--no-warnings", "true", "--no-step-log", "true",
                      "--seed", str(seed), "--step-length", "1", "-e", "36000"], port=port); started = True
         traci.route.add("corr", EDGES)
@@ -162,8 +164,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
             for r in pi.findall("ride"):
                 if float(r.get("arrival", "-1")) >= 0: waits.append(float(r.get("waitingTime", 0)))
     except Exception: pass
-    try: os.remove(tri)
-    except OSError: pass
+    for f in (tri, persons):
+        try: os.remove(f)
+        except OSError: pass
     return dict(headway_cv=np.mean(cvs) if cvs else float("nan"),
                 travel_s=np.mean(tt) if tt else float("nan"),
                 wait_s=num / den if den else float("nan"),
