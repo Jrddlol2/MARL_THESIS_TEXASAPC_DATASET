@@ -4,3 +4,4 @@ sumo/persons_*.xml
 sumo/tri_*.xml
 sumo/tripinfo_*.xml
 sumo/mc_*.xml
+experiments/

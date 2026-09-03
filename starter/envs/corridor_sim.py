@@ -96,6 +96,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         added, toinit, idx, prev = set(), set(), {}, {}
         arr = {s: [] for s in STOPS}; tarr, target, resumed, entry, ca = {}, {}, set(), {}, {}
         barr = {}
+        bk_triggered = False           # True once a breakdown is in effect (obs breakdown flag b)
         t = 0.0
         while t < H0 * NBUS + 30000 and (traci.simulation.getMinExpectedNumber() > 0 or len(added) < NBUS):
             for v, dep in departs.items():
@@ -124,10 +125,13 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                         hb = (barr[(bi, i-1)] - barr[(bi+1, i-1)]) if ((bi+1, i-1) in barr and (bi, i-1) in barr) else H0
                         try: load = traci.vehicle.getPersonNumber(v)
                         except traci.TraCIException: load = 0
-                        obs = dict(hf=hf, hb=hb, load=load, queue=nwait, idx=i, n=ns, H0=H0, cap=CAP_PAX)
+                        w = float(WF[bi, i]) if W else 1.0                    # weather intensity (upcoming segment)
+                        obs = dict(hf=hf, hb=hb, load=load, queue=nwait, idx=i, n=ns, H0=H0, cap=CAP_PAX,
+                                   bus=bi, w=w, b=1.0 if bk_triggered else 0.0)
                         hold, _skip = decide(obs)
                         hold = float(max(0.0, min(hold, CAP * H0)))
                     tb = TBREAK if (B and bi == bk_idx and i == bks) else 0.0
+                    if tb > 0: bk_triggered = True                            # incident now on the corridor
                     target[v] = max(FIXED_DWELL, dserv) + hold + tb
                     try: traci.vehicle.setMaxSpeed(v, 30.0)
                     except traci.TraCIException: pass
