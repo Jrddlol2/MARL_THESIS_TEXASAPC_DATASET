@@ -5,3 +5,4 @@ sumo/tri_*.xml
 sumo/tripinfo_*.xml
 sumo/mc_*.xml
 experiments/
+sumo/view.xml

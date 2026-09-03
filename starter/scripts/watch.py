@@ -41,7 +41,16 @@ def weather_factor(rng):
     s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
 
 os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger files so this runs standalone
-open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="30" width="20" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="40" width="40" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+open("sumo/view.xml", "w").write(                                    # RENDERING ONLY (cannot affect movement)
+    '<viewsettings>\n'
+    '  <scheme name="thesis">\n'
+    '    <background backgroundColor="35,39,47"/>\n'
+    '    <vehicles vehicleQuality="2" vehicle_minSize="14.00" vehicle_exaggeration="8.00" '
+    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="60.00" vehicleName_color="230,230,230"/>\n'
+    '    <persons personQuality="2" person_minSize="6.00" person_exaggeration="6.00" person_constantSize="1"/>\n'
+    '  </scheme>\n'
+    '</viewsettings>\n')
 _p = ["<additional>"]
 for i in range(len(STOPS) - 1):
     K = int(round(NBUS * DEM[STOPS[i]]))
@@ -54,6 +63,7 @@ rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
 traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
              "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml",
+             "--gui-settings-file", "sumo/view.xml",
              "--start", "--delay", "80", "--no-warnings", "true", "-e", "36000"],
             port=sumolib.miscutils.getFreeSocketPort())
 traci.route.add("corr", EDGES)
