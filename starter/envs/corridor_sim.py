@@ -73,13 +73,16 @@ def _make_persons(S, path):
     open(path, "w").write("\n".join(p + ["</additional>"]))
 
 
-def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None):
-    """Drive the corridor with controller `decide`. Returns metrics dict (headway_cv, travel_s, wait_s)."""
+def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None,
+             eta=None, trace=False):
+    """Drive the corridor with controller `decide`. Returns metrics dict (headway_cv, travel_s, wait_s).
+    eta overrides the weather CV (for severity sweeps); trace=True also returns per-bus stop arrivals."""
     control_stops = set(INTERIOR if control_stops is None else control_stops)
     rng = np.random.default_rng(1000 + seed)
     ns = len(STOPS)
+    _eta = ETA if eta is None else eta                                   # weather intensity (sweepable)
     DWN = rng.lognormal(0.0, CVD, size=(NBUS, ns))                       # dwell noise (pre-drawn field)
-    s2 = math.log(1 + ETA * ETA)
+    s2 = math.log(1 + _eta * _eta)
     WF = np.clip(rng.lognormal(-0.5 * s2, math.sqrt(s2), size=(NBUS, ns)), 0.5, 3.0)   # weather
     TF = rng.uniform(0.8, 1.2, size=(NBUS, ns))                          # traffic
     bk_idx = int(rng.integers(2, NBUS - 1)); bks = int(rng.integers(1, ns - 1)) if B else -1
@@ -171,10 +174,15 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     for f in (tri, persons):
         try: os.remove(f)
         except OSError: pass
-    return dict(headway_cv=np.mean(cvs) if cvs else float("nan"),
-                travel_s=np.mean(tt) if tt else float("nan"),
-                wait_s=num / den if den else float("nan"),
-                wait_direct=float(np.mean(waits)) if waits else float("nan"))
+    out = dict(headway_cv=np.mean(cvs) if cvs else float("nan"),
+               travel_s=np.mean(tt) if tt else float("nan"),
+               wait_s=num / den if den else float("nan"),
+               wait_direct=float(np.mean(waits)) if waits else float("nan"))
+    if trace:
+        out["traj"] = {b: sorted([(barr[(b, i)], i) for i in range(ns) if (b, i) in barr])
+                       for b in range(NBUS)}     # per-bus [(arrival_time, stop_index), ...]
+        out["cum"] = [sum(DIST[:i]) for i in range(ns)]                   # cumulative distance per stop (m)
+    return out
 
 
 if __name__ == "__main__":
