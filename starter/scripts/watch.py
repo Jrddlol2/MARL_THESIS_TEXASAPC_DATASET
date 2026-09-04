@@ -34,6 +34,7 @@ SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i])) for i in range(len(STOPS))}
 DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
 H0, NBUS, CVD, CAP, BIG, TBREAK = 300.0, 12, 0.6, 0.4, 600.0, 400.0
+CONTROL_STOPS = {0, 1, 5, 17, 20}    # the designated control stops (5280,5857,5859,5867,4046) — where actions apply
 
 def eh_hold(h): return 0.0 if h >= H0 else float(min(H0 - h, CAP * H0))
 def weather_factor(rng):
@@ -41,23 +42,7 @@ def weather_factor(rng):
     s2 = math.log(1 + ETA*ETA); return float(min(3.0, max(0.5, rng.lognormal(-0.5*s2, math.sqrt(s2)))))
 
 os.makedirs("sumo", exist_ok=True)   # generate the vType + passenger files so this runs standalone
-open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" width="6" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
-open("sumo/view.xml", "w").write(                                    # RENDERING ONLY (cannot affect movement)
-    '<viewsettings>\n'
-    '  <scheme name="thesis">\n'
-    '    <background backgroundColor="255,255,255"/>\n'
-    '    <vehicles vehicleQuality="1" vehicle_minSize="5.00" vehicle_exaggeration="1.50" '
-    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="45.00" vehicleName_color="40,40,40"/>\n'
-    '    <persons personQuality="1" person_minSize="4.00" person_exaggeration="1.00" person_constantSize="1"/>\n'
-    '    <pois poiQuality="1" poi_minSize="22.00" poi_exaggeration="1.00" poi_constantSize="1" '
-    'poiName_show="1" poiName_size="42.00" poiName_color="20,20,20"/>\n'
-    '  </scheme>\n'
-    '</viewsettings>\n')
-# stop markers as big constant-size POIs on the road (viewer overlay only; net/dynamics untouched)
-_cum = [sum(DIST[:i]) for i in range(len(STOPS))]
-open("sumo/pois.add.xml", "w").write("<additional>\n" + "".join(
-    f'  <poi id="{STOPS[i]}" x="{_cum[i] + 15:.1f}" y="0" color="235,120,0" layer="6"/>\n'
-    for i in range(len(STOPS))) + "</additional>\n")
+open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
 _p = ["<additional>"]
 for i in range(len(STOPS) - 1):
     K = int(round(NBUS * DEM[STOPS[i]]))
@@ -65,12 +50,17 @@ for i in range(len(STOPS) - 1):
         _p.append(f'<personFlow id="f{i}" begin="0" end="{int(H0*(NBUS-1))}" number="{K}">'
                   f'<stop busStop="{STOPS[i]}" duration="1"/><ride busStop="{STOPS[-1]}" lines="801"/></personFlow>')
 open("sumo/persons.add.xml", "w").write("\n".join(_p + ["</additional>"]))
+# colour the busStops: control stops red, the rest grey (so you can see where actions are applied)
+_st = ["<additional>"]
+for i in range(len(STOPS)):
+    _st.append(f'<busStop id="{STOPS[i]}" lane="e{i}_0" startPos="5" endPos="25" '
+               f'color="{"230,60,60" if i in CONTROL_STOPS else "150,150,150"}"/>')
+open("sumo/stops_view.add.xml", "w").write("\n".join(_st + ["</additional>"]))
 
 rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
 traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
-             "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml,sumo/pois.add.xml",
-             "--gui-settings-file", "sumo/view.xml",
+             "-a", "sumo/vtype.add.xml,sumo/stops_view.add.xml,sumo/persons.add.xml",
              "--start", "--delay", "80", "--no-warnings", "true", "-e", "36000"],
             port=sumolib.miscutils.getFreeSocketPort())
 traci.route.add("corr", EDGES)
@@ -100,14 +90,17 @@ while t < H0*NBUS + 30000 and (traci.simulation.getMinExpectedNumber() > 0 or le
         st, i = traci.vehicle.isStopped(v), idx[v]
         if st and not prev[v] and i < len(STOPS):
             s = STOPS[i]; arr[s].append(t); tarr[v] = t
-            hold = eh_hold(t - arr[s][-2]) if (CTRL == "EH" and 0 < i < len(STOPS)-1 and len(arr[s]) >= 2) else 0.0
+            hold = eh_hold(t - arr[s][-2]) if (CTRL == "EH" and i in CONTROL_STOPS and len(arr[s]) >= 2) else 0.0
             tb = TBREAK if (BREAKDOWN and v == bk and i == bks) else 0.0
             if tb > 0: traci.vehicle.setColor(v, (230, 40, 40))            # breakdown = red
+            elif hold > 0: traci.vehicle.setColor(v, (255, 170, 0))        # applying a hold action = amber
             target[v] = dwell[v][i] + hold + tb
             try: traci.vehicle.setMaxSpeed(v, 30.0)
             except traci.TraCIException: pass
         if st and v not in resumed and (t - tarr.get(v, t)) >= target.get(v, 0):
-            try: traci.vehicle.resume(v); resumed.add(v)
+            try:
+                traci.vehicle.resume(v); resumed.add(v)
+                traci.vehicle.setColor(v, (0, 120, 255) if CTRL == "EH" else (160, 160, 160))   # back to base after acting
             except traci.TraCIException: pass
             if i < len(DIST) and ETA > 0:
                 try: traci.vehicle.setMaxSpeed(v, max(2.0, SEGV[i] / weather_factor(rng)))

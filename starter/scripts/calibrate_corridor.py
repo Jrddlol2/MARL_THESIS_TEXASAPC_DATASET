@@ -38,7 +38,7 @@ def build_and_run(speeds):
     for L in dist: xs.append(xs[-1] + L)
     xs.append(xs[-1] + 500)
     open("sumo/corridor.nod.xml", "w").write("<nodes>\n" + "".join(f'  <node id="n{i}" x="{x:.1f}" y="0"/>\n' for i, x in enumerate(xs)) + "</nodes>\n")
-    open("sumo/corridor.edg.xml", "w").write("<edges>\n" + "".join(f'  <edge id="e{i}" from="n{i}" to="n{i+1}" numLanes="1" speed="{speeds[i]:.2f}" width="80"/>\n' for i in range(n)) + "</edges>\n")
+    open("sumo/corridor.edg.xml", "w").write("<edges>\n" + "".join(f'  <edge id="e{i}" from="n{i}" to="n{i+1}" numLanes="1" speed="{speeds[i]:.2f}"/>\n' for i in range(n)) + "</edges>\n")
     subprocess.run([NC, "--node-files=sumo/corridor.nod.xml", "--edge-files=sumo/corridor.edg.xml", "--output-file=sumo/corridor.net.xml"], check=True, capture_output=True)
     open("sumo/stops.add.xml", "w").write("<additional>\n" + "".join(f'  <busStop id="{CORRIDOR[i]}" lane="e{i}_0" startPos="5" endPos="25"/>\n' for i in range(n)) + "</additional>\n")
     stopxml = "".join(f'    <stop busStop="{CORRIDOR[i]}" duration="{dwell[i]:.0f}"/>\n' for i in range(n))

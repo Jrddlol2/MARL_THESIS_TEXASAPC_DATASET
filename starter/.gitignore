@@ -7,3 +7,4 @@ sumo/mc_*.xml
 experiments/
 sumo/view.xml
 sumo/pois.add.xml
+sumo/stops_view.add.xml
