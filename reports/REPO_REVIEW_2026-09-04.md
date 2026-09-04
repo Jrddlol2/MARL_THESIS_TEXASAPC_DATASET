@@ -12,6 +12,13 @@ things a panel can question.
 > thin, and where it will get challenged. Each hole has: what it is → why it matters →
 > where to look (file) → the likely defense question → a suggested action. Read Section 4
 > first tomorrow; that is where the real work is.
+>
+> **Framing (confirmed 2026-09-04):** The MARL agent is **intentionally not built yet** — the
+> team is in the **baseline-implementation phase** (No-Control, Forward-Headway, Even-Headway,
+> plus the shared simulation core), with MARL as the next phase. So "MARL has no results" is the
+> expected project stage, **not a defect**. This review has been re-framed accordingly: the
+> scrutiny now falls on the **correctness and completeness of the baselines themselves**, since
+> those are the current deliverable. See §4A.
 
 ---
 
@@ -21,16 +28,16 @@ things a panel can question.
   today and got numbers **byte-identical** to the committed audit from 2026-08-23. The
   route-selection evidence, calibration, and Monte-Carlo result tables are internally
   consistent — no fabrication between the raw CSVs and the summary tables.
-- **The MARL half does not exist yet.** The thesis is titled *"An Evaluation of
-  Multi-Agent Reinforcement Learning…"* but **no agent has ever been trained**. There is
-  no checkpoint, and no MARL row in any results file. Every committed number is a
-  **classical baseline** (No-Control / Forward-Headway / Even-Headway). This is a
-  proposal, and the code is honest about it — but it is the single biggest thing a panel
-  will press on.
+- **The MARL half is intentionally not built yet — that is the current phase, not a hole.**
+  The team confirmed (2026-09-04) it is implementing the baselines first (NC / FH / EH) with
+  MARL next. Every committed number is a **classical baseline**. The takeaway is therefore not
+  "MARL is missing" but "make sure the baselines you are shipping now are correct" — that is
+  where this review points.
 - **Under the exact conditions the thesis is about — weather and compound stress — the
   classical controllers barely help** (improvement ≈ −1%, confidence interval crosses
-  zero). The whole bet of the thesis is that MARL will do better here, and that bet is
-  currently **untested**.
+  zero). This is now a *result about the competitors themselves*, produced in the current
+  phase — so it needs to be a true finding, not an artifact of the disturbance model or the
+  wait estimator.
 - **The simulated "weather" is a made-up parameter, not fitted to the real NOAA data**
   you already have. The NOAA join proves the data *could* be used; it is not actually
   used to drive the weather disturbance.
@@ -136,55 +143,58 @@ real APC data ──► sim_inputs (per-stop dwell, boardings, run-time)
 
 ## 4. The holes — read this section carefully tomorrow
 
-Grouped roughly by how damaging each is. Each item is a place to *investigate and decide*,
-not necessarily a bug.
+Re-framed for the confirmed baseline phase. **§4A is the priority** — it is about the
+correctness of the baselines you are shipping *now*. §4B is forward-looking (feeds the MARL
+phase) and data-provenance. §4C is scope. §4D is the MARL status, which is expected, not a hole.
+Each item is a place to *investigate and decide*, not necessarily a bug.
 
-### H1 — The MARL agent has never been built or run *(critical)*
-- **What:** No trained checkpoint exists; no results file contains a MARL row. The entire
-  thesis contribution is currently a plan.
-- **Why it matters:** The title promises "an evaluation of MARL." Right now there is
-  nothing to evaluate. Everything committed is a classical baseline.
-- **Where:** `starter/agents/ddqn.py`, `starter/scripts/train_marl.py`,
-  `starter/scripts/eval_marl.py` (harnesses exist, never executed);
-  `CLAUDE.md` explicitly states "The MARL simulation has NOT been run yet."
-- **Likely question:** *"Show me your MARL results."* / *"How do you know MARL helps at
-  all?"*
-- **Suggested action:** Train even a rough DDQN checkpoint so there is **one** MARL number
-  to stand on before defense. A weak-but-real result beats a plan.
+---
 
-### H2 — Reward, action space, and all hyperparameters are undecided *(high)*
-- **What:** `reward.py` and `marl_env.py` present the reward terms, weights `w=(w1,w2,w3)`,
-  ΔT, and DDQN hyperparameters as candidates to sweep — nothing is fixed.
-- **Why it matters:** "What is your reward function?" currently has no committed answer.
-- **Where:** `starter/envs/reward.py` (IRR/WAIT/SKIP dictionaries),
-  `starter/envs/marl_env.py:Config`.
-- **Likely question:** *"Justify your reward design and weights."*
-- **Suggested action:** Pick and justify a default reward form + weights, run the EO2.1
-  sweep, and record the rationale. Even a small sweep table is defensible.
+### 4A — Baseline correctness (the current deliverable)
 
-### H3 — Under weather / compound stress, control barely works *(high — premise risk)*
+> These decide whether the numbers you are producing right now are trustworthy. Do these first.
+
+### H3 — Under weather / compound stress, the baselines barely beat No-Control *(HIGH — top priority)*
 - **What:** In `mc_summary.md`, the paired improvement vs No-Control collapses exactly
   where it should matter most:
   - Ablation W (D+T+W): FH −6% [CI −12, +1], EH −9% [CI −17, +1] — **CIs include 0**.
   - Stage B (all disturbances): FH −1% [−6,+3], EH −1% [−7,+5] — **essentially no effect**.
-- **Why it matters:** The thesis premise is "dynamic scheduling under non-ideal
-  conditions." The baselines demonstrate that *classical* control fails there. That is
-  fine as motivation — but MARL then has to succeed there, and that is untested (see H1).
+- **Why it matters:** This is a *result about the competitors themselves*, produced in the
+  current phase. It may be a genuine finding (classical control really does fail under
+  compound stress — good motivation for MARL) OR an artifact of the disturbance model (H4)
+  or the wait estimator (H7). You need to know which **before** you present it.
 - **Where:** `starter/results/mc_summary.md` (paired % change table).
-- **Likely question:** *"Your own results show holding doesn't help under weather — why
-  will MARL be different?"*
-- **Suggested action:** Have a crisp, honest argument ready (MARL can act earlier, use
-  richer state, and combine holding with skipping), and ideally back it with an early
-  MARL run on the W and Stage B cells.
+- **Likely question:** *"Your own results show holding doesn't help under weather — is that
+  real, or is your model just too noisy for control to bite?"*
+- **Suggested action:** Verify it is a true finding: sanity-check that EH actually holds buses
+  in the W/Stage-B runs (log hold actions), and confirm the disturbance magnitude (H4) isn't
+  swamping any control signal. Then have the honest "why MARL will do better here" argument
+  ready (act earlier, richer state, combine hold + skip).
 
-### H4 — Simulated weather is synthetic, not fitted to the real NOAA data *(high)*
+### H7 — Modeled quantities can be mistaken for measured; two wait numbers disagree 2–3× *(HIGH)*
+- **What:** Passenger **wait time, capacity, breakdowns, and speed trajectories are NOT in
+  the APC file** — they are modeled. Also, two wait estimates **diverge sharply** under
+  stress: in Stage B, the headway-model wait is ~280 s while SUMO's per-passenger
+  `wait_direct` is ~742 s.
+- **Why it matters:** These are numbers in the *current* baseline results. If a table shows
+  wait time without saying which estimator, it reads as a measured result — and the 2–3×
+  divergence will be the first thing a careful reader asks about.
+- **Where:** `starter/envs/corridor_sim.py` (`wait_s` vs `wait_direct` comments);
+  `starter/results/mc_summary.md` (`wait_dir` column).
+- **Likely question:** *"Which wait number is real, and why do they disagree by 2–3×?"*
+- **Suggested action:** Pick one primary estimator, explain the divergence (far-stop
+  passengers arrive after the injection window under heavy weather), and label every wait
+  figure as modeled, not observed.
+
+### H4 — Simulated weather is synthetic, not fitted to the real NOAA data *(HIGH — drives the baseline results)*
 - **What:** The weather disturbance is a chosen lognormal with `eta = 0.8`
   (`corridor_sim.py: ETA = 0.8`). It is **not** estimated from the observed rain
   slowdowns, even though the NOAA↔APC join is complete and available.
-- **Why it matters:** You have real weather data and real segment times; a reviewer will
-  reasonably ask why the weather effect is invented instead of measured. The repo's own
-  gate calls severe weather a "labeled synthetic stress test" — defensible, but only if
-  stated plainly and not oversold.
+- **Why it matters:** Weather is the disturbance behind the weak-improvement result in H3, so
+  a guessed magnitude directly shapes the current baseline numbers. You have real weather data
+  and real segment times; a reviewer will reasonably ask why the effect is invented instead of
+  measured. The repo's own gate calls severe weather a "labeled synthetic stress test" —
+  defensible, but only if stated plainly and not oversold.
 - **Where:** `starter/envs/corridor_sim.py` (`ETA`, `WF` lognormal draw);
   `config/texas_capmetro_801.json` (severe-weather policy); `data/README.md`.
 - **Likely question:** *"You have the rain data — why is your weather multiplier a guess?"*
@@ -192,6 +202,39 @@ not necessarily a bug.
   factor from the observed wet/dry segments (with segment/time-of-day/day-type controls,
   as the audit warns) and use it to anchor `eta`, and/or (b) keep severe weather explicitly
   synthetic and say so in one clear sentence in methods.
+
+### H9 — Stale / inconsistent documentation *(LOW — but it's the current face of the repo)*
+- **`starter/README.md` says "reduced 6-stop corridor" and "29 stops"**, but the committed
+  artifacts are a **26-stop** corridor (`corridor.txt`, 25 calibration segments). The
+  README describes an earlier state.
+- **RMSPE mismatch by context:** the README's *reduced-corridor first pass* reports RMSPE
+  **8.2%**; the committed *26-stop* `calibration.csv` computes **0.75%**. Different runs —
+  cite the right one.
+- **Self-test vs summary mismatch:** the `corridor_sim.py` `__main__` parity comment
+  expects NC~0.335 / FH~0.153 / EH~0.172 (measured at *all interior* control stops), while
+  `mc_summary.md` reports FH 0.237 / EH 0.271 (at the *5 designated* stops). Not a bug, but
+  anyone running the smoke test and comparing will be confused.
+- **Suggested action:** Update `starter/README.md` to the 26-stop reality and the correct
+  RMSPE; add one line to the self-test comment clarifying the control-stop difference. Safe to
+  do on this branch now.
+
+---
+
+### 4B — Forward-looking (MARL phase) & data provenance
+
+> Real, but not blocking the current baseline deliverable. Some feed the next phase.
+
+### H2 — Reward, action space, and all hyperparameters are undecided *(medium — forward-looking)*
+- **What:** `reward.py` and `marl_env.py` present the reward terms, weights `w=(w1,w2,w3)`,
+  ΔT, and DDQN hyperparameters as candidates to sweep — nothing is fixed.
+- **Why it matters:** "What is your reward function?" has no committed answer. This mainly
+  bites in the MARL phase, but the reward *definition* also shapes how you will score the
+  baselines, so worth settling soon.
+- **Where:** `starter/envs/reward.py` (IRR/WAIT/SKIP dictionaries),
+  `starter/envs/marl_env.py:Config`.
+- **Likely question:** *"Justify your reward design and weights."*
+- **Suggested action:** Pick and justify a default reward form + weights, run the EO2.1
+  sweep, and record the rationale. Even a small sweep table is defensible.
 
 ### H5 — Direction code "6" has no compass label *(medium — data provenance)*
 - **What:** Direction is a raw code; northbound/southbound, stop names, route shape, and
@@ -215,20 +258,6 @@ not necessarily a bug.
 - **Suggested action:** Try to confirm with CapMetro/Socrata metadata; otherwise keep it
   labeled as an assumption (it already is).
 
-### H7 — Modeled quantities can be mistaken for measured *(medium)*
-- **What:** Passenger **wait time, capacity, breakdowns, and speed trajectories are NOT in
-  the APC file** — they are modeled. Also, two wait estimates **diverge sharply** under
-  stress: in Stage B, the headway-model wait is ~280 s while SUMO's per-passenger
-  `wait_direct` is ~742 s.
-- **Why it matters:** If a table presents wait time without saying which estimator, it
-  looks like a measured result. The divergence needs an explanation.
-- **Where:** `starter/envs/corridor_sim.py` (`wait_s` vs `wait_direct` comments);
-  `starter/results/mc_summary.md` (`wait_dir` column).
-- **Likely question:** *"Which wait number is real, and why do they disagree by 2–3×?"*
-- **Suggested action:** Pick one primary estimator, explain the divergence (far-stop
-  passengers arrive after the injection window under heavy weather), and label every wait
-  figure as modeled, not observed.
-
 ### H8 — Key sim parameters set in code, not yet sourced *(medium)*
 - **What:** `H0 = 300 s`, `NBUS = 12`, and the 5 designated control stops
   (5280/5857/5859/5867/4046) are set in `corridor_sim.py`. The control-stop justification
@@ -241,21 +270,11 @@ not necessarily a bug.
 - **Suggested action:** Make sure methods §3.2.2 and the code agree on the control-stop
   set and criteria, and source or explicitly declare `H0` and fleet size.
 
-### H9 — Stale / inconsistent documentation *(low — but fix before anyone reads cold)*
-- **`starter/README.md` says "reduced 6-stop corridor" and "29 stops"**, but the committed
-  artifacts are a **26-stop** corridor (`corridor.txt`, 25 calibration segments). The
-  README describes an earlier state.
-- **RMSPE mismatch by context:** the README's *reduced-corridor first pass* reports RMSPE
-  **8.2%**; the committed *26-stop* `calibration.csv` computes **0.75%**. Different runs —
-  cite the right one.
-- **Self-test vs summary mismatch:** the `corridor_sim.py` `__main__` parity comment
-  expects NC~0.335 / FH~0.153 / EH~0.172 (measured at *all interior* control stops), while
-  `mc_summary.md` reports FH 0.237 / EH 0.271 (at the *5 designated* stops). Not a bug, but
-  anyone running the smoke test and comparing will be confused.
-- **Suggested action:** Update `starter/README.md` to the 26-stop reality and the correct
-  RMSPE; add one line to the self-test comment clarifying the control-stop difference.
+---
 
-### H10 — Scope / external validity *(expected, name it first)*
+### 4C — Scope
+
+### H10 — Scope / external validity *(low — name it first)*
 - **What:** One corridor, one route, one direction, one half-year (2021).
 - **Likely question:** *"Does this generalize?"*
 - **Suggested action:** State the scope as a deliberate bounded case study and note it in
@@ -263,27 +282,49 @@ not necessarily a bug.
 
 ---
 
+### 4D — Not a hole: MARL status (expected current phase)
+
+### H1 — The MARL agent is not built yet *(context — this is the plan, not a defect)*
+- **What:** No trained checkpoint exists; no results file contains a MARL row. The training and
+  eval harnesses exist but have not been run.
+- **Status (confirmed 2026-09-04):** This is **intentional**. The team is in the
+  baseline-implementation phase (NC / FH / EH + sim core); MARL is the next phase. So this is
+  *not* a gap in the work — it is where the project currently is. `CLAUDE.md` already states
+  "the MARL simulation has NOT been run yet."
+- **Where:** `starter/agents/ddqn.py`, `starter/scripts/train_marl.py`,
+  `starter/scripts/eval_marl.py` (harnesses exist, awaiting the MARL phase).
+- **Likely question:** *"Where does MARL stand?"* — answer plainly: baselines first, MARL next.
+- **Suggested action (non-urgent):** When the baseline phase is solid, training even a rough
+  DDQN checkpoint gives one real MARL-vs-baseline number to anchor the next milestone. Not
+  needed for the current phase.
+
+---
+
 ## 5. All suggested actions, consolidated
 
-**Before defense (highest leverage):**
-1. Train at least one DDQN checkpoint → produce a single real MARL-vs-baseline number (H1).
-2. Commit to and justify a reward form + weights; run the EO2.1 sweep (H2).
-3. Prepare the honest "why MARL under weather" argument, ideally with an early W/Stage-B
-   MARL run (H3).
-4. Decide the weather framing: fit an ordinary-rain factor from real data, or state severe
-   weather as explicitly synthetic (H4).
+**Current phase — baseline correctness (highest leverage, do first):**
+1. Verify H3 is a true finding: log EH/FH hold actions in the W/Stage-B runs to confirm the
+   controllers actually act, and that the disturbance magnitude isn't swamping the signal (H3).
+2. Pick one primary wait estimator, explain the 280 s vs 742 s divergence, and label all wait
+   figures as modeled (H7).
+3. Decide the weather framing: fit an ordinary-rain factor from real data, or state severe
+   weather as explicitly synthetic — either way, anchor or disclose `eta` (H4).
 
-**Repo hygiene (safe, quick, do on this branch):**
-5. Fix `starter/README.md` — 26 stops (not 6/29), RMSPE 0.75% (not 8.2% for the full run).
-6. Clarify the `corridor_sim.py` self-test comment (control-stop set difference).
-7. Pick one primary wait estimator and label all wait figures as modeled (H7).
+**Repo hygiene (safe, quick, do on this branch now):**
+4. Fix `starter/README.md` — 26 stops (not 6/29), RMSPE 0.75% (not 8.2% for the full run) (H9).
+5. Clarify the `corridor_sim.py` self-test comment (control-stop set difference) (H9).
 
-**Data / provenance (keep pushing, or declare the limit):**
-8. Keep pursuing a 2021 GTFS snapshot; until then, keep direction code-only and `H0` as a
+**Forward-looking / data provenance (keep pushing, or declare the limit):**
+6. Commit to and justify a reward form + weights; run the EO2.1 sweep (feeds MARL scoring) (H2).
+7. Keep pursuing a 2021 GTFS snapshot; until then, keep direction code-only and `H0` as a
    declared assumption (H5, H8).
-9. Try to confirm the APC timestamp basis with CapMetro/Socrata (H6).
+8. Try to confirm the APC timestamp basis with CapMetro/Socrata (H6).
 
-**Environment (to actually run the sim half):**
+**Next phase — MARL (not needed now):**
+9. When baselines are solid, train at least one DDQN checkpoint → one real MARL-vs-baseline
+   number to anchor the next milestone (H1).
+
+**Environment (to actually run the sim/learning half):**
 10. Install SUMO + `pip install torch pettingzoo gymnasium`; pull raw data from the team
     Drive into `data/raw/…`; fix the hardcoded path in `extract_sim_inputs.py`.
 
@@ -306,7 +347,7 @@ cd starter && python scripts/figures.py && cd ..
 
 **Verification status at time of writing:** data half reproducible and internally
 consistent ✅ · simulation/learning half un-runnable on this machine (deps missing) ⚠️ ·
-MARL contribution not yet produced ❌.
+MARL phase not started yet (expected — baselines first) ▶.
 
 ---
 
