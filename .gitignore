@@ -30,3 +30,6 @@ outputs/
 *.part
 __pycache__/
 *.pyc
+
+# data-cleaning figure cache (regenerable from raw CSV)
+starter/results/figures/datacleaning/_*
