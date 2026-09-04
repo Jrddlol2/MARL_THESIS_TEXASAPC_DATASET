@@ -46,9 +46,9 @@ open("sumo/view.xml", "w").write(                                    # RENDERING
     '<viewsettings>\n'
     '  <scheme name="thesis">\n'
     '    <background backgroundColor="35,39,47"/>\n'
-    '    <vehicles vehicleQuality="2" vehicle_minSize="14.00" vehicle_exaggeration="8.00" '
-    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="60.00" vehicleName_color="230,230,230"/>\n'
-    '    <persons personQuality="2" person_minSize="6.00" person_exaggeration="6.00" person_constantSize="1"/>\n'
+    '    <vehicles vehicleQuality="1" vehicle_minSize="1.00" vehicle_exaggeration="1.00" '
+    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="45.00" vehicleName_color="230,230,230"/>\n'
+    '    <persons personQuality="1" person_minSize="1.00" person_exaggeration="1.00" person_constantSize="1"/>\n'
     '  </scheme>\n'
     '</viewsettings>\n')
 _p = ["<additional>"]
