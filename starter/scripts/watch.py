@@ -48,10 +48,16 @@ open("sumo/view.xml", "w").write(                                    # RENDERING
     '    <background backgroundColor="255,255,255"/>\n'
     '    <vehicles vehicleQuality="1" vehicle_minSize="5.00" vehicle_exaggeration="1.50" '
     'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="45.00" vehicleName_color="40,40,40"/>\n'
-    '    <persons personQuality="1" person_minSize="10.00" person_exaggeration="2.50" person_constantSize="1"/>\n'
-    '    <additionals add_minSize="12.00" add_exaggeration="2.50" addName_show="0"/>\n'
+    '    <persons personQuality="1" person_minSize="4.00" person_exaggeration="1.00" person_constantSize="1"/>\n'
+    '    <pois poiQuality="1" poi_minSize="22.00" poi_exaggeration="1.00" poi_constantSize="1" '
+    'poiName_show="1" poiName_size="42.00" poiName_color="20,20,20"/>\n'
     '  </scheme>\n'
     '</viewsettings>\n')
+# stop markers as big constant-size POIs on the road (viewer overlay only; net/dynamics untouched)
+_cum = [sum(DIST[:i]) for i in range(len(STOPS))]
+open("sumo/pois.add.xml", "w").write("<additional>\n" + "".join(
+    f'  <poi id="{STOPS[i]}" x="{_cum[i] + 15:.1f}" y="0" color="235,120,0" layer="6"/>\n'
+    for i in range(len(STOPS))) + "</additional>\n")
 _p = ["<additional>"]
 for i in range(len(STOPS) - 1):
     K = int(round(NBUS * DEM[STOPS[i]]))
@@ -63,7 +69,7 @@ open("sumo/persons.add.xml", "w").write("\n".join(_p + ["</additional>"]))
 rng = np.random.default_rng(3)
 # GUI: auto-start, human-watchable step delay
 traci.start([checkBinary("sumo-gui"), "-n", "sumo/corridor.net.xml",
-             "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml",
+             "-a", "sumo/vtype.add.xml,sumo/stops.add.xml,sumo/persons.add.xml,sumo/pois.add.xml",
              "--gui-settings-file", "sumo/view.xml",
              "--start", "--delay", "80", "--no-warnings", "true", "-e", "36000"],
             port=sumolib.miscutils.getFreeSocketPort())

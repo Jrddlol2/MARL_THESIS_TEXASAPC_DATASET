@@ -6,3 +6,4 @@ sumo/tripinfo_*.xml
 sumo/mc_*.xml
 experiments/
 sumo/view.xml
+sumo/pois.add.xml
