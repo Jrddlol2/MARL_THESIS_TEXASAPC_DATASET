@@ -54,6 +54,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--episodes", type=int, default=800)
     ap.add_argument("--eval_every", type=int, default=50)
+    ap.add_argument("--eps_decay", type=int, default=30_000, help="exploration decay in steps (lower = exploit sooner)")
     ap.add_argument("--name", default="gate")
     a = ap.parse_args()
-    train(Config(episodes=a.episodes, name=a.name), eval_every=a.eval_every)
+    train(Config(episodes=a.episodes, eps_decay=a.eps_decay, name=a.name), eval_every=a.eval_every)
