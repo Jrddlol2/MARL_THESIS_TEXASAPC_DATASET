@@ -45,10 +45,11 @@ open("sumo/vtype.add.xml", "w").write('<additional><vType id="bus" vClass="bus" 
 open("sumo/view.xml", "w").write(                                    # RENDERING ONLY (cannot affect movement)
     '<viewsettings>\n'
     '  <scheme name="thesis">\n'
-    '    <background backgroundColor="35,39,47"/>\n'
-    '    <vehicles vehicleQuality="1" vehicle_minSize="1.00" vehicle_exaggeration="1.00" '
-    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="45.00" vehicleName_color="230,230,230"/>\n'
-    '    <persons personQuality="1" person_minSize="1.00" person_exaggeration="1.00" person_constantSize="1"/>\n'
+    '    <background backgroundColor="255,255,255"/>\n'
+    '    <vehicles vehicleQuality="1" vehicle_minSize="5.00" vehicle_exaggeration="1.50" '
+    'vehicle_constantSize="1" vehicleName_show="1" vehicleName_size="45.00" vehicleName_color="40,40,40"/>\n'
+    '    <persons personQuality="1" person_minSize="10.00" person_exaggeration="2.50" person_constantSize="1"/>\n'
+    '    <additionals add_minSize="12.00" add_exaggeration="2.50" addName_show="0"/>\n'
     '  </scheme>\n'
     '</viewsettings>\n')
 _p = ["<additional>"]
