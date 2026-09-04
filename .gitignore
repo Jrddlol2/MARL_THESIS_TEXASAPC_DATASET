@@ -33,3 +33,5 @@ __pycache__/
 
 # data-cleaning figure cache (regenerable from raw CSV)
 starter/results/figures/datacleaning/_*
+# figure sweep cache (regenerable)
+starter/results/figures/_*

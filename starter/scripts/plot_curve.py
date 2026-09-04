@@ -1,8 +1,10 @@
-"""Plot a MARL training run's learning curve from experiments/<name>/metrics.csv.
-    python scripts/plot_curve.py [name]   ->  results/figures/<name>_curve.png
+"""Plot a MARL training run's learning curve from experiments/<name>/metrics.csv, publication style.
+    python scripts/plot_curve.py [name]   ->  results/figures/<name>_curve.{pdf,png}
 """
 import sys, os, csv
-import matplotlib; matplotlib.use("Agg")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _figstyle as S
+S.apply()
 import matplotlib.pyplot as plt
 
 NAME = sys.argv[1] if len(sys.argv) > 1 else "gate1"
@@ -16,18 +18,16 @@ for r in csv.DictReader(open(P)):
     if r["eval_cv"]:
         ev.append(float(r["eval_cv"])); ev_ep.append(int(r["episode"]))
 
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.plot(ep, tcv, color="#c9d6e5", lw=1, label="train CV (per episode, exploring)")
-ax.plot(ev_ep, ev, "-o", color="#1f63d6", lw=2.2, ms=6, label="eval CV (greedy policy)")
-ax.axhline(NC, ls="--", color="#9e9e9e", lw=1.5, label=f"No-Control  {NC:.3f}")
-ax.axhline(FH, ls="--", color="#e0913a", lw=1.5, label=f"Forward-Headway  {FH:.3f}")
+fig, ax = plt.subplots(figsize=S.WIDE)
+ax.plot(ep, tcv, color=S.CONTEXT, lw=0.9, label="train CV (per episode, exploring)")
+ax.plot(ev_ep, ev, "-o", color=S.PRIMARY, lw=1.8, ms=4, label="eval CV (greedy policy)")
+ax.axhline(NC, ls="--", color=S.NC_C, lw=1.2, label=f"No-Control  {NC:.3f}")
+ax.axhline(FH, ls="--", color=S.FH_C, lw=1.2, label=f"Forward-Headway  {FH:.3f}")
 ax.set_xlabel("training episode"); ax.set_ylabel("headway CV (bunching)")
-ax.set_title(f"MARL learning curve — {NAME} (Stage A, holding-only)")
-ax.grid(alpha=0.3); ax.set_axisbelow(True); ax.set_ylim(0, max(0.7, max(tcv) * 1.05))
-ax2 = ax.twinx(); ax2.plot(ep, eps, color="#c0392b", lw=0.9, alpha=0.5)
-ax2.set_ylabel("ε (exploration)", color="#c0392b"); ax2.set_ylim(0, 1.05); ax2.tick_params(colors="#c0392b")
-ax.legend(loc="upper right", fontsize=8, framealpha=0.9)
-fig.tight_layout()
-out = os.path.join(ROOT, "results", "figures", f"{NAME}_curve.png")
-fig.savefig(out, dpi=150)
-print("wrote", out, "|", len(ep), "episodes,", len(ev), "eval points")
+ax.grid(alpha=0.3); ax.set_ylim(0, max(0.7, max(tcv) * 1.05))
+ax2 = ax.twinx(); ax2.plot(ep, eps, color=S.GREY, lw=0.8, alpha=0.6)
+ax2.set_ylabel(r"$\varepsilon$ (exploration)", color=S.GREY); ax2.set_ylim(0, 1.05)
+ax2.tick_params(colors=S.GREY); ax2.grid(False); ax2.spines["top"].set_visible(False)
+ax.legend(loc="upper right", fontsize=7)
+S.save(fig, f"{NAME}_curve")
+print(len(ep), "episodes,", len(ev), "eval points")
