@@ -145,7 +145,7 @@ def main():
            edgecolor="white", linewidth=0.4, label="mean boardings")
     ax.plot(x, st["mean_alightings"], color=S.LINE, marker="o", ms=2.5, lw=1.0, label="mean alightings")
     ax.set_xticks(x); ax.set_xticklabels(st["bs_id"], rotation=90, fontsize=6)
-    ax.set_ylabel("passengers / stop-event"); ax.set_xlabel("stop (corridor order; orange = control stop)")
+    ax.set_ylabel("mean boardings per bus visit"); ax.set_xlabel("stop (corridor order; orange = control stop)")
     ax.legend(); ax.grid(axis="y")
     S.save(fig, "fig_demand_profile", OUT)
 

@@ -222,6 +222,20 @@ Practice: open each file, scroll to those lines, and say what they do in one sen
   significant results already have tight intervals.
 - *What does Stage-B degradation mean?* — under combined weather+breakdown, fixed holding falls to
   no-control level (≈−1%, CI includes zero). That's the gap the learned controller is meant to close.
+- *Why would bunching occur when demand is low (~1.6 boardings per bus visit)?* — Bunching is a feedback
+  instability, not a crowding effect: a bus that falls slightly behind faces a larger headway gap, so more
+  passengers accumulate in that gap, its dwell lengthens, and it falls further behind (Newell-Potts;
+  Daganzo, 2009). The trigger is the sensitivity of dwell to the gap, which holds at any demand level on a
+  high-frequency line and compounds over 26 stops. The number that matters is the queue that builds
+  between buses -- it scales with the gap, not the ~1.6 per-visit average -- plus traffic, weather, and
+  breakdowns that open gaps independently of demand. It is not hypothetical here: on the real calibrated
+  demand, No-Control headway CV runs 0.33 (Stage A) to 0.98 (weather), with the Marey trajectories visibly
+  converging. I do NOT claim to have observed bunching directly in the APC -- I model a well-established
+  instability and reproduce it in the calibrated simulation.
+- *Could you just raise demand to force bunching?* — I don't, and don't need to: bunching already emerges
+  at the real demand. Inflating the calibrated baseline would forfeit the study's data grounding, so
+  heavier demand enters only as a labelled non-ideal stressor -- the demand-surge disturbance (S), and if
+  needed a demand-multiplier sensitivity -- kept distinct from the measured baseline.
 
 **Contribution & scope**
 - *What's new vs. the cited MARL-holding work?* — a public-data-calibrated corridor plus configurable
