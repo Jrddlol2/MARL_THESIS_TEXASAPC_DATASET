@@ -1,0 +1,75 @@
+<viewsettings>
+    <!-- Viewer settings for the real-geometry Route-801 dir-6 corridor (scripts/watch.py).
+         Presentation only — nothing here affects the simulation or any reported metric.
+
+         The road is drawn at TRUE one-lane width (widthExaggeration 1.0) so the corridor reads as
+         a real single-lane route rather than a fat band. Only the things you need to track —
+         buses and bus stops — are enlarged, and only modestly, in world units.
+
+         Tuning knobs, in order of usefulness:
+           edges/@widthExaggeration       road width      (1 = true lane; raise to ~3 for a
+                                                           thicker line when fully zoomed out)
+           vehicles/@vehicle_exaggeration bus size        (5 = a 12 m bus drawn as ~60 m)
+           additionals/@add_exaggeration  bus-stop size   (4)
+         Keep every *_constantSize at 0: with constantSize=1 the matching minSize is interpreted
+         in PIXELS, which is what once rendered a single bus as a screen-filling polygon.
+
+         Attribute names follow SUMO's viewsettings schema exactly (see
+         SUMO/doc/tutorial/traci_pedestrian_crossing/data/viewsettings.xml) — SUMO silently
+         ignores a scheme containing unknown attributes. -->
+
+    <scheme name="real geometry">
+        <opengl antialiase="1" dither="0"/>
+        <background backgroundColor="255,255,255" showGrid="0"
+                    gridXSize="1000.00" gridYSize="1000.00"/>
+
+        <edges laneEdgeMode="0" scaleMode="0" laneShowBorders="0" showLinkDecals="0"
+               showRails="0" hideConnectors="1" widthExaggeration="20.00"
+               edgeName_show="0" edgeName_size="50.00" edgeName_color="black"
+               internalEdgeName_show="0" internalEdgeName_size="40.00" internalEdgeName_color="128,64,0"
+               cwaEdgeName_show="0" cwaEdgeName_size="50.00" cwaEdgeName_color="magenta"
+               streetName_show="0" streetName_size="55.00" streetName_color="yellow"/>
+
+        <!-- buses keep the colours watch.py sets via setColor():
+             blue/grey = running, amber = applying a hold, red = breakdown.
+             constantSize=0 so these stay in WORLD units: with constantSize=1 the minSize is in
+             PIXELS, and 70 px x20 is what produced the screen-filling blob. -->
+        <vehicles vehicleMode="0" vehicleQuality="1"
+                  vehicle_minSize="1.00" vehicle_exaggeration="5.00" vehicle_constantSize="0"
+                  showBlinker="0"
+                  vehicleName_show="0" vehicleName_size="50.00" vehicleName_color="blue"/>
+
+        <persons personMode="0" personQuality="1"
+                 person_minSize="0.00" person_exaggeration="1.00" person_constantSize="0"
+                 personName_show="0" personName_size="50.00" personName_color="blue"/>
+
+        <!-- bus stops carry the control-stop colouring from sumo/stops_view.add.xml:
+             RED (230,60,60) = the five §3.2.2 control stops where holds are applied,
+             GREY (150,150,150) = the other 21 stops -->
+        <additionals addMode="0"
+                     add_minSize="1.00" add_exaggeration="4.00" add_constantSize="0"
+                     addName_show="0" addName_size="50.00" addName_color="green"/>
+
+        <junctions junctionMode="0" drawLinkTLIndex="0" drawLinkJunctionIndex="0"
+                   junctionName_show="0" junctionName_size="50.00" junctionName_color="0,255,128"
+                   internalJunctionName_show="0" internalJunctionName_size="40.00"
+                   internalJunctionName_color="0,204,128"
+                   showLane2Lane="0" drawShape="0"/>
+
+        <legend showSizeLegend="1"/>
+    </scheme>
+
+    <!-- OPTIONAL BASEMAP DECAL -------------------------------------------------------------
+         Drop an OSM-rendered or open-satellite PNG at sumo/basemap.png covering exactly this
+         WGS84 bbox, then uncomment the block below. Coordinates are already georeferenced to
+         the kit's projection (lat0=30.292747, lon0=-97.735360), matching route_shape.csv.
+
+             bbox (S, W, N, E) = 30.188788, -97.783247, 30.414177, -97.673735
+
+         Google Maps tiles may NOT be used this way (terms of service); use an OSM export
+         (openstreetmap.org "Share -> Image"), a Mapnik render, or open satellite imagery.
+
+    <decal filename="basemap.png" centerX="660.3" centerY="965.6"
+           width="10526.4" height="24914.4" rotation="0.00" layer="-1.00"/>
+    -->
+</viewsettings>

@@ -141,11 +141,10 @@ def main():
     st = st.set_index("bs_id").loc[corr].reset_index()
     fig, ax = plt.subplots(figsize=S.WIDE)
     x = np.arange(len(st))
-    ax.bar(x, st["mean_boardings"], color=[S.CTRL_ACCENT if b in CONTROL else S.PRIMARY for b in st["bs_id"]],
-           edgecolor="white", linewidth=0.4, label="mean boardings")
+    ax.bar(x, st["mean_boardings"], color=S.PRIMARY, edgecolor="white", linewidth=0.4, label="mean boardings")
     ax.plot(x, st["mean_alightings"], color=S.LINE, marker="o", ms=2.5, lw=1.0, label="mean alightings")
     ax.set_xticks(x); ax.set_xticklabels(st["bs_id"], rotation=90, fontsize=6)
-    ax.set_ylabel("mean boardings per bus visit"); ax.set_xlabel("stop (corridor order; orange = control stop)")
+    ax.set_ylabel("mean boardings per bus visit"); ax.set_xlabel("stop (corridor order)")
     ax.legend(); ax.grid(axis="y")
     S.save(fig, "fig_demand_profile", OUT)
 
@@ -155,10 +154,8 @@ def main():
     sz = (st.set_index("bs_id").loc[co.index, "mean_boardings"].values + 0.5) * 45
     fig, ax = plt.subplots(figsize=(5.2, 4.6))
     ax.plot(co["mean_lon"], co["mean_lat"], color=S.CONTEXT, lw=1, zorder=1)
-    ax.scatter(co["mean_lon"], co["mean_lat"], s=sz, zorder=2, edgecolor="white", linewidth=0.4,
-               c=[S.CTRL_ACCENT if b in CONTROL else S.PRIMARY for b in co.index])
-    ax.scatter([], [], c=S.CTRL_ACCENT, label="control stop"); ax.scatter([], [], c=S.PRIMARY, label="stop")
-    ax.set_xlabel("longitude"); ax.set_ylabel("latitude"); ax.legend(); ax.grid(alpha=0.2)
+    ax.scatter(co["mean_lon"], co["mean_lat"], s=sz, zorder=2, edgecolor="white", linewidth=0.4, c=S.PRIMARY)
+    ax.set_xlabel("longitude"); ax.set_ylabel("latitude"); ax.grid(alpha=0.2)
     S.save(fig, "fig_corridor_map", OUT)
 
     # ---- FIG 6: exclusion composition -----------------------------------------------------------
