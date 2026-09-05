@@ -1,0 +1,8 @@
+<configuration>
+ <input>
+  <net-file value="corridor_real.net.xml"/>
+  <route-files value="corridor_real.rou.xml"/>
+  <additional-files value="stops_real.add.xml"/>
+ </input>
+ <time><begin value="0"/><end value="9000"/></time>
+</configuration>

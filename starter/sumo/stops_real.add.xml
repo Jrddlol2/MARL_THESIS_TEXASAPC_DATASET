@@ -1,0 +1,28 @@
+<additional>
+  <busStop id="5280" lane="e0_0" startPos="5" endPos="25"/>
+  <busStop id="5857" lane="e1_0" startPos="5" endPos="25"/>
+  <busStop id="5858" lane="e2_0" startPos="5" endPos="25"/>
+  <busStop id="4540" lane="e3_0" startPos="5" endPos="25"/>
+  <busStop id="467" lane="e4_0" startPos="5" endPos="25"/>
+  <busStop id="5859" lane="e5_0" startPos="5" endPos="25"/>
+  <busStop id="5606" lane="e6_0" startPos="5" endPos="25"/>
+  <busStop id="5861" lane="e7_0" startPos="5" endPos="25"/>
+  <busStop id="6360" lane="e8_0" startPos="5" endPos="25"/>
+  <busStop id="484" lane="e9_0" startPos="5" endPos="25"/>
+  <busStop id="5405" lane="e10_0" startPos="5" endPos="25"/>
+  <busStop id="5357" lane="e11_0" startPos="5" endPos="25"/>
+  <busStop id="5863" lane="e12_0" startPos="5" endPos="25"/>
+  <busStop id="497" lane="e13_0" startPos="5" endPos="25"/>
+  <busStop id="5866" lane="e14_0" startPos="5" endPos="25"/>
+  <busStop id="2738" lane="e15_0" startPos="5" endPos="25"/>
+  <busStop id="2611" lane="e16_0" startPos="5" endPos="25"/>
+  <busStop id="5867" lane="e17_0" startPos="5" endPos="25"/>
+  <busStop id="6372" lane="e18_0" startPos="5" endPos="25"/>
+  <busStop id="4029" lane="e19_0" startPos="5" endPos="25"/>
+  <busStop id="4046" lane="e20_0" startPos="5" endPos="25"/>
+  <busStop id="5870" lane="e21_0" startPos="5" endPos="25"/>
+  <busStop id="5553" lane="e22_0" startPos="5" endPos="25"/>
+  <busStop id="6356" lane="e23_0" startPos="5" endPos="25"/>
+  <busStop id="5871" lane="e24_0" startPos="5" endPos="25"/>
+  <busStop id="5872" lane="e25_0" startPos="5" endPos="25"/>
+</additional>
