@@ -1,6 +1,6 @@
 # Reproduced Route 801 selection audit
 
-Generated at `2026-09-12T07:06:16.789350+00:00` by local extraction from the archived snapshot (no network).
+Generated at `2026-09-12T07:11:54.222690+00:00` by local extraction from the archived snapshot (no network).
 
 | Metric | Route 801 | Route 803 |
 |---|---:|---:|

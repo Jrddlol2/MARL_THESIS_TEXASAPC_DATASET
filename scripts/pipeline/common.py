@@ -206,10 +206,6 @@ def clean_where(routes: Iterable[str], directions: Iterable[str]) -> str:
 # -----------------------------------------------------------------------------
 # NOAA QUIRK PARSING  (used by step 3)
 # -----------------------------------------------------------------------------
-    try:
-        return float(value)
-    except ValueError:
-        return None
 
 
 def first_value(row: dict[str, str], *names: str) -> str:
