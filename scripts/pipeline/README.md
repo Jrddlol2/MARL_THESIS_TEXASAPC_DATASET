@@ -76,8 +76,22 @@ Requires `pandas` and `numpy` (already project dependencies). `tabulate` is
 deliberately NOT used — the evidence tables are built by hand so the output
 stays byte-identical and there is no extra dependency.
 
-Steps 1 and 2 each stream all 9,197,694 rows, so each takes several minutes.
-Steps 3, 4 and 5 are fast.
+## How long it takes
+
+Measured end to end, ~100 seconds total:
+
+```
+01_audit_routes.py      42 s     streams all 9.2M rows, 19 of 47 columns
+02_extract_dir6.py      54 s     streams all 9.2M rows, all 47 columns
+03_prepare_weather.py    2 s
+04_join_weather.py       2 s
+05_gtfs_gate.py          1 s
+```
+
+Steps 1 and 2 are dominated by the time it takes to read the 3.7 GB file off
+disk; every pandas operation inside them is sub-second. There is no meaningful
+speed-up available short of merging the two passes, which would cost more in
+readability than it saves in seconds.
 
 ## Order
 

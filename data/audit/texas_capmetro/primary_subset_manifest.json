@@ -5,7 +5,7 @@
   "direction_code": "6",
   "direction_label": null,
   "direction_label_gate": "2021-compatible GTFS not yet verified",
-  "generated_utc": "2026-09-12T06:48:46.622957+00:00",
+  "generated_utc": "2026-09-12T07:07:11.034283+00:00",
   "path": "data/raw/capmetro/route_801_direction_6_clean.csv",
   "route_id": "801",
   "rows": 229421,

@@ -342,9 +342,9 @@ python starter/scripts/mc.py 30 4
 python starter/scripts/watch.py EH Weather+Breakdown
 ```
 
-Steps 1 and 2 each stream all 9.2 million rows, so each takes several minutes.
-Steps 3, 4 and 5 are fast. Re-running is safe — every output is rewritten from
-the same inputs.
+The whole pipeline takes about **100 seconds** (42 s + 54 s for steps 1 and 2,
+which read the 3.7 GB file; the rest are 1–2 s each). Re-running is safe —
+every output is rewritten from the same inputs.
 
 **Requirements:** Python 3.12 · `pandas numpy torch pettingzoo gymnasium` ·
 SUMO with `SUMO_HOME` set for anything under `starter/`.
