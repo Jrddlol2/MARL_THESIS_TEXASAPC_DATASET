@@ -1,6 +1,6 @@
 """
 =============================================================================
- STEP 2 OF 5  --  EXTRACT THE DIRECTION-6 STUDY SET
+ STEP 1 OF 4  --  EXTRACT THE DIRECTION-6 STUDY SET
 =============================================================================
 
 WHAT THIS STEP PRODUCES
@@ -11,7 +11,8 @@ WHAT THIS STEP PRODUCES
 WHAT IT DOES
     Reads the archived snapshot a million rows at a time and keeps the rows
     that pass all six cleaning rules, with route = 801 and direction = 6.
-    Same rules as Step 1, narrowed to one route and one direction.
+    Same six rules the route audit applies, narrowed to one route and one
+    direction.
 
     No network. See common.py for why.
 
@@ -27,10 +28,10 @@ WHY DIRECTION 6 AND NOT DIRECTION 4
     so the study uses one direction. Under the same coverage criterion used to
     pick Route 801, direction 6 has more clean stop events (229,421 vs
     226,233) and more boardings (420,201 vs 390,108) across an identical
-    29-stop set. Step 1's direction_summary reports both.
+    29-stop set. audit_route_selection.py reports both.
 
     The compass meaning of code 6 is NOT assigned here -- it is a vendor
-    software key. See Step 5 for the gate that governs labelling it.
+    software key. See Step 4 for the gate that governs labelling it.
 
 INPUTS   data/raw/capmetro/APC_Raw_..._full.csv   the archived snapshot
          config/texas_capmetro_801.json
@@ -38,7 +39,7 @@ INPUTS   data/raw/capmetro/APC_Raw_..._full.csv   the archived snapshot
 OUTPUTS  data/raw/capmetro/route_801_direction_6_clean.csv
          data/audit/texas_capmetro/primary_subset_manifest.json
 
-RUN      python scripts/pipeline/02_extract_dir6.py
+RUN      python scripts/pipeline/01_extract_dir6.py
 =============================================================================
 """
 
@@ -131,7 +132,7 @@ def main() -> int:
     manifest = extract_primary_subset(load_config())
     write_json(AUDIT_DIR / "primary_subset_manifest.json", manifest)
 
-    print("\nStep 2 complete.")
+    print("\nStep 1 complete.")
     print(f"  rows    : {manifest['rows']:,}   (expected 229,421)")
     print(f"  columns : {manifest['column_count']}")
     print(f"  file    : {manifest['path']}")

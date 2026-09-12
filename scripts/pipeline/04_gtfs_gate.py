@@ -1,6 +1,6 @@
 """
 =============================================================================
- STEP 5 OF 5  --  WRITE THE HISTORICAL GTFS GATE
+ STEP 4 OF 4  --  WRITE THE HISTORICAL GTFS GATE
 =============================================================================
 
 WHAT THIS STEP IS
@@ -37,7 +37,7 @@ WHERE THE CONTENT COMES FROM
 OUTPUTS  data/audit/texas_capmetro/gtfs_retrieval_attempts.json
          data/audit/texas_capmetro/GTFS_ACQUISITION_STATUS.md
 
-RUN      python scripts/pipeline/05_gtfs_gate.py
+RUN      python scripts/pipeline/04_gtfs_gate.py
 =============================================================================
 """
 
@@ -116,7 +116,7 @@ def main() -> int:
     config = load_config()
     write_gtfs_gate(config)
 
-    print("\nStep 5 complete.")
+    print("\nStep 4 complete.")
     print(f"  gate status : {config['gtfs']['status']}")
     print(f"  attempts    : {len(config['gtfs']['retrieval_attempts'])} recorded")
     return 0

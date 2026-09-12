@@ -1,6 +1,6 @@
 """
 =============================================================================
- STEP 1 OF 5  --  ROUTE SELECTION AUDIT  (Route 801 vs Route 803)
+ EVIDENCE  --  ROUTE SELECTION AUDIT  (Route 801 vs Route 803)
 =============================================================================
 
 WHAT THIS STEP ANSWERS
@@ -36,7 +36,7 @@ INPUTS   data/raw/capmetro/APC_Raw_..._full.csv          the archived snapshot
 OUTPUTS  data/audit/texas_capmetro/route_selection_audit.json
          data/audit/texas_capmetro/ROUTE_SELECTION_EVIDENCE.md
 
-RUN      python scripts/pipeline/01_audit_routes.py
+RUN      python scripts/pipeline/audit_route_selection.py
 =============================================================================
 """
 
@@ -308,7 +308,7 @@ def main() -> int:
     write_json(AUDIT_DIR / "route_selection_audit.json", evidence)
     write_evidence_markdown(evidence)
 
-    print("\nStep 1 complete.")
+    print("\nRoute selection audit complete.")
     for route in candidates:
         r = evidence["routes"][route]
         print(f"  Route {route}: all {r['all_route_records']:,} -> "

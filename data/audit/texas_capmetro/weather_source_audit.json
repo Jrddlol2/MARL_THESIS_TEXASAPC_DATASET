@@ -14,7 +14,7 @@
       "source_url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv"
     }
   },
-  "generated_utc": "2026-09-12T07:07:12.842572+00:00",
+  "generated_utc": "2026-09-12T07:41:08.108027+00:00",
   "normalization": "Interpret NOAA timestamps as fixed UTC-06:00 local standard time, then convert to America/Chicago. This shifts summer observations to daylight time while preserving their physical instants.",
   "product": "NOAA NCEI Local Climatological Data Version 2",
   "source_time_basis": "Local standard time (UTC-06:00) with no daylight-saving adjustment, per LCDv2 documentation",

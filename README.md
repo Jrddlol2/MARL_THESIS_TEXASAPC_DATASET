@@ -161,11 +161,11 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 | File | What it does |
 |---|---|
 | `pipeline/common.py` | Shared plumbing: paths, config, checksums, safe file writing, reading the snapshot, and **the six cleaning rules**. Does no processing itself |
-| `pipeline/01_audit_routes.py` | Compares Route 801 against 803 and proves 801 has more usable data. **Produces the cleaning-funnel numbers on the slide** |
-| `pipeline/02_extract_dir6.py` | Extracts the 229,421 clean rows from the snapshot. **← THE STUDY SET** |
-| `pipeline/03_prepare_weather.py` | Reads both NOAA files and fixes the local-standard-time offset |
-| `pipeline/04_join_weather.py` | Attaches the nearest weather reading to every stop event |
-| `pipeline/05_gtfs_gate.py` | Writes down why we may not yet call direction 6 "southbound" |
+| `pipeline/audit_route_selection.py` | Compares Route 801 against 803 and proves 801 has more usable data. **Produces the cleaning-funnel numbers on the slide** |
+| `pipeline/01_extract_dir6.py` | Extracts the 229,421 clean rows from the snapshot. **← THE STUDY SET** |
+| `pipeline/02_prepare_weather.py` | Reads both NOAA files and fixes the local-standard-time offset |
+| `pipeline/03_join_weather.py` | Attaches the nearest weather reading to every stop event |
+| `pipeline/04_gtfs_gate.py` | Writes down why we may not yet call direction 6 "southbound" |
 | `pipeline/run_all.py` | Runs steps 01–05 in order |
 | `texas_capmetro_pipeline.py` | **Archived reference** — the original 900-line version, which downloads from the portal instead of reading local files. Kept in case the extraction ever needs re-verifying against the source |
 
@@ -256,7 +256,7 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 | See where 229,421 comes from | `data/audit/texas_capmetro/route_selection_audit.json` |
 | Rebuild every evidence file | `python scripts/pipeline/run_all.py` |
 | Set up a new machine | README §8, "Getting the data" |
-| Understand the weather join | `scripts/pipeline/04_join_weather.py` (read the header) |
+| Understand the weather join | `scripts/pipeline/03_join_weather.py` (read the header) |
 | See the calibration result | `starter/results/calibration.csv` |
 | See the baseline results | `starter/results/mc_summary.md` |
 | Change how the simulation behaves | `starter/envs/corridor_sim.py` line 34 |
@@ -329,8 +329,8 @@ re-downloading 3.7 GB. Check the hashes either way.
 python scripts/pipeline/run_all.py
 
 # same thing offline, from the local 3.7 GB snapshot — no network at all
-python scripts/pipeline/01_audit_routes.py --local
-python scripts/pipeline/02_download_dir6.py --local
+python scripts/pipeline/audit_route_selection.py --local
+python scripts/pipeline/01_extract_dir6.py --local
 
 # calibrate the corridor
 python starter/scripts/calibrate_corridor.py

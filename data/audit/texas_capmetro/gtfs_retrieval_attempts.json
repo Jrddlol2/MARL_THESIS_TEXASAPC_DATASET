@@ -14,7 +14,7 @@
     }
   ],
   "gate": "Do not assign compass direction names, stop names, route shapes, or scheduled headways until a 2021-compatible GTFS snapshot is checksum-verified.",
-  "generated_utc": "2026-09-12T07:07:15.879656+00:00",
+  "generated_utc": "2026-09-12T07:41:11.129212+00:00",
   "required_service_window": [
     "2021-07-01",
     "2021-12-31"

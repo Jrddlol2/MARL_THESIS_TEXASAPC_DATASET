@@ -1,12 +1,12 @@
 """
 =============================================================================
- STEP 3 OF 5  --  NORMALISE THE NOAA WEATHER OBSERVATIONS
+ STEP 2 OF 4  --  NORMALISE THE NOAA WEATHER OBSERVATIONS
 =============================================================================
 
 WHAT THIS STEP ANSWERS
     The APC file has no weather column. Weather has to come from outside, and
     it has to be put on the same clock as the bus data before anything can be
-    matched. This step does that; Step 4 does the matching.
+    matched. This step does that; Step 3 does the matching.
 
 THE TWO STATIONS
     Camp Mabry      USW00013958   PRIMARY      sits beside the corridor
@@ -33,7 +33,7 @@ THE HARD PART: TIME ZONES
         2. convert that instant to America/Chicago,
         3. store BOTH the UTC instant and the Austin local time.
 
-    Step 4 matches on the UTC instant, which is unambiguous.
+    Step 3 matches on the UTC instant, which is unambiguous.
 
 WHAT COUNTS AS RAIN
     rain_flag is 1 if ANY of these hold:
@@ -48,7 +48,7 @@ DEDUPLICATION
     NOAA sometimes reports more than once for the same instant (a routine
     hourly report plus an off-cycle special report). We keep ONE row per
     instant -- the one with the most fields populated, scored below -- so the
-    nearest-observation search in Step 4 has no ties to break.
+    nearest-observation search in Step 3 has no ties to break.
 
     No network: it reads the NOAA files we already hold. See common.py for why,
     and the README's "Getting the data" section for how to obtain them.
@@ -62,7 +62,7 @@ OUTPUTS
          data/processed/texas_capmetro/weather_bergstrom_2021_jul_dec.csv
          data/audit/texas_capmetro/weather_source_audit.json
 
-RUN      python scripts/pipeline/03_prepare_weather.py
+RUN      python scripts/pipeline/02_prepare_weather.py
 =============================================================================
 """
 
@@ -267,7 +267,7 @@ def main() -> int:
     ensure_dirs()
     evidence = prepare_weather(load_config())
 
-    print("\nStep 3 complete.")
+    print("\nStep 2 complete.")
     for key, station in evidence["stations"].items():
         print(f"  {station['name']:<36} {station['records']:>6,} observations, "
               f"{station['rain_flag_records']:>4,} rain-flagged")

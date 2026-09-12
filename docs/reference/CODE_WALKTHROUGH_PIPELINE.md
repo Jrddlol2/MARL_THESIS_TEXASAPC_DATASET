@@ -11,20 +11,21 @@ Line numbers are current as of 2026-09-12.
 | File | Lines | What breaks if you delete it |
 |---|---|---|
 | `common.py` | 232 | Everything. Holds the paths, the checksums, and the cleaning rules |
-| `01_audit_routes.py` | 323 | The cleaning-funnel numbers and the 801-vs-803 justification |
-| `02_extract_dir6.py` | 143 | The 229,421-row study set — the input to the whole simulation |
-| `03_prepare_weather.py` | 274 | The NOAA tables. Weather would be unusable |
-| `04_join_weather.py` | 262 | The rain flag on each stop event, and the feasibility verdict |
-| `05_gtfs_gate.py` | 126 | The written record of why direction 6 is unlabelled |
-| `run_all.py` | 68 | Convenience only — the five steps still run individually |
+| `audit_route_selection.py` | 323 | The cleaning-funnel numbers and the 801-vs-803 justification |
+| `01_extract_dir6.py` | 143 | The 229,421-row study set — the input to the whole simulation |
+| `02_prepare_weather.py` | 274 | The NOAA tables. Weather would be unusable |
+| `03_join_weather.py` | 262 | The rain flag on each stop event, and the feasibility verdict |
+| `04_gtfs_gate.py` | 126 | The written record of why direction 6 is unlabelled |
+| `run_all.py` | 68 | Convenience only — the four steps still run individually |
 
-**Total runtime: 101 s.** Measured: 42 + 54 + 2 + 2 + 1.
+**Pipeline runtime: ~60 s** (54 + 2 + 2 + 1). The route-selection audit is a
+separate 42 s evidence run, not part of the pipeline.
 
 ---
 
 # `common.py` — the shared plumbing
 
-**Purpose:** holds everything the five steps have in common. Does no data
+**Purpose:** holds everything the steps have in common. Does no data
 processing itself.
 
 ## L36–45 — imports
@@ -122,8 +123,8 @@ L181-185 clean = error_free & (bs_id != "0") & direction_code_id.isin(directions
 L186  return on_route, matching, error_free, clean
       WHY   each mask is a superset of the next, so these four ARE the four
             bars on the cleaning-funnel slide
-      WATCH step 1 uses all four; step 2 uses only `clean`. Defining them here
-            once is what stops the funnel and the study set drifting apart.
+      WATCH the audit uses all four; step 1 uses only `clean`. Defining them
+            here once is what stops the funnel and the study set drifting apart.
 ```
 
 ## L189–203 — `clean_where()`
@@ -158,9 +159,12 @@ L224-232 parse_flagged_number("0.05s") -> 0.05
 
 ---
 
-# `01_audit_routes.py` — why 801, and the funnel
+# `audit_route_selection.py` — why 801, and the funnel
 
-**Feeds:** nothing downstream. Produces evidence only.
+**Not a pipeline step.** It answers a question that was settled long ago and
+feeds nothing downstream — no code reads its output. It is kept, and kept
+runnable, so the route choice stays defensible rather than asserted. Run it
+when you need to regenerate that evidence.
 
 ## L62–86 — constants
 
@@ -245,7 +249,7 @@ inline expressions.
 
 ---
 
-# `02_extract_dir6.py` — the study set
+# `01_extract_dir6.py` — the study set
 
 ## L65–123 — `extract_primary_subset()`
 
@@ -263,8 +267,8 @@ L80-85 pd.read_csv(..., dtype=str, na_filter=False, chunksize=1_000_000)
 
 L93   *_, keep = clean_masks(chunk, ["801"], ["6"])
       WHAT  take only the last of the four cumulative masks
-      WHY   step 2 needs the fully-clean rows; the intermediate funnel levels
-            are step 1's job
+      WHY   this step needs the fully-clean rows; the intermediate funnel
+            levels are the route audit's job
 
 L97-98 survivors.to_csv(temporary, mode="w" if first_chunk else "a",
                         header=first_chunk, index=False)
@@ -289,7 +293,7 @@ None. The file is almost entirely header.
 
 ---
 
-# `03_prepare_weather.py` — NOAA onto the bus clock
+# `02_prepare_weather.py` — NOAA onto the bus clock
 
 **Deliberately still a plain Python loop.** It handles NOAA's irregularities one
 at a time and vectorising would bury the reasoning.
@@ -335,7 +339,7 @@ at a time and vectorising would bury the reasoning.
 
 ---
 
-# `04_join_weather.py` — was it raining?
+# `03_join_weather.py` — was it raining?
 
 ## L78–104 — `load_apc_events()`
 
@@ -415,7 +419,7 @@ None.
 
 ---
 
-# `05_gtfs_gate.py` — the direction-label gate
+# `04_gtfs_gate.py` — the direction-label gate
 
 No data processing. Reads the `gtfs` block of the config and writes the document
 recording that direction 6 may not be called "southbound" until a 2021 GTFS

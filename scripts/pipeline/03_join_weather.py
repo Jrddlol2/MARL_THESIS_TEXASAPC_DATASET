@@ -1,6 +1,6 @@
 """
 =============================================================================
- STEP 4 OF 5  --  JOIN WEATHER TO EVERY BUS STOP EVENT
+ STEP 3 OF 4  --  JOIN WEATHER TO EVERY BUS STOP EVENT
 =============================================================================
 
 WHAT THIS STEP ANSWERS
@@ -46,13 +46,13 @@ WHAT THIS STEP DOES *NOT* ESTABLISH
     time-of-day and day-type strata. The warning is written into the output
     file so it cannot be quoted out of context.
 
-INPUTS   data/raw/capmetro/route_801_direction_6_clean.csv   (Step 2)
-         data/processed/texas_capmetro/weather_*.csv          (Step 3)
+INPUTS   data/raw/capmetro/route_801_direction_6_clean.csv   (Step 1)
+         data/processed/texas_capmetro/weather_*.csv          (Step 2)
 
 OUTPUTS  data/audit/texas_capmetro/weather_join_audit.json
          data/audit/texas_capmetro/WEATHER_FEASIBILITY_EVIDENCE.md
 
-RUN      python scripts/pipeline/04_join_weather.py
+RUN      python scripts/pipeline/03_join_weather.py
 =============================================================================
 """
 
@@ -108,7 +108,7 @@ def load_weather(station_key: str) -> pd.DataFrame:
     """Read one station's normalized observations, sorted by time for merge_asof."""
     path = require_file(
         PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv",
-        f"the normalized weather table for {station_key} (run 03_prepare_weather.py first)",
+        f"the normalized weather table for {station_key} (run 02_prepare_weather.py first)",
     )
     weather = pd.read_csv(path, usecols=["timestamp_utc", "rain_flag"])
     weather["obs_time"] = pd.to_datetime(weather["timestamp_utc"], utc=True)
@@ -139,7 +139,7 @@ def join_nearest(events: pd.DataFrame, weather: pd.DataFrame, tolerance: pd.Time
 def audit_weather_join(config: dict[str, Any]) -> dict[str, Any]:
     apc_path = require_file(
         ROOT / config["apc"]["raw_output"],
-        "the direction-6 study set (run 02_extract_dir6.py first)",
+        "the direction-6 study set (run 01_extract_dir6.py first)",
     )
     tolerance_minutes = int(config["weather"]["nearest_join_tolerance_minutes"])
     tolerance = pd.Timedelta(minutes=tolerance_minutes)
@@ -245,7 +245,7 @@ def main() -> int:
     evidence = audit_weather_join(load_config())
     counts = evidence["counts"]
 
-    print("\nStep 4 complete.")
+    print("\nStep 3 complete.")
     print(f"  APC events joined : {counts['primary_matched']:,} / {counts['apc_rows']:,} "
           f"({evidence['primary_join_coverage_percent']}%)")
     print(f"  rain-exposed      : {counts['primary_rain_exposed_rows']:,}")

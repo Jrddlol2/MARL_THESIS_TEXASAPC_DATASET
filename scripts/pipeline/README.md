@@ -30,22 +30,22 @@ python scripts/pipeline/run_all.py     # all five steps, in order
 Or one step at a time:
 
 ```bash
-python scripts/pipeline/01_audit_routes.py
-python scripts/pipeline/02_extract_dir6.py
-python scripts/pipeline/03_prepare_weather.py
-python scripts/pipeline/04_join_weather.py
-python scripts/pipeline/05_gtfs_gate.py
+python scripts/pipeline/audit_route_selection.py
+python scripts/pipeline/01_extract_dir6.py
+python scripts/pipeline/02_prepare_weather.py
+python scripts/pipeline/03_join_weather.py
+python scripts/pipeline/04_gtfs_gate.py
 ```
 
 ## The steps
 
 | # | Script | What it answers | Key output |
 |---|---|---|---|
-| 1 | `01_audit_routes.py` | Why Route 801 and not 803? Where do the funnel numbers come from? | `route_selection_audit.json` |
-| 2 | `02_extract_dir6.py` | The 229,421-row study set | `route_801_direction_6_clean.csv` |
-| 3 | `03_prepare_weather.py` | NOAA observations, put on the same clock as the buses | `weather_camp_mabry_2021_jul_dec.csv` |
-| 4 | `04_join_weather.py` | Was it raining at each stop event? | `weather_join_audit.json` |
-| 5 | `05_gtfs_gate.py` | What we're allowed to claim about direction 6 | `GTFS_ACQUISITION_STATUS.md` |
+| 1 | `audit_route_selection.py` | Why Route 801 and not 803? Where do the funnel numbers come from? | `route_selection_audit.json` |
+| 2 | `01_extract_dir6.py` | The 229,421-row study set | `route_801_direction_6_clean.csv` |
+| 3 | `02_prepare_weather.py` | NOAA observations, put on the same clock as the buses | `weather_camp_mabry_2021_jul_dec.csv` |
+| 4 | `03_join_weather.py` | Was it raining at each stop event? | `weather_join_audit.json` |
+| 5 | `04_gtfs_gate.py` | What we're allowed to claim about direction 6 | `GTFS_ACQUISITION_STATUS.md` |
 
 `common.py` holds the shared plumbing — paths, config loading, checksums, safe
 file writing, reading the snapshot, and the cleaning rules. It does no data
@@ -81,11 +81,11 @@ stays byte-identical and there is no extra dependency.
 Measured end to end, ~100 seconds total:
 
 ```
-01_audit_routes.py      42 s     streams all 9.2M rows, 19 of 47 columns
-02_extract_dir6.py      54 s     streams all 9.2M rows, all 47 columns
-03_prepare_weather.py    2 s
-04_join_weather.py       2 s
-05_gtfs_gate.py          1 s
+audit_route_selection.py      42 s     streams all 9.2M rows, 19 of 47 columns
+01_extract_dir6.py      54 s     streams all 9.2M rows, all 47 columns
+02_prepare_weather.py    2 s
+03_join_weather.py       2 s
+04_gtfs_gate.py          1 s
 ```
 
 Steps 1 and 2 are dominated by the time it takes to read the 3.7 GB file off
