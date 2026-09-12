@@ -1,131 +1,308 @@
-# MARL — Bus Scheduling Thesis (Group B3)
+# MARL Bus Scheduling — Group B3
 
-**Title:** An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus
-Scheduling Under Non-Ideal Conditions: A CapMetro Rapid Case Study
-**Institution:** University of Santo Tomas, ECE 21126
-**Status:** Undergraduate thesis proposal, ACCEPTED with major revisions.
-The original August 8, 2026 resubmission deadline has passed; the team must
-confirm the extension or replacement deadline.
+**An Evaluation of Multi-Agent Reinforcement Learning for Dynamic Bus Scheduling
+Under Non-Ideal Conditions: A CapMetro Rapid Case Study**
 
-**Current handoff:** [PROGRESS.md](PROGRESS.md) is the live next-step tracker.
-For a complete explanation of every change from Khalil's main branch, including
-the RTC resolutions and their justification, read
-[CHANGE_REPORT_FROM_KHALIL_MARL_AND_RTC.md](CHANGE_REPORT_FROM_KHALIL_MARL_AND_RTC.md).
-The original audit is in [AUDIT_REPORT_2026-08-23.md](AUDIT_REPORT_2026-08-23.md);
-the Texas implementation and follow-up status are in
-[RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md](RE_AUDIT_TEXAS_CAPMETRO_2026-08-23.md).
-
-This repository holds the LaTeX manuscript **and** a structured workflow for
-using an AI coding assistant (Claude Code, or similar) to carry out the
-panel's requested revisions accurately, with every change tracked and every
-factual claim checkable against its source.
+University of Santo Tomas · ECE 21126
+Badal · Lopez · Mananguit · Marquez · Medenilla
+Adviser: Asst. Prof. Kanny Krizzy D. Serrano, MSc
 
 ---
 
-## Start here if you're an AI assistant
+## 1. What we are doing, in plain English
 
-Read these three files, in order, before touching anything:
+Buses on a frequent route bunch up. One falls slightly behind, picks up the
+passengers the bus in front would have taken, falls further behind, and soon two
+buses arrive together followed by a long gap. Passengers wait longer even though
+the same number of buses are running.
 
-1. **[`CLAUDE.md`](CLAUDE.md)** — the full rulebook. No data fabrication, no
-   citation fabrication, how the revision queue works, how to log changes,
-   what's currently blocked and why. This is the actual instruction set;
-   everything below is just a map to help you navigate faster.
-2. **[`REVISION_QUEUE.md`](REVISION_QUEUE.md)** — the live task list. Every
-   panel comment is a checkbox item with file/section/instruction/constraint.
-   Check this for current status before assuming anything is done or pending.
-3. **[`RTC_DECISION_LETTER.md`](RTC_DECISION_LETTER.md)** — the verbatim,
-   unedited panel feedback email. This is the source of truth if anything
-   else (including your own memory of a prior session) seems to disagree
-   with what the panel actually asked for.
+The usual fix is a **holding rule**: make an early bus wait a few seconds at a
+stop so the spacing evens out. Those rules are simple and fixed.
 
-Then, before claiming a task complete, check **[`TRACKER.md`](TRACKER.md)**
-for what's already been logged, and consult **[`RRL/sources.md`](RRL/sources.md)**
-before trusting any specific factual claim attributed to a citation — several
-have already been found wrong by checking against the actual source PDFs
-(see the "Source Verification" entries in `TRACKER.md`).
+**We are testing whether a machine-learning controller can do it better** — one
+that watches the gap ahead, the gap behind, how full the bus is, and how many
+people are waiting, and then decides how long to hold. Each bus is its own agent,
+and they all share one learned policy.
 
-## Start here if you're a human contributor
+The point of the thesis is the **"non-ideal conditions"** part: does the learned
+controller still hold up when it rains, when a crowd surges, when a bus breaks
+down?
 
-Same files, different angle: `REVISION_QUEUE.md` records all 22 RTC text items
-as resolved. `PROGRESS.md` now separates that close-out from the work still
-needed for implementation: historical operations sources, justified scenario
-values, calibration, experiments, and a final Overleaf compile. All active
-logos and figures are now version-controlled under `Figures/`; see
-`Figures/ASSET_PROVENANCE.md` for their source and adaptation record.
-`AUDIT_TRAIL_READABLE.md` is the fastest way to see what an AI session
-actually changed in plain English, without reading raw LaTeX diffs.
+**Case study:** CapMetro Rapid Route 801 in Austin, Texas, direction code 6,
+using six months of real automatic-passenger-counter (APC) data, July–December
+2021.
 
 ---
 
-## Repository map
+## 2. Where we are right now
 
-**Manuscript source** (what compiles into the actual thesis):
-```
-main.tex            preamble, \input list — do not restructure
-title.tex            title page
-introduction.tex     Chapter 1 — Introduction and Literature Review
-problem.tex          Chapter 2 — Problem Statement
-methods.tex          Chapter 3 — Methods and Research Design
-results.tex          Chapter 4 (not yet written — commented out of main.tex)
-discussion.tex       Chapter 5 (not yet written — commented out of main.tex)
-futurework.tex       (not yet written — commented out of main.tex)
-appendix.tex         (not yet written — commented out of main.tex)
-ai_declaration.tex   AI-use declaration (currently empty)
-thesis_refs.bib      bibliography
-```
+| | Status |
+|---|---|
+| Proposal | Defended, revised, submitted 2026-08-29 |
+| Dataset acquired and cleaned | **Done** — 229,421 stop events, checksummed |
+| Weather joined | **Done** — 100% of events matched to NOAA |
+| Corridor built in SUMO | **Done** — 26 stops, real road geometry |
+| Corridor calibrated | **Done** — RMSPE 0.75%, GEH < 5 on 25/25 segments |
+| Baseline controllers (NC / FH / EH) | **Done** — 30 Monte Carlo runs per cell |
+| MARL agent | **Built, trained once, plateaued.** The critical path |
+| Results / Discussion chapters | **Not written** |
 
-**Texas public-data implementation:**
-```
-config/texas_capmetro_801.json       approved case-study and source gates
-scripts/texas_capmetro_pipeline.py   reproducible APC/NOAA acquisition + audit
-data/README.md                       local data layout and reproduction command
-data/audit/texas_capmetro/           compact queries, checksums, and evidence
-```
+**Milestones**
 
-**Revision workflow** (how the manuscript gets edited, and how that's tracked):
-```
-CLAUDE.md                  rules and process for an AI revision agent
-REVISION_QUEUE.md          live task list, one checkbox per panel comment
-TRACKER.md                 per-task change log + conformity-table rows
-AUDIT_TRAIL.md             before/after LaTeX diffs, Overleaf-facing
-AUDIT_TRAIL_READABLE.md    same diffs, plain English, easier to skim
-RTC_DECISION_LETTER.md     verbatim panel feedback (source of truth)
-```
+| | When | Scope |
+|---|---|---|
+| MSA1 | Sep 7–12, 2026 | Dataset + corridor + calibration only |
+| MSA2 | Oct 5–10, 2026 | Empirical extraction, disturbances, MARL formulation |
+| MSA3 | Nov 23–28, 2026 | Training and evaluation |
 
-**Citation verification** (checking that what the manuscript says a paper
-found is actually what that paper found):
-```
-RRL/                local copies of cited papers, gitignored (copyrighted,
-                     not pushed — see RRL/.gitignore rule in the root .gitignore)
-RRL/sources.md       maps bib keys to local PDF filenames, tracks which
-                     citations have actually been checked against source text
-                     vs. only filename-matched
-```
-
-**Not tracked by this workflow:** the conformity-of-revisions document itself
-(a Word/PDF form signed by the thesis adviser) lives outside this repo's
-scope — `TRACKER.md`'s conformity-table rows are meant to be copy-pasted into
-that form, not a replacement for it.
+Poster and paper due **Dec 5, 2026**. Results this semester are **preliminary**;
+final results run Jan–Apr 2027.
 
 ---
 
-## Why this workflow exists
+## 3. The mental model — the whole project is one line
 
-Early in this revision process, an AI session drafted a "Dataset Description"
-section using placeholder-tagged numbers but confidently-worded qualitative
-claims about a dataset the group doesn't actually have access to yet. It was
-caught and reverted before commit (see `TRACKER.md`, "Reverted Work"), but it's
-the reason `CLAUDE.md` has explicit rules against describing anything the
-group hasn't verified firsthand — and the reason `RRL/sources.md` exists:
-a separate pass through the same manuscript found citations that misstated
-what their source papers actually said (a "freeway" that was really an
-arterial road, a comparison to continuous action spaces that doesn't exist
-in the cited paper, a clip range attributed to the wrong source paper). Both
-kinds of mistakes are easy for an AI to make confidently and hard to catch
-without deliberately checking. The queue/tracker/audit-trail/source-index
-system exists to make that checking systematic instead of hopeful.
+```
+  THE RAW FILE          3.7 GB, 9,197,694 rows, every CapMetro route
+        |
+        |   scripts/pipeline/     keep only 801 direction 6; attach weather
+        v
+  CLEAN DATA            229,421 stop events, each with a weather reading
+        |
+        |   starter/scripts/      average each stop; build the road; calibrate
+        v
+  SIMULATED CORRIDOR    26 stops in SUMO, real geometry, real travel times
+        |
+        |   starter/envs/         drive buses down it; add rain/surges/breakdowns
+        |   starter/agents/       let the agent decide when to hold
+        v
+  RESULTS               how bunched were the buses?  ->  figures  ->  slides
+```
 
-## Deadline
+**`scripts/` is the data half. `starter/` is the simulation half.**
+That one sentence explains most of this repository.
 
-The original revised-proposal deadline was **August 8, 2026**, per
-`RTC_DECISION_LETTER.md`. The team must confirm the replacement deadline.
+---
+
+## 4. What we have found so far
+
+Baseline comparison, 30 paired Monte Carlo runs per cell. Lower headway CV =
+more evenly spaced buses = better.
+
+| Scenario | No Control | Forward-Headway | Even-Headway |
+|---|---|---|---|
+| Stage A — demand + traffic | 0.331 | **0.237** (−28%) | 0.271 (−18%) |
+| + surge | 0.364 | **0.304** (−17%) | 0.316 (−13%) |
+| + weather | 0.977 | 0.918 (−6%, n.s.) | 0.893 (−9%, n.s.) |
+| + breakdown | 0.442 | **0.365** (−17%) | 0.376 (−15%) |
+| Stage B — everything at once | 0.941 | 0.929 (−1%, n.s.) | 0.929 (−1%, n.s.) |
+
+**The finding that motivates the whole thesis:** simple holding rules work under
+mild disturbance and **stop working under severe disturbance** — under weather
+and under everything-at-once, the confidence intervals span zero. That gap is
+what the MARL controller is supposed to fill.
+
+**Where the MARL agent stands:** trained for 286 episodes. Greedy evaluation went
+`0.244 → 0.255 → 0.235 → 0.234 → 0.251 → 0.251 → 0.228` — i.e. it learned
+something by episode 40 (roughly matching Forward-Headway) and then **flat for
+240 episodes.** Diagnosing that plateau is MSA2's main job. No checkpoint was
+saved from that run.
+
+⚠️ **Read `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md` before trusting
+the numbers above.** The simulator was parameterised with a scheduled headway of
+300 s; the real 2021 published headway is 600 s. Everything scaled by that value
+has to be re-run. The calibration results are unaffected.
+
+---
+
+## 5. Where everything lives
+
+### The manuscript
+
+```
+main.tex           preamble and \input list — do not restructure
+title.tex          title page
+introduction.tex   Ch 1 — Introduction and Literature Review   (6,874 words) OURS
+problem.tex        Ch 2 — Problem Statement                    (1,694 words) OURS
+methods.tex        Ch 3 — Methods and Research Design         (10,341 words) OURS
+thesis_refs.bib    bibliography
+Figures/           figures used by the manuscript
+```
+
+🚨 **`results.tex`, `discussion.tex` and `futurework.tex` are NOT OURS.**
+They are leftover template text from an unrelated neuroscience thesis — a
+calcium-imaging pipeline called *NeuroSEE*, mouse models, Alzheimer's. 3,751
+words of it. They are commented out of `main.tex` so they have never compiled,
+but **do not read them expecting our work, and do not edit them — delete and
+rewrite.**
+
+### The data half — `scripts/`
+
+Raw download through cleaned data with weather attached. **This is what MSA1
+presents.** Detail in [`scripts/pipeline/README.md`](scripts/pipeline/README.md).
+
+```
+scripts/pipeline/
+    common.py               shared tools: downloads, checksums, the six cleaning rules
+    01_audit_routes.py      Route 801 vs 803; produces the cleaning-funnel numbers
+    02_download_dir6.py     the 229,421-row study set        <- THE STUDY SET
+    03_prepare_weather.py   NOAA download + timezone correction
+    04_join_weather.py      attaches a weather reading to every stop event
+    05_gtfs_gate.py         records why we may not call direction 6 "southbound"
+    run_all.py              runs 01 through 05 in order
+
+scripts/texas_capmetro_pipeline.py
+    The OLD version: all five steps in one 900-line file. Still works, still
+    correct. Kept until the team has run the split version. Then delete.
+```
+
+### The simulation half — `starter/`
+
+```
+starter/envs/
+    corridor_sim.py      THE HEART. drives buses down the corridor.
+                         every experiment in the project calls this one file.
+    obs.py               the 7 numbers a bus "sees"
+    reward.py            the 3 penalties that score the agent
+    marl_env.py          glues the neural network into corridor_sim
+    bus_env.py           older wrapper, superseded by corridor_sim
+
+starter/agents/ddqn.py             the neural network
+starter/baselines/even_headway.py  the simple rule we compare against
+
+starter/scripts/
+    extract_sim_inputs.py   229,421 rows -> 29 stops x 6 average numbers
+    extract_route_shape.py  the real road path, from OpenStreetMap
+    build_real_net.py       builds the SUMO road network
+    calibrate_corridor.py   tunes speeds until sim time = real time
+    verify_real_net.py      checks real-road and straight-line agree
+    run_baseline.py         runs with no disturbances
+    run_disturbances.py     runs with rain / surges / breakdowns
+    mc.py                   runs it 30 times and averages
+    train_marl.py           trains the agent
+    eval_marl.py            tests a trained agent
+    watch.py                opens sumo-gui so you can watch buses move
+    figures*.py, marey.py, plot_curve.py, convergence.py, degradation.py
+                            chart generation (_figstyle.py holds shared styling)
+
+starter/corridor.txt     the 26 modelled stops, in order
+starter/sim_inputs/      the per-stop averages and coordinates
+starter/sumo/            the road networks
+starter/results/         calibration.csv, mc_results.csv, mc_summary.md, figures/
+starter/experiments/     training runs (gate1 = the 286-episode run)
+```
+
+### Data and evidence
+
+```
+config/texas_capmetro_801.json
+    EVERY TUNABLE VALUE lives here — routes, direction code, study dates, NOAA
+    stations, the 90-minute join tolerance. Change this file, not the code.
+
+data/raw/         downloads — git-ignored, too big to commit
+data/processed/   normalized weather — git-ignored
+data/audit/       THE EVIDENCE. checksums, queries, row counts. committed.
+                  every number in the deck traces to a file in here.
+```
+
+### Documents and history
+
+```
+docs/planning/    roadmaps, experiment plans, the GTFS change list
+docs/progress/    per-milestone write-ups, the replication guide, demo runbook
+docs/prompts/     reusable audit and verification prompts
+reports/          reference and dataset audit reports
+submissions/      FROZEN as-submitted checkpoints — do not edit
+RRL/sources.md    maps bib keys to source PDFs (the PDFs live outside the repo)
+CLAUDE.md         the no-fabrication rules for AI sessions
+```
+
+---
+
+## 6. How to run things
+
+```bash
+# the whole data pipeline (asks the Texas portal; reuses local files if present)
+python scripts/pipeline/run_all.py
+
+# same thing offline, from the local 3.7 GB snapshot — no network at all
+python scripts/pipeline/01_audit_routes.py --local
+python scripts/pipeline/02_download_dir6.py --local
+
+# calibrate the corridor
+python starter/scripts/calibrate_corridor.py
+
+# baselines, 30 seeds, parallel
+python starter/scripts/mc.py 30 4
+
+# watch buses move (needs SUMO installed and SUMO_HOME set)
+python starter/scripts/watch.py EH Weather+Breakdown
+```
+
+Re-running the pipeline is cheap and safe: every download checks for a local copy
+first and records `"reused_existing_file": true` instead of fetching again.
+
+**Requirements:** Python 3.12 · `pandas numpy torch pettingzoo gymnasium` ·
+SUMO with `SUMO_HOME` set for anything under `starter/`.
+
+---
+
+## 7. Things that will confuse you (they confused us)
+
+**1. Three `.tex` chapters are someone else's thesis.** See the warning in §5.
+
+**2. There are two folders on the Desktop.** `THESIS/MARL/` is this repo and is
+canonical for all code. `THESIS Claude/` is a workspace holding the report and
+deck generators (`dstyle.py`, `make_msa1*.py`) plus `starter_kit/` — an
+**outdated copy** of `starter/`, missing three figure scripts and stale on five
+more. Ignore `starter_kit/`.
+
+**3. The cleaning rules are implemented three times, on purpose.**
+As a text query the Texas portal runs (`clean_where`), as a Python function for
+the offline path (`passes_clean_rules`), and in pandas inside
+`extract_sim_inputs.py`. All three produce 229,421 rows — that agreement is a
+cross-check, not a bug. The **canonical** one for anything quoted in the
+manuscript is `clean_where()`.
+
+**4. "Direction 6" is a vendor software code, not a compass direction.** The APC
+file has no headsigns and no stop names. It is almost certainly southbound
+(Tech Ridge → Southpark Meadows, corroborated by overlaying our stop IDs on the
+current GTFS feed), but the 2021 schedule snapshot needed to state it as fact is
+not publicly archived. See `data/audit/texas_capmetro/GTFS_ACQUISITION_STATUS.md`.
+
+**5. Two files have "extract" in the name and do unrelated things.**
+`extract_sim_inputs.py` turns rows into per-stop averages.
+`extract_route_shape.py` pulls road geometry from OpenStreetMap.
+
+**6. `rev_seconds` already contains the stop's dwell time.** It is recorded
+door-open to door-open. Everywhere we need pure running time we compute
+`rev_seconds - dwell_time`, because dwell is modelled separately. Forgetting this
+double-counts.
+
+**7. `rev_distance` units are unresolved.** The APC metadata says miles or
+kilometres depend on an external odometer setting. Our corridor geometry comes
+from GPS coordinates instead, so nothing depends on it — but do not use it for
+speed without checking.
+
+---
+
+## 8. The rule that matters most
+
+**Never write a number you cannot trace to a file.**
+
+Every figure in the deck and manuscript comes from `data/audit/texas_capmetro/`
+or `starter/results/`. If you need a number, take it from there or regenerate it.
+Do not retype it off a slide.
+
+This is not paranoia — errors have been caught this way repeatedly: a raw row
+count with two digits transposed, citations that misstated what their source
+papers actually said, a stop dropped for the wrong reason. `CLAUDE.md` has the
+full rules; `reports/` has the audits.
+
+---
+
+## 9. Git
+
+Default branch `dataset/texas-capmetro-801`, remote **`jared`**
+(`Jrddlol2/MARL_THESIS_TEXASAPC_DATASET`). There is also an `origin` pointing at
+`khalil-badal/MARL` — do not push there by accident.
