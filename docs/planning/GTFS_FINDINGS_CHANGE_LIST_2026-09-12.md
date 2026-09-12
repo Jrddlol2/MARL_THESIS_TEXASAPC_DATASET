@@ -63,6 +63,23 @@ July 2021 = `8dfd88258b3b8f8288e5c23498b77bb69dabb6534c10facab1617c8f18307c5f`.
 **Also:** `corridor.txt` — restore stop **6361** between 5872 and 5873. Corridor goes 26 → 27 stops.
 Re-check the control-stop indices afterwards; `CONTROL_STOPS = [0,1,5,17,20]` are positional.
 
+### A separate defect found 2026-09-12 (not H0-related)
+
+**The skip action is not implemented.** `corridor_sim.py:134` reads
+`hold, _skip = decide(obs)` -- the controller's skip return value is discarded.
+The file's own docstring (L12-13) says skip "takes effect if the caller enabled
+skipping (SKIP_ENABLED)", but **`SKIP_ENABLED` does not exist anywhere in the
+repository** (confirmed by grep).
+
+So actions 5-9 of the declared 10-action space behave identically to 0-4 inside
+the simulator. Nothing is wrong today, because `marl_env.Config.skip_enabled`
+defaults to `False` and the controller masks skip to 0 before returning. But the
+moment MSA2 enables skipping, the agent will emit skips the simulator ignores,
+and "skip has no effect" will look like a reward-tuning problem for however long
+it takes to find this line.
+
+Fix before enabling skip. See `docs/reference/CODE_WALKTHROUGH_SIMULATOR.md`.
+
 ### Three consequences that are easy to miss
 
 **1. The observation vector rescales.** `obs.py:25-26` normalises `hf/H0` and `hb/H0`. Doubling `H0`
