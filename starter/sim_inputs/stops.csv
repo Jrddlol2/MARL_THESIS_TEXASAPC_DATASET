@@ -1,4 +1,4 @@
-bs_id,seq,mean_boardings,mean_alightings,dwell_s,run_s,dist_m
+bs_id,seq,mean_boardings,mean_alightings,dwell_s,run_s,dist_mi
 5304,2.0,6.15,0.26,781.0,586.0,1.88
 5280,3.0,1.39,0.43,15.0,370.0,2.15
 5858,4.0,1.98,0.39,17.0,119.0,0.56
