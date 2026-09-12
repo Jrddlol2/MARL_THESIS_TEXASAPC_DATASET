@@ -7,8 +7,11 @@ WHAT THIS STEP ANSWERS
     "Was it raining when this bus stopped here?" -- for all 229,421 events.
 
 THE METHOD
-    For each APC stop event, find the NOAA observation CLOSEST IN TIME, and
-    accept it if it is within 90 minutes.
+    pandas.merge_asof: for each APC stop event, take the NOAA observation
+    CLOSEST IN TIME, and accept it only if it is within 90 minutes.
+
+    merge_asof is the standard tool for exactly this job -- joining two
+    time-ordered tables on "nearest time" rather than on an exact key.
 
 WHY 90 MINUTES
     It is a coverage guarantee, not a modelling choice.
@@ -25,22 +28,15 @@ WHY 90 MINUTES
     The value lives in config/texas_capmetro_801.json as
     weather.nearest_join_tolerance_minutes -- change it there, not here.
 
-TWO THINGS WORTH UNDERSTANDING IN THE CODE BELOW
+THE ONE SUBTLE BIT: DST AMBIGUITY
+    On 7 November 2021 the hour 01:00-02:00 happened TWICE in Austin. A bare
+    APC timestamp inside that hour is genuinely ambiguous.
 
-  1. DST AMBIGUITY (parse_apc_datetime)
-     On 7 November 2021 the hour 01:00-02:00 happened TWICE in Austin. A bare
-     APC timestamp in that hour is genuinely ambiguous. We detect it by
-     building the datetime twice -- once with fold=0 and once with fold=1 --
-     and comparing the UTC offsets. If they differ, the timestamp is in the
-     repeated hour. We then use fold=0 (the first pass) and COUNT how many
-     rows this affected, rather than silently guessing.
-
-  2. BINARY SEARCH (nearest_weather)
-     Observations are kept in a time-sorted list, so bisect can jump straight
-     to the insertion point and we only ever compare the two neighbours.
-     That is O(log n) per event. A naive "check every observation" search
-     would be 229,421 x 6,484 = about 1.5 billion comparisons; this is a few
-     million and finishes in seconds.
+    We localize twice -- once assuming the first pass through the hour
+    (ambiguous=True, i.e. still on daylight time) and once assuming the second
+    (ambiguous=False) -- and count the rows where those two give different UTC
+    instants. Those are the ambiguous ones. We then use the first pass, and
+    report the count, rather than silently guessing.
 
 WHAT THIS STEP DOES *NOT* ESTABLISH
     It reports the pooled median segment time on dry vs rainy events
@@ -63,200 +59,156 @@ RUN      python scripts/pipeline/04_join_weather.py
 from __future__ import annotations
 
 import argparse
-import bisect
-import csv
 import math
-import statistics
 import sys
-from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from zoneinfo import ZoneInfo
+
+import numpy as np
+import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
-    AUDIT_DIR,
-    PROCESSED_DIR,
-    ROOT,
-    UTC,
-    ensure_dirs,
-    load_config,
-    safe_float,
-    sha256_file,
-    write_json,
-    write_text,
+    AUDIT_DIR, PROCESSED_DIR, ROOT, UTC,
+    ensure_dirs, load_config, require_file, sha256_file, write_json, write_text,
 )
 
 
-def parse_apc_datetime(value: str, austin: ZoneInfo) -> tuple[datetime, bool]:
-    """Read a compact APC timestamp (YYYYMMDDHHMMSS) as an Austin wall-clock time.
-
-    Returns (utc_instant, is_dst_ambiguous).
+def load_apc_events(path: Path, timezone_name: str) -> tuple[pd.DataFrame, int]:
+    """Read the study set and put its timestamps on an unambiguous UTC clock.
 
     The APC file has NO timezone column, so reading these as Austin local time
     is an explicit assumption -- documented as such in the manuscript, not
-    presented as fact. It is corroborated by the fact that the observed service
-    window in the data (roughly 04:00-24:00) matches the published timetable's
-    5 AM - 12:30 AM span; a UTC reading would displace it by five to six hours.
+    presented as fact. It is corroborated by the observed service window in the
+    data (roughly 04:00-24:00) matching the published timetable's 5 AM-12:30 AM
+    span; a UTC reading would displace it by five to six hours.
+
+    Returns (events, dst_ambiguous_count).
     """
-    naive = datetime.strptime(value, "%Y%m%d%H%M%S")
-    first = naive.replace(tzinfo=austin, fold=0)
-    second = naive.replace(tzinfo=austin, fold=1)
-    ambiguous = first.utcoffset() != second.utcoffset()
-    return first.astimezone(UTC), ambiguous
+    events = pd.read_csv(
+        path, usecols=["apc_date_time", "rev_seconds", "rev_distance"], dtype=str
+    )
+    naive = pd.to_datetime(events["apc_date_time"], format="%Y%m%d%H%M%S", errors="coerce")
+
+    # See "THE ONE SUBTLE BIT" above: localize both ways, and where the two
+    # disagree the timestamp fell inside the repeated fall-back hour.
+    first_pass = naive.dt.tz_localize(timezone_name, ambiguous=True, nonexistent="shift_forward")
+    second_pass = naive.dt.tz_localize(timezone_name, ambiguous=False, nonexistent="shift_forward")
+    dst_ambiguous = int((first_pass != second_pass).sum())
+
+    events["event_time"] = first_pass.dt.tz_convert("UTC")
+    for column in ("rev_seconds", "rev_distance"):
+        events[column] = pd.to_numeric(events[column], errors="coerce")
+
+    return events, dst_ambiguous
 
 
-def load_weather_index(path: Path) -> tuple[list[float], list[dict[str, str]]]:
-    """Load one station's observations into a parallel pair of lists.
+def load_weather(station_key: str) -> pd.DataFrame:
+    """Read one station's normalized observations, sorted by time for merge_asof."""
+    path = require_file(
+        PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv",
+        f"the normalized weather table for {station_key} (run 03_prepare_weather.py first)",
+    )
+    weather = pd.read_csv(path, usecols=["timestamp_utc", "rain_flag"])
+    weather["obs_time"] = pd.to_datetime(weather["timestamp_utc"], utc=True)
+    return weather[["obs_time", "rain_flag"]].sort_values("obs_time").reset_index(drop=True)
 
-    instants[i] is the UTC epoch second of rows[i]. Keeping the times in their
-    own sorted list is what makes the binary search below possible.
+
+def join_nearest(events: pd.DataFrame, weather: pd.DataFrame, tolerance: pd.Timedelta,
+                 suffix: str) -> pd.DataFrame:
+    """Attach each event's nearest observation within `tolerance`.
+
+    Unmatched events get NaN, which is how we measure coverage.
     """
-    rows: list[dict[str, str]] = []
-    instants: list[float] = []
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        for row in csv.DictReader(handle):
-            instants.append(datetime.fromisoformat(row["timestamp_utc"]).timestamp())
-            rows.append(row)
-    return instants, rows
-
-
-def nearest_weather(
-    target: float, instants: list[float], rows: list[dict[str, str]], tolerance_seconds: int
-) -> tuple[dict[str, str] | None, float | None]:
-    """Find the observation closest in time to `target`, or None if too far away.
-
-    bisect_left finds where `target` would slot into the sorted list; the
-    nearest observation is therefore one of the two entries either side.
-    """
-    index = bisect.bisect_left(instants, target)
-    candidates = [candidate for candidate in (index - 1, index) if 0 <= candidate < len(instants)]
-    if not candidates:
-        return None, None
-    best = min(candidates, key=lambda candidate: abs(instants[candidate] - target))
-    delta = abs(instants[best] - target)
-    if delta > tolerance_seconds:
-        return None, delta
-    return rows[best], delta
+    joined = pd.merge_asof(
+        events.sort_values("event_time"),
+        weather.rename(columns={"obs_time": f"obs_time_{suffix}",
+                                "rain_flag": f"rain_{suffix}"}),
+        left_on="event_time",
+        right_on=f"obs_time_{suffix}",
+        direction="nearest",
+        tolerance=tolerance,
+    )
+    joined[f"delta_min_{suffix}"] = (
+        (joined["event_time"] - joined[f"obs_time_{suffix}"]).abs().dt.total_seconds() / 60
+    )
+    return joined
 
 
 def audit_weather_join(config: dict[str, Any]) -> dict[str, Any]:
-    primary_path = ROOT / config["apc"]["raw_output"]
-    if not primary_path.exists():
-        raise FileNotFoundError(
-            f"Primary APC subset is missing: {primary_path}. Run 02_download_dir6.py first."
-        )
+    apc_path = require_file(
+        ROOT / config["apc"]["raw_output"],
+        "the direction-6 study set (run 02_extract_dir6.py first)",
+    )
+    tolerance_minutes = int(config["weather"]["nearest_join_tolerance_minutes"])
+    tolerance = pd.Timedelta(minutes=tolerance_minutes)
 
-    primary_weather_path = PROCESSED_DIR / "weather_camp_mabry_2021_jul_dec.csv"
-    secondary_weather_path = PROCESSED_DIR / "weather_bergstrom_2021_jul_dec.csv"
-    if not primary_weather_path.exists() or not secondary_weather_path.exists():
-        raise FileNotFoundError(
-            "Normalized weather files are missing. Run 03_prepare_weather.py first."
-        )
+    events, dst_ambiguous = load_apc_events(apc_path, config["study"]["timezone"])
+    apc_rows = len(events)
 
-    primary_instants, primary_rows = load_weather_index(primary_weather_path)
-    secondary_instants, secondary_rows = load_weather_index(secondary_weather_path)
+    # --- the two joins: primary station, then the sensitivity cross-check ----
+    joined = join_nearest(events, load_weather("camp_mabry"), tolerance, "primary")
+    joined = join_nearest(joined, load_weather("bergstrom"), tolerance, "secondary")
 
-    austin = ZoneInfo(config["study"]["timezone"])
-    tolerance_seconds = int(config["weather"]["nearest_join_tolerance_minutes"]) * 60
+    matched = joined["rain_primary"].notna()
+    primary = joined[matched]
 
-    counts: dict[str, int] = defaultdict(int)
-    join_deltas: list[float] = []
-    wet_segment_seconds: list[float] = []
-    dry_segment_seconds: list[float] = []
+    # --- coverage and how close the matches actually were --------------------
+    deltas = primary["delta_min_primary"].to_numpy()
+    # NB: the p95 here is the plain order statistic used since the first audit
+    # (ceil(0.95 n)-th value), NOT pandas' interpolated quantile.
+    p95 = float(np.sort(deltas)[max(0, math.ceil(0.95 * len(deltas)) - 1)]) if len(deltas) else None
 
-    # ---- one streamed pass over all 229,421 stop events --------------------
-    with primary_path.open("r", encoding="utf-8-sig", newline="") as handle:
-        for row in csv.DictReader(handle):
-            counts["apc_rows"] += 1
+    rain = primary["rain_primary"].astype(int)
+    both_matched = primary["rain_secondary"].notna()
+    agree = int((rain[both_matched] == primary.loc[both_matched, "rain_secondary"]).sum())
 
-            raw_timestamp = row.get("apc_date_time", "")
-            try:
-                instant, ambiguous = parse_apc_datetime(raw_timestamp, austin)
-            except ValueError:
-                counts["invalid_apc_timestamp"] += 1
-                continue
-            if ambiguous:
-                counts["dst_ambiguous_apc_rows_fold0_used"] += 1
+    counts = {
+        "apc_rows": apc_rows,
+        "primary_matched": int(matched.sum()),
+        "primary_rain_exposed_rows": int(rain.sum()),
+        "secondary_matched": int(both_matched.sum()),
+        "station_rain_flag_agreement": agree,
+        "station_rain_flag_disagreement": int(both_matched.sum()) - agree,
+    }
+    if dst_ambiguous:
+        counts["dst_ambiguous_apc_rows_fold0_used"] = dst_ambiguous
+    if apc_rows - int(matched.sum()):
+        counts["primary_unmatched"] = apc_rows - int(matched.sum())
 
-            target = instant.timestamp()
+    # --- the descriptive wet/dry comparison (NOT a causal effect) -------------
+    # only segments with BOTH positive time and positive distance
+    usable = primary[(primary["rev_seconds"] > 0) & (primary["rev_distance"] > 0)]
+    wet = usable.loc[usable["rain_primary"] == 1, "rev_seconds"]
+    dry = usable.loc[usable["rain_primary"] == 0, "rev_seconds"]
 
-            # ---- primary station (Camp Mabry) ------------------------------
-            primary_weather, delta = nearest_weather(
-                target, primary_instants, primary_rows, tolerance_seconds
-            )
-            if primary_weather is None:
-                counts["primary_unmatched"] += 1
-                continue
-            counts["primary_matched"] += 1
-            assert delta is not None
-            join_deltas.append(delta / 60)  # seconds -> minutes
-
-            primary_rain = int(primary_weather["rain_flag"])
-            counts["primary_rain_exposed_rows"] += primary_rain
-
-            # ---- collect segment times for the descriptive comparison ------
-            # only segments with BOTH positive time and positive distance
-            seconds = safe_float(row.get("rev_seconds"))
-            distance = safe_float(row.get("rev_distance"))
-            if seconds is not None and distance is not None and seconds > 0 and distance > 0:
-                (wet_segment_seconds if primary_rain else dry_segment_seconds).append(seconds)
-
-            # ---- secondary station (Bergstrom), as a cross-check -----------
-            secondary_weather, _ = nearest_weather(
-                target, secondary_instants, secondary_rows, tolerance_seconds
-            )
-            if secondary_weather is not None:
-                counts["secondary_matched"] += 1
-                secondary_rain = int(secondary_weather["rain_flag"])
-                if secondary_rain == primary_rain:
-                    counts["station_rain_flag_agreement"] += 1
-                else:
-                    counts["station_rain_flag_disagreement"] += 1
-
-    # ---- summarise ---------------------------------------------------------
-    apc_rows = counts["apc_rows"]
-    primary_matched = counts["primary_matched"]
-    secondary_matched = counts["secondary_matched"]
-    join_coverage = primary_matched / apc_rows if apc_rows else 0
-    rain_sample = counts["primary_rain_exposed_rows"]
-
+    join_coverage = counts["primary_matched"] / apc_rows if apc_rows else 0
     # The feasibility rule was declared BEFORE seeing the result.
-    feasible = join_coverage >= 0.95 and rain_sample >= 1000
+    feasible = join_coverage >= 0.95 and counts["primary_rain_exposed_rows"] >= 1000
 
     evidence = {
         "generated_utc": datetime.now(UTC).isoformat(),
-        "apc_subset_sha256": sha256_file(primary_path),
+        "apc_subset_sha256": sha256_file(apc_path),
         "apc_timestamp_interpretation": config["apc"]["timestamp_assumption"],
         "dst_policy": (
             "APC wall-clock timestamps are localized to America/Chicago. Ambiguous fall-back "
             "timestamps use fold=0 and are counted explicitly. NOAA local-standard timestamps "
             "are converted from fixed UTC-06:00 to America/Chicago before matching."
         ),
-        "join_method": f"nearest NOAA observation within {tolerance_seconds // 60} minutes",
+        "join_method": f"nearest NOAA observation within {tolerance_minutes} minutes",
         "counts": dict(sorted(counts.items())),
         "primary_join_coverage_percent": round(100 * join_coverage, 3),
-        "secondary_join_coverage_percent": round(100 * secondary_matched / apc_rows, 3)
-        if apc_rows
-        else 0,
-        "median_absolute_join_delta_minutes": round(statistics.median(join_deltas), 3)
-        if join_deltas
-        else None,
-        "p95_absolute_join_delta_minutes": round(
-            sorted(join_deltas)[max(0, math.ceil(0.95 * len(join_deltas)) - 1)], 3
-        )
-        if join_deltas
-        else None,
+        "secondary_join_coverage_percent": round(100 * counts["secondary_matched"] / apc_rows, 3)
+        if apc_rows else 0,
+        "median_absolute_join_delta_minutes": round(float(np.median(deltas)), 3)
+        if len(deltas) else None,
+        "p95_absolute_join_delta_minutes": round(p95, 3) if p95 is not None else None,
         "descriptive_unadjusted_segment_medians": {
-            "dry_positive_time_distance_segments": len(dry_segment_seconds),
-            "rain_positive_time_distance_segments": len(wet_segment_seconds),
-            "dry_median_rev_seconds": round(statistics.median(dry_segment_seconds), 3)
-            if dry_segment_seconds
-            else None,
-            "rain_median_rev_seconds": round(statistics.median(wet_segment_seconds), 3)
-            if wet_segment_seconds
-            else None,
+            "dry_positive_time_distance_segments": len(dry),
+            "rain_positive_time_distance_segments": len(wet),
+            "dry_median_rev_seconds": round(float(dry.median()), 3) if len(dry) else None,
+            "rain_median_rev_seconds": round(float(wet.median()), 3) if len(wet) else None,
             "warning": (
                 "These pooled medians are descriptive only and must not be interpreted as a "
                 "causal weather multiplier; segment, time-of-day, and day-type controls are required."
@@ -271,20 +223,18 @@ def audit_weather_join(config: dict[str, Any]) -> dict[str, Any]:
     }
     write_json(AUDIT_DIR / "weather_join_audit.json", evidence)
 
-    lines = [
+    write_text(AUDIT_DIR / "WEATHER_FEASIBILITY_EVIDENCE.md", "\n".join([
         "# Weather-join feasibility audit",
         "",
         f"- APC rows: {apc_rows:,}",
         f"- Camp Mabry join coverage: {evidence['primary_join_coverage_percent']}%",
         f"- Austin-Bergstrom sensitivity join coverage: {evidence['secondary_join_coverage_percent']}%",
-        f"- Rain-exposed APC rows at Camp Mabry: {rain_sample:,}",
-        f"- DST-ambiguous APC rows (fold=0 used): {counts['dst_ambiguous_apc_rows_fold0_used']:,}",
+        f"- Rain-exposed APC rows at Camp Mabry: {counts['primary_rain_exposed_rows']:,}",
+        f"- DST-ambiguous APC rows (fold=0 used): {dst_ambiguous:,}",
         f"- Ordinary-weather calibration feasible under the declared coverage rule: {'yes' if feasible else 'no'}",
         "",
         "The join is technically feasible if the rule above passes, but feasibility is not evidence of a causal rain effect. Any multiplier must be estimated with segment, time-of-day, and day-type controls. Severe weather remains a labeled synthetic stress test.",
-    ]
-    write_text(AUDIT_DIR / "WEATHER_FEASIBILITY_EVIDENCE.md", "\n".join(lines))
-
+    ]))
     return evidence
 
 
@@ -303,7 +253,7 @@ def main() -> int:
           f"(p95 {evidence['p95_absolute_join_delta_minutes']})")
     agree = counts["station_rain_flag_agreement"]
     total = agree + counts["station_rain_flag_disagreement"]
-    print(f"  two-station agree : {agree:,} / {total:,} ({100*agree/total:.1f}%)")
+    print(f"  two-station agree : {agree:,} / {total:,} ({100 * agree / total:.1f}%)")
     print(f"  feasible          : {evidence['ordinary_weather_calibration_feasible']}")
     return 0
 

@@ -4,19 +4,17 @@
     "bergstrom": {
       "bytes": 7645753,
       "path": "data/raw/noaa/LCD_USW00013904_2021.csv",
-      "reused_existing_file": false,
       "sha256": "fdd8c27f825fb077cb6b001e988fc87f398ab0ace985700ee564be2936db500e",
-      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv"
+      "source_url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv"
     },
     "camp_mabry": {
       "bytes": 8531389,
       "path": "data/raw/noaa/LCD_USW00013958_2021.csv",
-      "reused_existing_file": false,
       "sha256": "8d2aafedde6f78ef5eb0487053da180f3ced5562474e71b955808b1d2e04ac4b",
-      "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv"
+      "source_url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv"
     }
   },
-  "generated_utc": "2026-08-23T12:50:44.325919+00:00",
+  "generated_utc": "2026-09-12T06:35:38.959562+00:00",
   "normalization": "Interpret NOAA timestamps as fixed UTC-06:00 local standard time, then convert to America/Chicago. This shifts summer observations to daylight time while preserving their physical instants.",
   "product": "NOAA NCEI Local Climatological Data Version 2",
   "source_time_basis": "Local standard time (UTC-06:00) with no daylight-saving adjustment, per LCDv2 documentation",

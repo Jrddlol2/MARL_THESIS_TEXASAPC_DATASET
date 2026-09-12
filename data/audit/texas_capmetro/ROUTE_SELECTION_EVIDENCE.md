@@ -1,6 +1,6 @@
 # Reproduced Route 801 selection audit
 
-Generated from the official Socrata API at `2026-08-23T13:17:49.331805+00:00`.
+Generated at `2026-09-12T06:47:54.364638+00:00` by local extraction from the archived snapshot (no network).
 
 | Metric | Route 801 | Route 803 |
 |---|---:|---:|

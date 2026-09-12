@@ -1,6 +1,6 @@
 """
 =============================================================================
- STEP 3 OF 5  --  DOWNLOAD AND NORMALISE THE NOAA WEATHER OBSERVATIONS
+ STEP 3 OF 5  --  NORMALISE THE NOAA WEATHER OBSERVATIONS
 =============================================================================
 
 WHAT THIS STEP ANSWERS
@@ -50,11 +50,14 @@ DEDUPLICATION
     instant -- the one with the most fields populated, scored below -- so the
     nearest-observation search in Step 4 has no ties to break.
 
-INPUTS   config/texas_capmetro_801.json  (station ids and URLs)
-         the NOAA NCEI website            (network)
+    No network: it reads the NOAA files we already hold. See common.py for why,
+    and the README's "Getting the data" section for how to obtain them.
 
-OUTPUTS  data/raw/noaa/LCD_USW00013958_2021.csv        (raw, as downloaded)
-         data/raw/noaa/LCD_USW00013904_2021.csv
+INPUTS   data/raw/noaa/LCD_USW00013958_2021.csv   archived NOAA file, Camp Mabry
+         data/raw/noaa/LCD_USW00013904_2021.csv   archived NOAA file, Bergstrom
+         config/texas_capmetro_801.json           station ids and source URLs
+
+OUTPUTS
          data/processed/texas_capmetro/weather_camp_mabry_2021_jul_dec.csv
          data/processed/texas_capmetro/weather_bergstrom_2021_jul_dec.csv
          data/audit/texas_capmetro/weather_source_audit.json
@@ -68,7 +71,6 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
-import urllib.parse
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -82,7 +84,7 @@ from common import (  # noqa: E402
     RAW_NOAA_DIR,
     ROOT,
     UTC,
-    download_file,
+    require_file,
     ensure_dirs,
     first_value,
     load_config,
@@ -223,15 +225,22 @@ def normalize_weather_station(
     return output_path, audit
 
 
-def prepare_weather(config: dict[str, Any], *, force: bool = False) -> dict[str, Any]:
+def prepare_weather(config: dict[str, Any]) -> dict[str, Any]:
     weather = config["weather"]
     downloads: dict[str, Any] = {}
     stations: dict[str, Any] = {}
 
     for key, config_key in (("camp_mabry", "primary_station"), ("bergstrom", "secondary_station")):
         station = weather[config_key]
-        raw_path = RAW_NOAA_DIR / Path(urllib.parse.urlparse(station["url"]).path).name
-        downloads[key] = download_file(station["url"], raw_path, force=force)
+        # the archived file is named after the last segment of the source URL
+        raw_path = RAW_NOAA_DIR / station["url"].rsplit("/", 1)[-1]
+        require_file(raw_path, f"the NOAA raw file for {station['name']}")
+        downloads[key] = {
+            "source_url": station["url"],
+            "path": raw_path.relative_to(ROOT).as_posix(),
+            "bytes": raw_path.stat().st_size,
+            "sha256": sha256_file(raw_path),
+        }
         _, stations[key] = normalize_weather_station(key, station, raw_path)
 
     evidence = {
@@ -253,11 +262,10 @@ def prepare_weather(config: dict[str, Any], *, force: bool = False) -> dict[str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--force", action="store_true", help="redownload the NOAA files")
-    args = parser.parse_args()
+    parser.parse_args()
 
     ensure_dirs()
-    evidence = prepare_weather(load_config(), force=args.force)
+    evidence = prepare_weather(load_config())
 
     print("\nStep 3 complete.")
     for key, station in evidence["stations"].items():

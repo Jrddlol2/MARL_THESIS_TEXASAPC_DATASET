@@ -160,14 +160,14 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 
 | File | What it does |
 |---|---|
-| `pipeline/common.py` | Shared plumbing: paths, config loading, checksums, safe file writing, downloads, the Socrata paging loop, and **the six cleaning rules**. Does no processing itself |
+| `pipeline/common.py` | Shared plumbing: paths, config, checksums, safe file writing, reading the snapshot, and **the six cleaning rules**. Does no processing itself |
 | `pipeline/01_audit_routes.py` | Compares Route 801 against 803 and proves 801 has more usable data. **Produces the cleaning-funnel numbers on the slide** |
-| `pipeline/02_download_dir6.py` | Downloads the 229,421 clean rows. **← THE STUDY SET** |
-| `pipeline/03_prepare_weather.py` | Downloads both NOAA stations and fixes the local-standard-time offset |
+| `pipeline/02_extract_dir6.py` | Extracts the 229,421 clean rows from the snapshot. **← THE STUDY SET** |
+| `pipeline/03_prepare_weather.py` | Reads both NOAA files and fixes the local-standard-time offset |
 | `pipeline/04_join_weather.py` | Attaches the nearest weather reading to every stop event |
 | `pipeline/05_gtfs_gate.py` | Writes down why we may not yet call direction 6 "southbound" |
 | `pipeline/run_all.py` | Runs steps 01–05 in order |
-| `texas_capmetro_pipeline.py` | **The old version** — all five steps in one 900-line file. Still works. Delete once the team has run the split version |
+| `texas_capmetro_pipeline.py` | **Archived reference** — the original 900-line version, which downloads from the portal instead of reading local files. Kept in case the extraction ever needs re-verifying against the source |
 
 ### `starter/envs/` — the simulator core
 
@@ -254,8 +254,8 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 |---|---|
 | See the cleaning rules | `scripts/pipeline/common.py` → `clean_where()` |
 | See where 229,421 comes from | `data/audit/texas_capmetro/route_selection_audit.json` |
-| Re-download and re-verify the data | `python scripts/pipeline/run_all.py` |
-| Do the same with no internet | `python scripts/pipeline/01_audit_routes.py --local` |
+| Rebuild every evidence file | `python scripts/pipeline/run_all.py` |
+| Set up a new machine | README §8, "Getting the data" |
 | Understand the weather join | `scripts/pipeline/04_join_weather.py` (read the header) |
 | See the calibration result | `starter/results/calibration.csv` |
 | See the baseline results | `starter/results/mc_summary.md` |
@@ -267,7 +267,62 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 
 ---
 
-## 8. How to run things
+## 8. Getting the data (do this first on a new machine)
+
+The pipeline **never downloads anything** — it reads our archived copies. Those
+files are too big for git, so a fresh clone does not have them. You need three.
+
+### 1. The APC snapshot (3.7 GB)
+
+From the Texas Open Data portal, dataset **`im6q-3pc9`**:
+<https://data.texas.gov/dataset/APC-Raw-July-2021-December-2021/im6q-3pc9>
+
+Use the portal's Export button to download the full CSV, then save it as:
+
+```
+data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv
+```
+
+Verify before using it:
+
+```
+rows    9,197,694
+bytes   3,708,582,383
+sha256  4c2cb9c27355dd8fe1f94ae0d06bc12726c3860153b48ec7f6dad6b1142bc8f7
+```
+
+```bash
+sha256sum data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv
+```
+
+If the hash does not match, stop — do not run the pipeline on it.
+
+### 2. The two NOAA weather files (~16 MB total)
+
+```
+data/raw/noaa/LCD_USW00013958_2021.csv    Camp Mabry (primary)
+    https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013958_2021.csv
+    8,531,389 bytes · sha256 8d2aafedde6f78ef...
+
+data/raw/noaa/LCD_USW00013904_2021.csv    Austin-Bergstrom (cross-check)
+    https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv
+    7,645,753 bytes · sha256 fdd8c27f825fb077...
+```
+
+Full checksums are in `data/audit/texas_capmetro/weather_source_audit.json`.
+
+### 3. Nothing else
+
+Everything downstream is generated. Run `python scripts/pipeline/run_all.py`
+and the cleaned study set, the normalized weather tables and all the evidence
+files are rebuilt from these three inputs.
+
+**Faster option:** ask a teammate for the files directly rather than
+re-downloading 3.7 GB. Check the hashes either way.
+
+---
+
+## 9. How to run things
 
 ```bash
 # the whole data pipeline (asks the Texas portal; reuses local files if present)
@@ -287,15 +342,16 @@ python starter/scripts/mc.py 30 4
 python starter/scripts/watch.py EH Weather+Breakdown
 ```
 
-Re-running the pipeline is cheap and safe: every download checks for a local copy
-first and records `"reused_existing_file": true` instead of fetching again.
+Steps 1 and 2 each stream all 9.2 million rows, so each takes several minutes.
+Steps 3, 4 and 5 are fast. Re-running is safe — every output is rewritten from
+the same inputs.
 
 **Requirements:** Python 3.12 · `pandas numpy torch pettingzoo gymnasium` ·
 SUMO with `SUMO_HOME` set for anything under `starter/`.
 
 ---
 
-## 9. Things that will confuse you (they confused us)
+## 10. Things that will confuse you (they confused us)
 
 **1. Three `.tex` chapters are someone else's thesis.** See the warning in §5.
 
@@ -334,7 +390,7 @@ speed without checking.
 
 ---
 
-## 10. The rule that matters most
+## 11. The rule that matters most
 
 **Never write a number you cannot trace to a file.**
 
@@ -349,7 +405,7 @@ full rules; `reports/` has the audits.
 
 ---
 
-## 11. Git
+## 12. Git
 
 Default branch `dataset/texas-capmetro-801`, remote **`jared`**
 (`Jrddlol2/MARL_THESIS_TEXASAPC_DATASET`). There is also an `origin` pointing at

@@ -8,313 +8,225 @@ WHAT THIS STEP ANSWERS
     the Data Cleaning slide come from?"
 
 WHAT IT DOES
-    1. Downloads the dataset's official metadata from the Texas Open Data
-       portal and saves it as evidence.
-    2. Asks the portal to COUNT records for 801 and 803 at three stages of
-       cleaning -- these become the middle bars of the cleaning funnel.
-    3. Downloads a clean comparison extract (both routes, both directions,
-       19 columns) and re-computes every statistic locally, rather than
-       trusting the portal's own aggregates.
-    4. Writes the comparison and the selection decision to disk.
+    Reads our archived snapshot in chunks -- all 9,197,694 rows -- applying the
+    six cleaning rules and counting how many records survive each one. The rows
+    that survive all six become one DataFrame, which pandas then groups by
+    route to produce every statistic.
 
-WHY WE RE-COMPUTE LOCALLY
-    Steps 2 and 3 above use two different mechanisms: server-side COUNT queries
-    and a local pass over the downloaded rows. If they agree, we know the
-    download is complete and the counting is right. That cross-check is the
-    point -- it is cheap insurance against a silently truncated download.
+    No network. See common.py for why.
 
-INPUTS   config/texas_capmetro_801.json   (routes, API endpoints)
-         the Texas Open Data portal        (network)
+THE FOUR FUNNEL LEVELS, applied cumulatively to each row:
 
-OUTPUTS  data/raw/capmetro/route_801_803_clean_comparison.csv
-         data/audit/texas_capmetro/socrata_metadata.json
-         data/audit/texas_capmetro/route_selection_audit.json
+    level 1   route is 801 or 803                        -> all_route_records
+    level 2   + route_id = current_route_id              -> matching_current_route_records
+    level 3   + import_error = 0 and import_trip_error=0 -> error_free_matching_route_records
+    level 4   + bs_id <> 0 and direction in ('4','6')    -> clean_stop_events
+
+    Those four numbers are the bars on the cleaning-funnel slide.
+
+WHY CHUNKS
+    The raw file is 3.7 GB -- far too big to load at once. pandas reads it a
+    million rows at a time; we filter each chunk and keep only the survivors.
+    The clean set is about 832,000 rows, which fits in memory comfortably.
+
+INPUTS   data/raw/capmetro/APC_Raw_..._full.csv          the archived snapshot
+         data/audit/texas_capmetro/socrata_metadata.json archived portal metadata
+         config/texas_capmetro_801.json
+
+OUTPUTS  data/audit/texas_capmetro/route_selection_audit.json
          data/audit/texas_capmetro/ROUTE_SELECTION_EVIDENCE.md
 
 RUN      python scripts/pipeline/01_audit_routes.py
-         python scripts/pipeline/01_audit_routes.py --force    (redownload)
 =============================================================================
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
-import statistics
+import json
 import sys
-from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
-    AUDIT_DIR,
-    RAW_CAPMETRO_DIR,
-    RAW_FULL_SNAPSHOT,
-    UTC,
-    clean_where,
-    download_soda_csv,
-    ensure_dirs,
-    fetch_json,
-    load_config,
-    safe_float,
-    safe_int,
-    stream_raw_snapshot,
-    write_json,
-    write_text,
+    AUDIT_DIR, RAW_FULL_SNAPSHOT, ROOT, UTC,
+    clean_masks, clean_where, ensure_dirs, load_config, require_file, sha256_file,
+    write_json, write_text,
 )
 
 
-# The 19 columns we need to judge 801 against 803. We do not need all 47 here;
-# this extract exists only to compare the two routes.
-COMPARISON_FIELDS = [
-    "route_id",
-    "direction_code_id",
-    "transit_date_time",
-    "apc_date_time",
-    "act_trip_start_time",
-    "ext_trip_id",
-    "vehicle_id",
-    "actual_sequence",
-    "bs_id",
-    "ons",
-    "offs",
-    "max_load",
-    "dwell_time",
-    "rev_seconds",
-    "rev_distance",
-    "veh_lat",
-    "veh_long",
-    "quality_indicator",
-    "position_source",
+# Only these columns are needed for the route comparison. Reading 19 of 47
+# columns instead of all of them roughly halves the time and memory.
+NEEDED_COLUMNS = [
+    "route_id", "current_route_id", "import_error", "import_trip_error",
+    "bs_id", "direction_code_id", "transit_date_time", "act_trip_start_time",
+    "ext_trip_id", "vehicle_id", "ons", "offs", "max_load", "dwell_time",
+    "rev_seconds", "rev_distance", "veh_lat", "veh_long", "quality_indicator",
+]
+
+CHUNK_SIZE = 1_000_000
+
+# The rows of the evidence table, in order: (label shown, key in the stats dict)
+ROWS = [
+    ("All route records", "all_route_records"),
+    ("Matching current-route records", "matching_current_route_records"),
+    ("Error-free matching-route records", "error_free_matching_route_records"),
+    ("Clean stop events (directions 4 and 6)", "clean_stop_events"),
+    ("Service-day codes", "service_days"),
+    ("Distinct trip-day pairs", "distinct_trip_day_pairs"),
+    ("Boardings", "boardings"),
+    ("Mean reported max load", "mean_reported_max_load"),
+    ("Median dwell (s)", "median_dwell_seconds"),
+    ("Positive time-and-distance segments", "usable_positive_time_distance_segments"),
+    ("High-quality GPS (%)", "gps_high_quality_percent"),
 ]
 
 
 # -----------------------------------------------------------------------------
-# PART A -- ask the portal to count records at each cleaning stage
+# PART A -- read the snapshot, count the funnel, keep the clean rows
 # -----------------------------------------------------------------------------
-def aggregate_route_counts(base: str, where: str) -> dict[str, int]:
-    """Run a GROUP BY route_id COUNT(*) query on the portal.
+def load_clean_rows(candidates: list[str]) -> tuple[pd.DataFrame, dict, int]:
+    """Stream the snapshot in chunks. Returns (clean_df, funnel_levels, rows_read)."""
+    require_file(RAW_FULL_SNAPSHOT, "the raw APC snapshot")
 
-    Returns e.g. {"801": 547616, "803": 468689}. Each call is one bar of the
-    cleaning funnel.
-    """
-    rows = fetch_json(
-        base,
-        {
-            "$select": "route_id,count(*) as record_count",
-            "$where": where,
-            "$group": "route_id",
-            "$order": "route_id",
-        },
-    )
-    return {row["route_id"]: int(row["record_count"]) for row in rows}
+    levels = {r: {"all": 0, "matching": 0, "error_free": 0} for r in candidates}
+    kept_chunks: list[pd.DataFrame] = []
+    rows_read = 0
 
-
-# -----------------------------------------------------------------------------
-# PART B -- re-compute every statistic ourselves from the downloaded rows
-# -----------------------------------------------------------------------------
-def summarize_rows(path: Path) -> dict[str, Any]:
-    """Stream the comparison CSV once and build per-route statistics.
-
-    One pass, one row at a time -- the file is never held in memory.
-
-    For each route we accumulate:
-        clean_stop_events      how many rows survived cleaning
-        service_days           distinct service-day codes
-        trip-day pairs         distinct (day, trip) identities
-        boardings / alightings summed ons / offs
-        max_load, dwell        for a mean and a median
-        usable segments        rows with BOTH positive time and positive distance
-        GPS quality            nonzero coordinates and quality_indicator 3..6
-        per-direction splits   the same, broken out by direction code
-
-    NOTE ON TRIP IDENTITY
-        No single APC column is guaranteed unique, so a trip is identified by
-        (service day, ext_trip_id). If ext_trip_id is blank we fall back to
-        (act_trip_start_time + vehicle_id). This is why the code builds a
-        `trip_key` tuple rather than just reading one field.
-    """
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return summarize_row_stream(csv.DictReader(handle))
-
-
-def summarize_row_stream(rows) -> dict[str, Any]:
-    """The accumulator behind summarize_rows(), taking any iterable of rows.
-
-    Split out so the offline path can feed it a filtered stream straight from
-    the 3.7 GB snapshot instead of a downloaded CSV. Identical arithmetic
-    either way.
-    """
-    metrics: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {
-            "records": 0,
-            "boardings": 0,
-            "alightings": 0,
-            "loads": [],
-            "dwells": [],
-            "days": set(),
-            "trips": set(),
-            "stops_by_direction": defaultdict(set),
-            "usable_segments": 0,
-            "gps_high_quality": 0,
-            "direction_records": defaultdict(int),
-            "direction_boardings": defaultdict(int),
-            "direction_trips": defaultdict(set),
-        }
+    reader = pd.read_csv(
+        RAW_FULL_SNAPSHOT,
+        usecols=NEEDED_COLUMNS,
+        dtype=str,          # the source types every column as text; we parse later
+        na_filter=False,    # keep blanks as "" rather than NaN, so the string
+        chunksize=CHUNK_SIZE,  # comparisons below behave predictably
     )
 
-    for row in rows:
-        route = row["route_id"]
-        direction = row["direction_code_id"]
-        item = metrics[route]
+    for chunk in reader:
+        rows_read += len(chunk)
 
-        item["records"] += 1
-        item["direction_records"][direction] += 1
+        # the six cleaning rules, as four cumulative masks (see common.py)
+        on_route, matching, error_free, clean = clean_masks(chunk, candidates, ["4", "6"])
 
-        # --- demand ---
-        ons = safe_int(row.get("ons")) or 0
-        offs = safe_int(row.get("offs")) or 0
-        item["boardings"] += ons
-        item["alightings"] += offs
-        item["direction_boardings"][direction] += ons
+        # tally each funnel level per route
+        for level_name, mask in (("all", on_route), ("matching", matching),
+                                 ("error_free", error_free)):
+            counts = chunk.loc[mask, "route_id"].value_counts()
+            for route in candidates:
+                levels[route][level_name] += int(counts.get(route, 0))
 
-        # --- load and dwell, collected for a mean / median later ---
-        load = safe_float(row.get("max_load"))
-        dwell = safe_float(row.get("dwell_time"))
-        if load is not None:
-            item["loads"].append(load)
-        if dwell is not None:
-            item["dwells"].append(dwell)
+        kept_chunks.append(chunk[clean])
+        print(f"  read {rows_read:,} raw rows...", flush=True)
 
-        # --- service day (first 8 chars = YYYYMMDD) ---
-        transit_day = (row.get("transit_date_time") or "")[:8]
-        if transit_day:
-            item["days"].add(transit_day)
+    clean_df = pd.concat(kept_chunks, ignore_index=True)
+    print(f"  read {rows_read:,} raw rows total, kept {len(clean_df):,} clean")
+    return clean_df, levels, rows_read
 
-        # --- stop id, per direction ---
-        stop_id = row.get("bs_id") or ""
-        if stop_id:
-            item["stops_by_direction"][direction].add(stop_id)
 
-        # --- trip identity (see docstring) ---
-        ext_trip_id = row.get("ext_trip_id") or ""
-        fallback = (row.get("act_trip_start_time") or "") + "|" + (
-            row.get("vehicle_id") or ""
-        )
-        trip_key = (transit_day, ext_trip_id or fallback)
-        item["trips"].add(trip_key)
-        item["direction_trips"][direction].add(trip_key)
+# -----------------------------------------------------------------------------
+# PART B -- turn the clean rows into per-route statistics
+# -----------------------------------------------------------------------------
+def summarize(clean_df: pd.DataFrame) -> dict[str, Any]:
+    """Group the clean rows by route and compute every reported statistic."""
+    df = clean_df.copy()
 
-        # --- a segment is usable only with positive time AND distance ---
-        seconds = safe_float(row.get("rev_seconds"))
-        distance = safe_float(row.get("rev_distance"))
-        if seconds is not None and distance is not None and seconds > 0 and distance > 0:
-            item["usable_segments"] += 1
+    # The source types everything as text, so parse the numeric columns
+    # explicitly. Unparseable values become NaN and are skipped by mean/median.
+    for column in ["ons", "offs", "max_load", "dwell_time",
+                   "rev_seconds", "rev_distance", "veh_lat", "veh_long",
+                   "quality_indicator"]:
+        df[column] = pd.to_numeric(df[column], errors="coerce")
 
-        # --- GPS quality: real coordinates and a good fix code ---
-        latitude = safe_float(row.get("veh_lat"))
-        longitude = safe_float(row.get("veh_long"))
-        quality = safe_int(row.get("quality_indicator"))
-        if (
-            latitude not in (None, 0.0)
-            and longitude not in (None, 0.0)
-            and quality is not None
-            and 3 <= quality <= 6
-        ):
-            item["gps_high_quality"] += 1
+    # --- derived columns, computed once for the whole frame ----------------
+    # service day = the first 8 characters, YYYYMMDD
+    df["service_day"] = df["transit_date_time"].str[:8]
 
-    # --- turn the accumulators into the final per-route summary ---
+    # No single APC column is a reliable trip key, so a trip is identified by
+    # (service day, ext_trip_id), falling back to start time + vehicle when
+    # ext_trip_id is blank.
+    fallback = df["act_trip_start_time"] + "|" + df["vehicle_id"]
+    trip_id = df["ext_trip_id"].where(df["ext_trip_id"] != "", fallback)
+    df["trip_key"] = df["service_day"] + "|" + trip_id
+
+    # a segment is usable only with BOTH positive time and positive distance
+    df["usable_segment"] = (df["rev_seconds"] > 0) & (df["rev_distance"] > 0)
+
+    # good GPS = real coordinates and a fix-quality code of 3 to 6
+    df["good_gps"] = (
+        df["veh_lat"].notna() & (df["veh_lat"] != 0)
+        & df["veh_long"].notna() & (df["veh_long"] != 0)
+        & df["quality_indicator"].between(3, 6)
+    )
+
     output: dict[str, Any] = {}
-    for route, item in sorted(metrics.items()):
-        record_count = item["records"]
+    for route, rows in df.groupby("route_id", sort=True):
+        record_count = len(rows)
+        good_gps = int(rows["good_gps"].sum())
+
         output[route] = {
             "clean_stop_events": record_count,
-            "service_days": len(item["days"]),
-            "distinct_trip_day_pairs": len(item["trips"]),
-            "boardings": item["boardings"],
-            "alightings": item["alightings"],
-            "mean_reported_max_load": round(statistics.fmean(item["loads"]), 3)
-            if item["loads"]
-            else None,
-            "median_dwell_seconds": round(statistics.median(item["dwells"]), 3)
-            if item["dwells"]
-            else None,
-            "usable_positive_time_distance_segments": item["usable_segments"],
-            "gps_high_quality_records": item["gps_high_quality"],
-            "gps_high_quality_percent": round(100 * item["gps_high_quality"] / record_count, 3)
-            if record_count
-            else None,
+            "service_days": int(rows["service_day"].nunique()),
+            "distinct_trip_day_pairs": int(rows["trip_key"].nunique()),
+            "boardings": int(rows["ons"].fillna(0).sum()),
+            "alightings": int(rows["offs"].fillna(0).sum()),
+            "mean_reported_max_load": round(float(rows["max_load"].mean()), 3),
+            "median_dwell_seconds": round(float(rows["dwell_time"].median()), 3),
+            "usable_positive_time_distance_segments": int(rows["usable_segment"].sum()),
+            "gps_high_quality_records": good_gps,
+            "gps_high_quality_percent": round(100 * good_gps / record_count, 3),
             "distinct_stops_by_direction": {
-                key: len(value)
-                for key, value in sorted(item["stops_by_direction"].items())
+                direction: int(group["bs_id"].nunique())
+                for direction, group in rows.groupby("direction_code_id", sort=True)
             },
             "direction_summary": {
-                key: {
-                    "clean_stop_events": item["direction_records"][key],
-                    "boardings": item["direction_boardings"][key],
-                    "distinct_trip_day_pairs": len(item["direction_trips"][key]),
+                direction: {
+                    "clean_stop_events": len(group),
+                    "boardings": int(group["ons"].fillna(0).sum()),
+                    "distinct_trip_day_pairs": int(group["trip_key"].nunique()),
                 }
-                for key in sorted(item["direction_records"])
+                for direction, group in rows.groupby("direction_code_id", sort=True)
             },
         }
     return output
 
 
 # -----------------------------------------------------------------------------
-# PART C -- put it together and write the evidence
+# PART C -- write the evidence
 # -----------------------------------------------------------------------------
-def audit_routes(config: dict[str, Any], *, force: bool = False) -> dict[str, Any]:
-    apc = config["apc"]
-    candidates = config["study"]["candidate_routes"]  # ["801", "803"]
+def percent_advantage(primary: dict, secondary: dict, key: str) -> float:
+    """How much bigger route 801's value is than route 803's, as a percentage."""
+    return round(100 * (primary[key] - secondary[key]) / secondary[key], 2)
 
-    # --- official dataset metadata, saved as evidence ---
-    metadata = fetch_json(apc["metadata_url"])
-    write_json(AUDIT_DIR / "socrata_metadata.json", metadata)
 
-    # --- the three funnel stages, counted server-side ---
-    all_routes_where = "route_id in (" + ",".join(f"'{r}'" for r in candidates) + ")"
-    matching_where = all_routes_where + " and route_id=current_route_id"
-    error_free_where = matching_where + " and import_error='0' and import_trip_error='0'"
+def build_evidence(
+    config: dict[str, Any], routes: dict[str, Any], source: dict[str, Any]
+) -> dict[str, Any]:
+    candidates = list(config["study"]["candidate_routes"])
 
-    total_counts = aggregate_route_counts(apc["resource_json_url"], all_routes_where)
-    matching_counts = aggregate_route_counts(apc["resource_json_url"], matching_where)
-    error_free_counts = aggregate_route_counts(apc["resource_json_url"], error_free_where)
-
-    # --- the fully clean comparison extract ---
-    comparison_path = RAW_CAPMETRO_DIR / "route_801_803_clean_comparison.csv"
-    comparison_manifest = download_soda_csv(
-        base_url=apc["resource_csv_url"],
-        destination=comparison_path,
-        select=COMPARISON_FIELDS,
-        where=clean_where(candidates, ["4", "6"]),
-        order="route_id,apc_date_time,vehicle_id,actual_sequence,bs_id",
-        force=force,
+    # Dataset facts come from the archived portal metadata already on disk.
+    metadata_path = AUDIT_DIR / "socrata_metadata.json"
+    metadata = (
+        json.loads(metadata_path.read_text(encoding="utf-8"))
+        if metadata_path.exists() else {}
     )
 
-    # --- re-derive everything locally, then attach the server-side counts ---
-    route_metrics = summarize_rows(comparison_path)
-    for route in candidates:
-        route_metrics[route]["all_route_records"] = total_counts.get(route, 0)
-        route_metrics[route]["matching_current_route_records"] = matching_counts.get(route, 0)
-        route_metrics[route]["error_free_matching_route_records"] = error_free_counts.get(route, 0)
+    primary, secondary = routes["801"], routes["803"]
 
-    primary = route_metrics["801"]
-    secondary = route_metrics["803"]
-
-    evidence = {
+    return {
         "generated_utc": datetime.now(UTC).isoformat(),
         "dataset": {
             "name": metadata.get("name"),
-            "socrata_id": apc["socrata_id"],
+            "socrata_id": config["apc"]["socrata_id"],
             "column_count": len(metadata.get("columns", [])),
             "landing_page": "https://data.texas.gov/dataset/APC-Raw-July-2021-December-2021/im6q-3pc9",
         },
         "clean_definition": clean_where(candidates, ["4", "6"]),
         "gps_high_quality_definition": "nonzero coordinates and quality_indicator in {3,4,5,6}",
-        "comparison_download": comparison_manifest,
-        "routes": route_metrics,
+        "source": source,
+        "routes": routes,
         "selection": {
             "primary_route": "801",
             "reason": (
@@ -322,178 +234,87 @@ def audit_routes(config: dict[str, Any], *, force: bool = False) -> dict[str, An
                 "boarding, and usable-segment samples despite fewer distinct trip-day pairs, "
                 "while retaining comparable GPS quality."
             ),
-            "clean_event_advantage_percent_over_803": round(
-                100
-                * (primary["clean_stop_events"] - secondary["clean_stop_events"])
-                / secondary["clean_stop_events"],
-                2,
-            ),
-            "boarding_advantage_percent_over_803": round(
-                100 * (primary["boardings"] - secondary["boardings"]) / secondary["boardings"],
-                2,
-            ),
-            "usable_segment_advantage_percent_over_803": round(
-                100
-                * (
-                    primary["usable_positive_time_distance_segments"]
-                    - secondary["usable_positive_time_distance_segments"]
-                )
-                / secondary["usable_positive_time_distance_segments"],
-                2,
-            ),
+            "clean_event_advantage_percent_over_803":
+                percent_advantage(primary, secondary, "clean_stop_events"),
+            "boarding_advantage_percent_over_803":
+                percent_advantage(primary, secondary, "boardings"),
+            "usable_segment_advantage_percent_over_803":
+                percent_advantage(primary, secondary, "usable_positive_time_distance_segments"),
             "interpretation_limit": "The selection maximizes empirical coverage; it is not a claim that Route 801 has better or worse service.",
         },
     }
-    write_json(AUDIT_DIR / "route_selection_audit.json", evidence)
 
-    # --- the same decision, as a readable markdown table ---
-    lines = [
-        "# Reproduced Route 801 selection audit",
-        "",
-        f"Generated from the official Socrata API at `{evidence['generated_utc']}`.",
-        "",
-        "| Metric | Route 801 | Route 803 |",
-        "|---|---:|---:|",
+
+def write_evidence_markdown(evidence: dict[str, Any]) -> None:
+    """The same decision, as a table a human can read."""
+    routes = evidence["routes"]
+    # Built by hand rather than DataFrame.to_markdown(), which needs the
+    # optional `tabulate` package and formats the table differently.
+    table = ["| Metric | Route 801 | Route 803 |", "|---|---:|---:|"]
+    table += [
+        f"| {label} | {routes['801'][key]:,} | {routes['803'][key]:,} |"
+        for label, key in ROWS
     ]
-    table_metrics = [
-        ("All route records", "all_route_records"),
-        ("Matching current-route records", "matching_current_route_records"),
-        ("Error-free matching-route records", "error_free_matching_route_records"),
-        ("Clean stop events (directions 4 and 6)", "clean_stop_events"),
-        ("Service-day codes", "service_days"),
-        ("Distinct trip-day pairs", "distinct_trip_day_pairs"),
-        ("Boardings", "boardings"),
-        ("Mean reported max load", "mean_reported_max_load"),
-        ("Median dwell (s)", "median_dwell_seconds"),
-        ("Positive time-and-distance segments", "usable_positive_time_distance_segments"),
-        ("High-quality GPS (%)", "gps_high_quality_percent"),
-    ]
-    for label, key in table_metrics:
-        lines.append(f"| {label} | {route_metrics['801'][key]:,} | {route_metrics['803'][key]:,} |")
-    lines += [
-        "",
-        "## Decision",
-        "",
-        evidence["selection"]["reason"],
-        "",
-        f"Route 801 has {evidence['selection']['clean_event_advantage_percent_over_803']}% more clean stop events, "
-        f"{evidence['selection']['boarding_advantage_percent_over_803']}% more recorded boardings, and "
-        f"{evidence['selection']['usable_segment_advantage_percent_over_803']}% more usable positive-time/distance segments than Route 803.",
-        "This justifies Route 801 as the primary case by data coverage, not by a claim about service quality.",
-        "",
-        "Direction code 6 remains provisional code-only. A compass-direction name is blocked until a checksum-verified 2021 GTFS snapshot is obtained.",
-    ]
-    write_text(AUDIT_DIR / "ROUTE_SELECTION_EVIDENCE.md", "\n".join(lines))
 
-    return evidence
+    sel = evidence["selection"]
+    write_text(
+        AUDIT_DIR / "ROUTE_SELECTION_EVIDENCE.md",
+        "\n".join([
+            "# Reproduced Route 801 selection audit",
+            "",
+            f"Generated at `{evidence['generated_utc']}` by {evidence['source']['method']}.",
+            "",
+            *table,
+            "",
+            "## Decision",
+            "",
+            sel["reason"],
+            "",
+            f"Route 801 has {sel['clean_event_advantage_percent_over_803']}% more clean stop events, "
+            f"{sel['boarding_advantage_percent_over_803']}% more recorded boardings, and "
+            f"{sel['usable_segment_advantage_percent_over_803']}% more usable positive-time/distance segments than Route 803.",
+            "This justifies Route 801 as the primary case by data coverage, not by a claim about service quality.",
+            "",
+            "Direction code 6 remains provisional code-only. A compass-direction name is blocked until a checksum-verified 2021 GTFS snapshot is obtained.",
+        ]),
+    )
 
-
-# -----------------------------------------------------------------------------
-# PART D -- the same audit, computed offline from the 3.7 GB snapshot
-# -----------------------------------------------------------------------------
-def audit_routes_local(config: dict[str, Any]) -> dict[str, Any]:
-    """Build the ENTIRE cleaning funnel from the local archival snapshot.
-
-    The normal path asks the portal to COUNT records at each cleaning stage.
-    This does the same counting here, in a single streaming pass over all
-    9,197,694 rows -- no network at all.
-
-    The four funnel levels, applied cumulatively to each row:
-
-        level 1   route_id in ('801','803')                  -> all_route_records
-        level 2   + route_id = current_route_id              -> matching_current_route_records
-        level 3   + import_error = 0 and import_trip_error=0 -> error_free_matching_route_records
-        level 4   + bs_id <> 0 and direction in ('4','6')    -> clean_stop_events
-
-    Rows that reach level 4 are handed to summarize_row_stream() for the full
-    per-route statistics, so the offline numbers and the online numbers are
-    produced by identical arithmetic.
-    """
-    candidates = tuple(config["study"]["candidate_routes"])
-    levels: dict[str, dict[str, int]] = {
-        route: {"all": 0, "matching": 0, "error_free": 0} for route in candidates
-    }
-    read = 0
-
-    def clean_rows():
-        """Count each funnel level as a side effect; yield only clean rows."""
-        nonlocal read
-        for row in stream_raw_snapshot():
-            read += 1
-            if read % 1_000_000 == 0:
-                print(f"  read {read:,} raw rows...", flush=True)
-
-            route = row["route_id"]
-            if route not in candidates:
-                continue
-            levels[route]["all"] += 1
-
-            if route != row["current_route_id"]:
-                continue
-            levels[route]["matching"] += 1
-
-            if row["import_error"] != "0" or row["import_trip_error"] != "0":
-                continue
-            levels[route]["error_free"] += 1
-
-            if row["bs_id"] == "0" or row["direction_code_id"] not in ("4", "6"):
-                continue
-            yield row
-
-    route_metrics = summarize_row_stream(clean_rows())
-    print(f"  read {read:,} raw rows total")
-
-    for route in candidates:
-        route_metrics[route]["all_route_records"] = levels[route]["all"]
-        route_metrics[route]["matching_current_route_records"] = levels[route]["matching"]
-        route_metrics[route]["error_free_matching_route_records"] = levels[route]["error_free"]
-
-    return {
-        "generated_utc": datetime.now(UTC).isoformat(),
-        "source": "local archival snapshot (offline extraction, no network)",
-        "snapshot_path": RAW_FULL_SNAPSHOT.relative_to(RAW_FULL_SNAPSHOT.parents[3]).as_posix(),
-        "raw_rows_read": read,
-        "clean_definition": clean_where(list(candidates), ["4", "6"]),
-        "routes": route_metrics,
-    }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="redownload raw files instead of reusing checksum-recorded local copies",
-    )
-    parser.add_argument(
-        "--local",
-        action="store_true",
-        help="compute the funnel from the local 3.7 GB snapshot instead of the portal (no network)",
-    )
-    args = parser.parse_args()
+    argparse.ArgumentParser(description=__doc__).parse_args()
 
     ensure_dirs()
+    config = load_config()
+    candidates = list(config["study"]["candidate_routes"])
 
-    if args.local:
-        evidence = audit_routes_local(load_config())
-        write_json(AUDIT_DIR / "route_selection_audit_local.json", evidence)
-        print("\nStep 1 complete (OFFLINE).")
-        print(f"  raw rows read : {evidence['raw_rows_read']:,}")
-        for route in ("801", "803"):
-            r = evidence["routes"][route]
-            print(f"  Route {route}: all {r['all_route_records']:,} -> "
-                  f"matching {r['matching_current_route_records']:,} -> "
-                  f"error-free {r['error_free_matching_route_records']:,} -> "
-                  f"clean {r['clean_stop_events']:,}")
-        return 0
+    print(f"Reading {RAW_FULL_SNAPSHOT.name} (no network).")
+    clean_df, levels, rows_read = load_clean_rows(candidates)
 
-    evidence = audit_routes(load_config(), force=args.force)
+    routes = summarize(clean_df)
+    for route in candidates:
+        routes[route]["all_route_records"] = levels[route]["all"]
+        routes[route]["matching_current_route_records"] = levels[route]["matching"]
+        routes[route]["error_free_matching_route_records"] = levels[route]["error_free"]
+
+    source = {
+        "method": "local extraction from the archived snapshot (no network)",
+        "path": RAW_FULL_SNAPSHOT.relative_to(ROOT).as_posix(),
+        "raw_rows_read": rows_read,
+        "sha256": sha256_file(RAW_FULL_SNAPSHOT),
+    }
+
+    evidence = build_evidence(config, routes, source)
+    write_json(AUDIT_DIR / "route_selection_audit.json", evidence)
+    write_evidence_markdown(evidence)
 
     print("\nStep 1 complete.")
-    for route in ("801", "803"):
+    for route in candidates:
         r = evidence["routes"][route]
-        print(f"  Route {route}: {r['clean_stop_events']:,} clean stop events, "
-              f"{r['boardings']:,} boardings")
+        print(f"  Route {route}: all {r['all_route_records']:,} -> "
+              f"matching {r['matching_current_route_records']:,} -> "
+              f"error-free {r['error_free_matching_route_records']:,} -> "
+              f"clean {r['clean_stop_events']:,}")
     print(f"  Selected: Route {evidence['selection']['primary_route']}")
     return 0
 
