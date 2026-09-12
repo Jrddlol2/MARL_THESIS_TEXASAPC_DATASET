@@ -1,0 +1,71 @@
+{
+  "clean_definition": "route_id in ('801','803') and route_id=current_route_id and import_error='0' and import_trip_error='0' and bs_id<>'0' and direction_code_id in ('4','6')",
+  "generated_utc": "2026-09-12T02:49:49.337667+00:00",
+  "raw_rows_read": 9197694,
+  "routes": {
+    "801": {
+      "alightings": 708331,
+      "all_route_records": 547616,
+      "boardings": 810309,
+      "clean_stop_events": 455654,
+      "direction_summary": {
+        "4": {
+          "boardings": 390108,
+          "clean_stop_events": 226233,
+          "distinct_trip_day_pairs": 12452
+        },
+        "6": {
+          "boardings": 420201,
+          "clean_stop_events": 229421,
+          "distinct_trip_day_pairs": 12491
+        }
+      },
+      "distinct_stops_by_direction": {
+        "4": 29,
+        "6": 29
+      },
+      "distinct_trip_day_pairs": 24943,
+      "error_free_matching_route_records": 480452,
+      "gps_high_quality_percent": 98.136,
+      "gps_high_quality_records": 447160,
+      "matching_current_route_records": 524728,
+      "mean_reported_max_load": 11.414,
+      "median_dwell_seconds": 18.0,
+      "service_days": 184,
+      "usable_positive_time_distance_segments": 441779
+    },
+    "803": {
+      "alightings": 439785,
+      "all_route_records": 468689,
+      "boardings": 532063,
+      "clean_stop_events": 376801,
+      "direction_summary": {
+        "4": {
+          "boardings": 287547,
+          "clean_stop_events": 196048,
+          "distinct_trip_day_pairs": 13398
+        },
+        "6": {
+          "boardings": 244516,
+          "clean_stop_events": 180753,
+          "distinct_trip_day_pairs": 13211
+        }
+      },
+      "distinct_stops_by_direction": {
+        "4": 28,
+        "6": 28
+      },
+      "distinct_trip_day_pairs": 26609,
+      "error_free_matching_route_records": 403254,
+      "gps_high_quality_percent": 97.479,
+      "gps_high_quality_records": 367301,
+      "matching_current_route_records": 445369,
+      "mean_reported_max_load": 8.088,
+      "median_dwell_seconds": 18.0,
+      "service_days": 184,
+      "usable_positive_time_distance_segments": 361852
+    }
+  },
+  "snapshot_path": "data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv",
+  "source": "local archival snapshot (offline extraction, no network)"
+}
