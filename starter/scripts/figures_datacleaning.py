@@ -11,7 +11,9 @@ import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import _figstyle as S
 
-RAW = r"C:\Users\jared\Desktop\THESIS\APC_Raw_July_2021_-_December_2021_20260824.csv"
+# repo copy of the raw file; byte-identical to the old THESIS/ top-level copy (archived 2026-09-13)
+RAW = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "raw", "capmetro",
+                   "APC_Raw_July_2021_December_2021_full.csv")
 OUT = "results/figures/datacleaning"; os.makedirs(OUT, exist_ok=True)
 CACHE = f"{OUT}/_cache.json"
 CONTROL = {"5280", "5857", "5859", "5867", "4046"}

@@ -19,10 +19,12 @@
 ### `THESIS/` (data root)
 | Item | Note |
 |---|---|
-| `APC_Raw_*.csv` | 3.5 GB raw data — kept, outside the repo, git-ignored |
-| `MARL/` | the repo (canonical) |
+| `MARL/` | the repo (canonical). The raw APC file lives at `data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv` |
 | `RRW/` | canonical RRL source PDFs (50), referenced by `MARL/RRL/sources.md` |
 | `archive/` | organized, dated, reversible — see below |
+
+*Updated 2026-09-13:* the top-level `APC_Raw_*.csv` (byte-identical to the repo copy) moved to
+`archive/duplicates/`, and `_backups/` moved to `archive/backups/2026-09_repo_snapshots/`. Both are safe to delete.
 
 ### `THESIS/archive/` (kept, not deleted)
 `edsa-simulation/` (pre-pivot EDSA/Manila SUMO data) · `old-manuscript-repos/` (old clones) · `backups/` · `old-drafts/` · `docx-audits/` (8 working `.docx`) · `snapshots/` (`revised_2026-08-25/26`) · `duplicates/` (dup assets) · `references-old/` (`RTC_COMPLIANCE…`, `RRW-partial-old`) · `scratch/` (`tmp`). Each has a `_WHATIS.txt`.
@@ -33,6 +35,8 @@
 ## Conventions
 ISO dates (`YYYY-MM-DD`), clear prefixes (`roadmap_`, `audit_`, `prompt_`), no spaces in new folder names, one canonical home per file.
 
-## Still on you (two follow-ups)
-1. **Commit:** the repo changes are **staged, not committed** — review `git status` and commit (a `chore/organize` branch is fine). Staged report moves are `git mv` renames; `docs/`, `starter/`, `submissions/`, `ORGANIZATION.md` are new.
-2. **Final de-dup:** `THESIS Claude/` still holds the original session `.md` files + `starter_kit/` — now copied into the repo. Once you've verified the repo copies, delete or archive those scratch originals so there's a single home.
+## Follow-ups (both done 2026-09-13)
+1. **Commit:** done; later work is committed on `session-update`.
+2. **De-dup:** `THESIS Claude/` is reorganized into `1_MSA1_current/`, `2_reports/`, `3_prompts/`, `4_member_prep/`,
+   `tools/` and `_archive/` (see its `README.md`). Files already in this repo, and the retired `starter_kit/`,
+   are in `THESIS Claude/_archive/`.

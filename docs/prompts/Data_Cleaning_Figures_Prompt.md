@@ -15,7 +15,7 @@ style of the existing figures in `starter/results/figures/`. The story the figur
 direction 6, what was dropped and why, and what the cleaned per-stop inputs look like.*
 
 ## Sources (real data — use these, don't invent numbers)
-- **Raw APC CSV** (~3.5 GB): `C:\Users\jared\Desktop\THESIS\APC_Raw_July_2021_-_December_2021_20260824.csv`.
+- **Raw APC CSV** (~3.5 GB): `MARL/data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv` (the identical top-level copy was archived 2026-09-13).
   Stream it in chunks (as `scripts/extract_sim_inputs.py` does) — never load it whole.
 - `scripts/extract_sim_inputs.py` — the six cleaning rules and the per-stop aggregation (the ground truth
   for the funnel and the column choices).
