@@ -1,6 +1,6 @@
 """Reusable corridor simulation core — one loop that ANY controller drives.
 
-`simulate(decide, ...)` runs the calibrated 26-stop corridor with the demand-responsive dwell and the
+`simulate(decide, ...)` runs the calibrated 27-stop corridor with the demand-responsive dwell and the
 D/S/T/W/B disturbance generators, and calls `decide(obs) -> (hold_seconds, skip)` whenever a bus reaches
 a CONTROL stop. Baselines (NC/FH/EH) and the MARL policy are just different `decide` functions, so they
 all run on an identical environment — apples-to-apples by construction.
@@ -13,6 +13,12 @@ decide returns (hold_seconds, skip_bool). hold is clipped to [0, 0.4*H0]; skip i
 takes effect if the caller enabled skipping (SKIP_ENABLED) — the fail-fast gate runs holding-only.
 
 Run from the repo root (needs the calibrated sumo/ net + sim_inputs + corridor.txt).
+
+NETWORK (since 2026-09-13): the default is the REAL-GEOMETRY net, sumo/corridor_real.net.xml (built and
+calibrated by scripts/build_real_net.py -> results/calibration_real.csv). Segment distances are then
+along-road arc lengths from sim_inputs/route_shape_stops.csv, so the weather/traffic speed override
+(SEGV = distance / run_s) stays consistent with the edge lengths. Set CORRIDOR_NET=schematic to use the
+older straight-line net (sumo/corridor.net.xml, results/calibration.csv) and reproduce earlier results.
 """
 import os, sys, math, numpy as np, pandas as pd, xml.etree.ElementTree as ET
 if "SUMO_HOME" in os.environ:
@@ -27,7 +33,17 @@ d  = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[[int(s) for s in
 lat0, lon0 = co["mean_lat"].mean(), co["mean_lon"].mean()
 Xs = (co["mean_lon"] - lon0) * math.cos(math.radians(lat0)) * 111320
 Ys = (co["mean_lat"] - lat0) * 110540
-DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for i in range(len(STOPS)-1)]
+NET = os.environ.get("CORRIDOR_NET", "real")
+if NET == "real":
+    NET_FILE, STOPS_FILE = "sumo/corridor_real.net.xml", "sumo/stops_real.add.xml"
+    _arc = pd.read_csv("sim_inputs/route_shape_stops.csv").set_index("bs_id")
+    DIST = [float(_arc.loc[int(STOPS[i+1]), "arclen_m"] - _arc.loc[int(STOPS[i]), "arclen_m"])
+            for i in range(len(STOPS)-1)]                            # along-road distance (m)
+elif NET == "schematic":
+    NET_FILE, STOPS_FILE = "sumo/corridor.net.xml", "sumo/stops.add.xml"
+    DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for i in range(len(STOPS)-1)]
+else:
+    raise ValueError(f"CORRIDOR_NET must be 'real' or 'schematic', not {NET!r}")
 SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i]))        for i in range(len(STOPS))}
 DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
@@ -90,8 +106,8 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     tri = f"sumo/tri_{port}.xml"; persons = f"sumo/persons_{port}.xml"    # per-call, parallel-safe
     _make_persons(S, persons)
     try:
-        traci.start([checkBinary("sumo"), "-n", "sumo/corridor.net.xml",
-                     "-a", f"sumo/vtype.add.xml,sumo/stops.add.xml,{persons}",
+        traci.start([checkBinary("sumo"), "-n", NET_FILE,
+                     "-a", f"sumo/vtype.add.xml,{STOPS_FILE},{persons}",
                      "--tripinfo-output", tri, "--no-warnings", "true", "--no-step-log", "true",
                      "--seed", str(seed), "--step-length", "1", "-e", "36000"], port=port); started = True
         traci.route.add("corr", EDGES)

@@ -25,4 +25,5 @@
   <busStop id="6356" lane="e23_0" startPos="5" endPos="25"/>
   <busStop id="5871" lane="e24_0" startPos="5" endPos="25"/>
   <busStop id="5872" lane="e25_0" startPos="5" endPos="25"/>
+  <busStop id="6361" lane="e26_0" startPos="5" endPos="25"/>
 </additional>

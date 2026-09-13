@@ -1,0 +1,120 @@
+# Risk register for the MSA 2 work
+
+**Date:** 2026-09-13 · **Status:** internal, not presented at MSA 1 (the risks slide was hidden) ·
+**Read this before:** re-running baselines, validating the simulator, building EO 1.2, or training the MARL agent.
+
+Each risk says what is wrong, where it is in the code, why it matters, what to do, and how we will know it is
+fixed. Ordered by **when it bites**: the first ones block the next steps.
+
+State of the simulator when this was written: 27 stops, real road geometry (`envs/corridor_sim.py` defaults to
+`sumo/corridor_real.net.xml`), calibration RMSPE 0.44%, GEH < 5 on 26/26 segments (`results/calibration_real.csv`).
+
+---
+
+## Tier 1 — could change the conclusions
+
+### R1. Baseline results were run at the wrong headway
+- **What:** `H0 = 300 s` (`envs/corridor_sim.py:50`, also `envs/marl_env.py:26`). The 2021 timetable runs every
+  10 min on weekdays, 7 AM–6 PM (`data/raw/capmetro/schedule_2021/`).
+- **Why it matters:** the holding cap (`0.4 × H0`), the 400 s breakdown and headway-normalised observations all
+  scale with H0. At 300 s, disturbances are about twice as severe relative to the headway. The finding that
+  motivates MARL ("fixed holding fails under severe disturbance", Stage B) came from these runs and may change.
+- **Do:** set H0 = 600 s at every site listed in `GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`; reconcile `NBUS` with
+  the ~84–90 min run time; re-run the N = 30 baselines (`scripts/mc.py`).
+- **Done when:** the Stage A/B table is regenerated at 600 s and the Stage B conclusion is re-stated from it.
+
+### R2. The simulator is validated on travel time, not on bunching
+- **What:** calibration checks segment travel times only. The thesis metric is headway regularity. Observed
+  weekday 07:00–18:00 headway CV is 0.62 (n = 131 days, measured at the trip origin); the simulator's no-control
+  CV is about 0.34 (at the control stops, short horizon). **These are not measured the same way.**
+- **Why it matters:** if the simulator bunches much less (or more) than real buses, the size of any MARL
+  improvement does not transfer.
+- **Do:** compute simulated and observed headway CV at the same stops, hours and day type; add this as an SO1
+  validation criterion.
+- **Done when:** a like-for-like table of observed vs simulated headway CV exists, with the gap explained or closed.
+
+### R3. Variability is assumed, not measured
+- **What:** dwell noise is lognormal with CV 0.25 (`CVD`, `corridor_sim.py:50`, used at `:100`); traffic is a
+  uniform factor 0.8–1.2 (`:103`); demand is one mean per stop for the whole day (`DEM`, `:49`). The methods
+  chapter promises per stop × time-of-day × day-type distributions (Stage 2); `scripts/extract_sim_inputs.py`
+  notes this as a limitation.
+- **Why it matters:** bunching is driven by exactly this variability. It is also the lever that closes R2.
+- **Do:** fit dwell and running-time distributions and demand rates by time of day and day type from the clean
+  APC data; replace the assumed values.
+- **Done when:** every stochastic parameter in `corridor_sim.py` cites a fitted value or is labelled synthetic.
+
+### R4. Simulated passengers only alight at the last stop
+- **What:** every passenger flow rides to `STOPS[-1]` (`corridor_sim.py:84`, surge at `:88`). Onboard load
+  therefore rises to about 40 by the end of the corridor. A rough estimate from mean boardings and alightings
+  gives a real peak near 12 (around stop 5357); that estimate uses per-door-opening means, not per-trip loads.
+- **Why it matters:** onboard load is one of the seven MARL observations, and with no alighting the passenger
+  surge (+120) may push buses toward the 60-person capacity. The agent would learn from loads that never occur.
+- **Do:** give each passenger a destination drawn from the APC alighting shares downstream of the boarding stop.
+- **Done when:** the simulated mean load profile along the corridor is plotted against the APC-derived one.
+
+## Tier 2 — blocks MARL work
+
+### R5. The stop-skip action is not connected
+- **What:** `hold, _skip = decide(obs)` discards skip (`corridor_sim.py:150`). `marl_env.Config.skip_enabled`
+  defaults to False, so nothing breaks today.
+- **Why it matters:** actions 5–9 of the 10-action space behave like 0–4. Once skip is enabled, "skip has no
+  effect" will look like a reward-tuning problem.
+- **Do:** implement skipping in the simulator (bus passes the stop without dwelling; waiting passengers stay)
+  before enabling it in training.
+- **Done when:** a unit test shows a skipped stop gets no dwell and keeps its queue.
+
+### R6. The test training run plateaued and saved no model
+- **What:** `experiments/gate1/metrics.csv`: 286 of 800 episodes; greedy evaluation headway CV 0.244, 0.255,
+  0.235, 0.234, 0.251, 0.251, 0.228 at episodes 40–280 (flat). No checkpoint file. Evaluation used seeds 90000+
+  (N = 5), not the baselines' seeds 0–29, so it cannot share a table with them.
+- **Why it matters:** the agent stopped improving after ~40 episodes; the prime suspect is R1 (largest hold
+  120 s against a 400 s breakdown).
+- **Do:** fix R1 first; save checkpoints during training; evaluate on seeds 0–29 so results pair with the baselines.
+- **Done when:** a full run with checkpoints and a paired evaluation exists.
+
+## Tier 3 — limitations to state, not blockers
+
+### R7. Calibration is in-sample
+- Speeds were tuned and evaluated on the same data. **Do:** split service days by alternating dates (a calendar
+  split mixes in season and rain; October is the wettest month, 134.5 mm), calibrate on one set, test on the other.
+
+### R8. Origin-stop demand is not simulated
+- Tech Ridge (5304) is excluded as a layover point, but it has the most boardings (6.15 per stop event). **Do:**
+  start each bus with 5304's boardings on board.
+
+### R9. Segment times come from door-opening records
+- APC logs a stop only when doors open; stop coverage ranges from 37.8% (2738) to 93.4% (5304). A record's
+  "time to next location" can span a skipped stop. Medians limit the bias. **Do:** estimate running times from
+  consecutive served stops only, and compare.
+
+### R10. No signals or mixed traffic
+- Both networks are a single bus lane; intersection delay is represented only by the calibrated speeds and the
+  traffic factor. **Do:** state as a scope limitation.
+
+### R11. Severe weather and breakdowns are synthetic
+- Ordinary rain is observed (11,804 stop events); severe weather and breakdowns are not. The weather factor is a
+  labelled synthetic lognormal. **Do:** estimate the ordinary-rain effect with segment, time-of-day and day-type
+  controls (`weather_join_audit.json` warns the pooled 204 s vs 212 s is descriptive only); keep severe cases
+  labelled synthetic.
+
+### R12. One Austin route stands in for EDSA
+- Results describe controller behaviour on Route 801, southbound, 2021. **Do:** state as a limitation; keep
+  simulator parameters adjustable.
+
+### R13. Data housekeeping (low impact)
+- **Distance units:** `rev_distance` units are undocumented; evidence says miles (Pleasant Hill → Slaughter
+  Station logs 1.68; the road is 1.67 miles). No result uses the field.
+- **Timestamps:** APC times are read as Austin local time; only 169 of 229,421 stop events fall between 01:00
+  and 04:00, matching the timetable's ~5 AM start.
+- **Trip count:** ~95 southbound weekday trips scheduled vs a median of 72 in the clean data. Unresolved whether
+  cleaning or cancellations explain it; the peak headway histogram shows no second mode at ~20 min.
+
+---
+
+## Suggested order
+
+1. R1 (headway) → re-run baselines.
+2. R4 (alighting) and R8 (origin demand) — cheap, change loads before any training.
+3. R3 (fitted variability) → R2 (headway-CV validation) → R7 (held-out days).
+4. R5 (skip) → R6 (training with checkpoints, paired seeds).
+5. R11 rain effect in parallel with 3.

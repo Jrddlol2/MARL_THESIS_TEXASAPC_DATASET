@@ -63,6 +63,22 @@ July 2021 = `8dfd88258b3b8f8288e5c23498b77bb69dabb6534c10facab1617c8f18307c5f`.
 **Also:** `corridor.txt` — restore stop **6361** between 5872 and 5873. Corridor goes 26 → 27 stops.
 Re-check the control-stop indices afterwards; `CONTROL_STOPS = [0,1,5,17,20]` are positional.
 
+> **DONE 2026-09-13 (6361 only; H0 still 300).** 6361 appended to `corridor.txt` (it is the last
+> modelled stop, so `CONTROL_STOPS` indices are unchanged). `calibrate_corridor.py` re-run: RMSPE
+> 0.75% -> **0.52%**, GEH<5 on **26/26**, new segment 5872->6361 = 191 s obs / 192 s sim. Real-geometry
+> viewer net rebuilt (`extract_route_shape.py` from a fresh Overpass `rel_9122669.json`, 30.28 km;
+> `build_real_net.py` RMSPE 0.44%). `corridor_sim.simulate` smoke-tested (27 stops, NC/FH run).
+> Checked in the clean data: in all 3,167 trips logging both, 6361 comes before 5873. **Not re-run:**
+> the N=30 baselines and gate1 are still on the 26-stop corridor.
+>
+> **ALSO DONE 2026-09-13: simulator switched to the real-geometry net.** `envs/corridor_sim.py` now defaults to
+> `sumo/corridor_real.net.xml` + `sumo/stops_real.add.xml`, with segment distances = along-road arc lengths
+> (`sim_inputs/route_shape_stops.csv`), so the weather/traffic speed override matches the edge lengths.
+> `CORRIDOR_NET=schematic` restores the straight-line net. Official calibration is now
+> `results/calibration_real.csv`: RMSPE **0.44%**, GEH<5 26/26, max GEH 0.14, max error +1.0% (5872->6361).
+> Parity, NC and FH at the 5 control stops, D+T, seeds 0-7 on both nets: mean headway CV NC 0.337 real vs
+> 0.334 schematic, FH 0.243 vs 0.247; paired CV difference +/-0.003; travel time -0.5% on the real net.
+
 ### A separate defect found 2026-09-12 (not H0-related)
 
 **The skip action is not implemented.** `corridor_sim.py:134` reads
