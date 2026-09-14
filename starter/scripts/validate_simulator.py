@@ -15,10 +15,12 @@ WHAT IT DOES
     Both are "per day, per stop" CVs, averaged.
 
     It also repeats the load check (riders on board vs APC max_load, weekday
-    07:00-18:00).
+    07:00-18:00), and checks how often buses serve each stop (APC writes a
+    record only when the doors open) against the simulator's stop-or-pass rule.
 
 OUTPUT   results/validation/headway_cv_sim_vs_observed.csv
          results/validation/load_profile_sim_vs_observed.csv
+         results/validation/stop_service_sim_vs_observed.csv
          results/figures/headway_cv_validation.{pdf,png}
 
 RUN      python scripts/validate_simulator.py [seeds] [jobs]    (from starter/)
@@ -50,7 +52,7 @@ APC_FILE = os.path.join("..", "data", "raw", "capmetro", "route_801_direction_6_
 
 def run_one(seed):
     result = C.simulate(C.BASELINES["NC"], seed=seed, T=True, control_stops=C.CONTROL_STOPS)
-    return seed, result["headway_cv_by_stop"], result["load_leaving"], result["rides_unfinished"]
+    return seed, result["headway_cv_by_stop"], result["load_leaving"], result["rides_unfinished"], result["stop_served_share"]
 
 
 def main():
@@ -59,14 +61,17 @@ def main():
     # ---- simulated ------------------------------------------------------------
     cv_rows = []
     load_rows = []
+    served_rows = []
     with ProcessPoolExecutor(max_workers=JOBS) as pool:
-        for seed, cv_by_stop, load_leaving, unfinished in pool.map(run_one, range(NUM_SEEDS)):
+        for seed, cv_by_stop, load_leaving, unfinished, served in pool.map(run_one, range(NUM_SEEDS)):
             cv_rows.append(cv_by_stop)
             load_rows.append(load_leaving)
+            served_rows.append(served)
             if unfinished:
                 print(f"  seed {seed}: {unfinished} unfinished rides")
     simulated_cv = np.nanmean(np.array(cv_rows), axis=0)
     simulated_load = np.nanmean(np.array(load_rows), axis=0)
+    simulated_served = np.nanmean(np.array(served_rows), axis=0)
 
     # ---- observed headway CV ------------------------------------------------------
     observed = pd.read_csv("results/validation/observed_headway_cv.csv")
@@ -108,6 +113,23 @@ def main():
     error = loads["simulated_load_leaving"] - loads["apc_mean_max_load"]
     summary["load_rmse_riders"] = round(float(np.sqrt(np.mean(error ** 2))), 2)
     summary["load_correlation"] = round(float(np.corrcoef(loads["simulated_load_leaving"], loads["apc_mean_max_load"])[0, 1]), 3)
+
+    # ---- how often each stop is served (test days) -----------------------------------------
+    fitted = pd.read_csv("sim_inputs/fitted/stop_params.csv")
+    fitted = fitted[fitted["period"] == "ALL"].set_index("bs_id")
+    service = pd.DataFrame({
+        "stop_index": range(C.NUM_STOPS),
+        "bs_id": C.STOPS,
+        "always_served_in_simulator": [i in C.ALWAYS_SERVED for i in range(C.NUM_STOPS)],
+        "observed_served_share": [float(fitted.loc[int(s), "served_share_test"]) for s in C.STOPS],
+        "simulated_served_share": np.round(simulated_served, 3),
+    })
+    service.to_csv("results/validation/stop_service_sim_vs_observed.csv", index=False)
+    free = service[~service["always_served_in_simulator"]]
+    summary["served_share_observed_mean_free_stops"] = round(float(free["observed_served_share"].mean()), 3)
+    summary["served_share_simulated_mean_free_stops"] = round(float(free["simulated_served_share"].mean()), 3)
+    summary["served_share_correlation_free_stops"] = round(float(np.corrcoef(free["observed_served_share"], free["simulated_served_share"])[0, 1]), 3)
+    print(service.to_string(index=False))
 
     with open("results/validation/simulator_validation_summary.json", "w") as file:
         json.dump(summary, file, indent=2)

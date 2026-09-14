@@ -48,6 +48,18 @@ DISTURBANCES  (switch each on with True; D and T are on in every scenario)
                     of the run; its riders get off and wait for the next
                     bus (Guedes & Borenstein 2018; Daganzo 2009)
 
+STOPS ARE SERVED ON DEMAND
+    Like a real bus, a bus drives past a stop where nobody is waiting and
+    nobody on board is getting off. The first stop, the last stop and the 5
+    control stops are always served. (Real buses served each stop on 39-88%
+    of trips; the simulator is checked against that.)
+
+SKIP ACTION  (only when simulate(skip_enabled=True), e.g. for MARL)
+    At a control stop the controller may skip the NEXT stop: the bus drives
+    past it even if people are waiting or want to get off. Not allowed at the
+    origin, and not if the bus ahead already skipped that stop (manuscript
+    section 3). Riders who wanted that stop are carried on and counted.
+
 HOW TO USE IT
     from corridor_sim import simulate, BASELINES
     result = simulate(BASELINES["FH"], seed=0, T=True)
@@ -129,16 +141,17 @@ for i in range(NUM_STOPS - 1):
 RUN_TIME = []        # RUN_TIME[i]   median seconds driving from stop i to i+1 (this period)
 RUN_SCALE = []       # RUN_SCALE[i]  this period's running time / the calibrated one
 RUN_LOG_SD = []      # RUN_LOG_SD[i] how much that running time varies (T)
-BASE_DWELL = {}      # BASE_DWELL[stop]  median seconds stopped
-DEMAND = {}          # DEMAND[stop]      average passengers boarding per bus
-ALIGHTINGS = {}      # ALIGHTINGS[stop]  average passengers getting off per bus
+BASE_DWELL = {}      # BASE_DWELL[stop]  median seconds stopped (when the bus stops)
+DEMAND = {}          # DEMAND[stop]      average passengers boarding per TRIP
+ALIGHTINGS = {}      # ALIGHTINGS[stop]  average passengers getting off per TRIP
 typical_log_sd = MODEL["run_time_log_sd_pairwise_median_over_segments"]
 for i in range(NUM_STOPS):
     stop = STOPS[i]
     here = period_rows.loc[STOP_IDS[i]]
     BASE_DWELL[stop] = float(here["dwell_median_s"])
-    DEMAND[stop] = float(here["mean_boardings"])
-    ALIGHTINGS[stop] = float(here["mean_alightings"])
+    # Per trip, not per recorded stop: APC only records a stop when the doors open.
+    DEMAND[stop] = float(here["boardings_per_trip"])
+    ALIGHTINGS[stop] = float(here["alightings_per_trip"])
 for i in range(NUM_STOPS - 1):
     run_here = float(period_rows.loc[STOP_IDS[i], "run_median_s"])
     run_calibrated = float(calibrated_rows.loc[STOP_IDS[i], "run_median_s"])
@@ -151,7 +164,7 @@ for i in range(NUM_STOPS - 1):
     RUN_LOG_SD.append(float(log_sd))
 
 # Average riders already on board when a bus reaches stop 0 (Tech Ridge boardings).
-START_LOAD = float(period_rows.loc[TECH_RIDGE, "mean_boardings"])
+START_LOAD = float(period_rows.loc[TECH_RIDGE, "boardings_per_trip"])
 
 
 # =============================================================================
@@ -196,6 +209,26 @@ TRAFFIC_STRESS_SD = 0.0
 MAX_HOLD_SECONDS = 120.0
 NUM_BREAKDOWNS = 1          # B: buses removed per run (Guedes & Borenstein 2018 use 1, then 2-3)
 
+# Forward-Headway = Daganzo (2009) rule:  hold = d + (alpha + b) x (H0 - forward headway)
+#   alpha = 0.2 and d = 25 s are from his worked example (p. 7);
+#   b = extra delay per second of headway = boarding rate x seconds per boarding,
+#       summed over the stops until the next control stop (his eq. 3; fitted here).
+DAGANZO_ALPHA = 0.2
+DAGANZO_SLACK = 25.0
+
+SKIP_DECISION_DISTANCE = 80.0   # metres before a stop where the bus decides to stop or drive past
+STOP_END_POSITION = 25.0        # a bus stop runs from 5 m to 25 m along its road piece
+
+# Length of each road piece (m), read once from the SUMO network file.
+LANE_LENGTH = []
+_lengths = {}
+for edge in ET.parse(NET_FILE).getroot().iter("edge"):
+    if edge.get("function") is None:
+        for lane in edge.iter("lane"):
+            _lengths[edge.get("id")] = float(lane.get("length"))
+for i in range(NUM_STOPS):
+    LANE_LENGTH.append(_lengths[EDGES[i]])
+
 LONG_STOP = 600.0           # buses are told to stop "600 s"; we release them ourselves
 BUS_CAPACITY = 60           # passengers
 SUMO_SECONDS_PER_PERSON = 0.5   # SUMO's own time to move one person on or off a bus
@@ -212,6 +245,23 @@ INTERIOR = list(range(1, NUM_STOPS - 1))    # every stop except the first and la
 #   index 0 = the origin terminal; 1, 5, 17, 20 = where high-demand stretches begin
 #   (index 9 was removed because it carries too much through traffic).
 CONTROL_STOPS = [0, 1, 5, 17, 20]           # bus stop ids 5280, 5857, 5859, 5867, 4046
+
+# Stops every bus always serves: the first, the last and the control stops.
+ALWAYS_SERVED = set(CONTROL_STOPS + [0, NUM_STOPS - 1])
+
+# Daganzo's b for each stop: boardings per second x seconds per boarding,
+# over the stops from this one up to (not including) the next control stop.
+DAGANZO_B = []
+for i in range(NUM_STOPS):
+    later_controls = [c for c in CONTROL_STOPS if c > i]
+    if later_controls:
+        segment_end = later_controls[0]
+    else:
+        segment_end = NUM_STOPS
+    b = 0.0
+    for k in range(i, segment_end):
+        b = b + (DEMAND[STOPS[k]] / H0) * SECONDS_PER_BOARDING
+    DAGANZO_B.append(b)
 
 BUS_NAMES = []                              # "b0", "b1", ... in scheduled order
 for b in range(NUM_BUSES):
@@ -240,12 +290,14 @@ if not os.path.exists(VTYPE_FILE) or open(VTYPE_FILE).read() != VTYPE_TEXT:
 # =============================================================================
 # PART 3 -- THE THREE BASELINE CONTROLLERS
 # =============================================================================
-def forward_headway_hold(hf, max_hold=MAX_HOLD_SECONDS):
-    """Forward-Headway rule: if the bus is closer than H0 to the bus ahead,
-    hold it for the missing time (but never more than the maximum hold)."""
-    if hf >= H0:
-        return 0.0
-    return float(min(H0 - hf, max_hold))
+def forward_headway_hold(hf, stop_index, max_hold=MAX_HOLD_SECONDS):
+    """Forward-Headway rule of Daganzo (2009):
+        hold = d + (alpha + b) x (H0 - forward headway)
+    A bus exactly on headway holds the slack d (25 s); a bus too close holds
+    longer; a bus too far behind holds less. Never negative, never more than
+    the maximum hold."""
+    hold = DAGANZO_SLACK + (DAGANZO_ALPHA + DAGANZO_B[stop_index]) * (H0 - hf)
+    return float(max(0.0, min(hold, max_hold)))
 
 
 def even_headway_hold(hf, hb, max_hold=MAX_HOLD_SECONDS):
@@ -260,7 +312,7 @@ def no_control(obs):
 
 
 def forward_headway(obs):
-    return forward_headway_hold(obs["hf"], obs["max_hold"]), 0
+    return forward_headway_hold(obs["hf"], obs["idx"], obs["max_hold"]), 0
 
 
 def even_headway(obs):
@@ -437,7 +489,7 @@ AMBER = (255, 170, 0)
 
 def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None,
              eta=None, trace=False, gui=False, gui_delay=20, max_hold=None, breakdowns=NUM_BREAKDOWNS,
-             surge_sd=SURGE_SD, traffic_stress_sd=TRAFFIC_STRESS_SD):
+             surge_sd=SURGE_SD, traffic_stress_sd=TRAFFIC_STRESS_SD, skip_enabled=False):
     """Run the corridor once with the controller `decide`.
 
     seed           makes the random disturbances repeatable (same seed = same run)
@@ -451,6 +503,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     breakdowns     how many buses are removed when B is on (default 1)
     surge_sd       sigma_d of the surge factor when S is on (default 1)
     traffic_stress_sd  sigma_s of the extra traffic stress when T is on (default 0 = off)
+    skip_enabled   let the controller's skip answer take effect (default False)
 
     Returns a dictionary:
         headway_cv     bunching: spread of the gaps between buses (0 = perfectly even)
@@ -464,6 +517,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         riders_moved      B: riders who had to get off a broken-down bus
         riders_stranded   B: moved riders no later bus picked up (should be 0)
         surge_factor      S: the demand multiplier drawn for this run
+        stop_served_share share of bus visits at each stop where the bus stopped
+        controller_skips  stops skipped because the controller said so
+        riders_overcarried riders carried past their stop by a controller skip
     """
     if control_stops is None:
         control_stops = set(INTERIOR)
@@ -581,6 +637,15 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         removed_buses = set()              # B: bus numbers taken out of service
         riders_moved = 0                   # B: riders who had to change bus
         breakdown_happened = False
+        decided_stop = {}                  # bus -> stop index it has already decided about
+        passing_stop = {}                  # bus -> stop index it is driving past
+        skip_ordered = {}                  # bus -> stop index the controller told it to skip
+        skipped_by_controller = set()      # (bus number, stop index)
+        overcarried = {}                   # bus -> riders carried past their stop
+        overcarried_ids = set()
+        served_visits = [0] * NUM_STOPS
+        next_check = {}                    # bus -> earliest time worth checking its position again
+        passed_visits = [0] * NUM_STOPS
 
         # ---- 5d. the main loop: one pass = one simulated second -----------------
         # NOTE: buses are always handled in the fixed order b0, b1, b2, ...
@@ -620,9 +685,64 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                 is_stopped = traci.vehicle.isStopped(bus)
                 i = next_stop[bus]
 
+                # ---- (0) approaching stop i: stop there, or drive past? -----------
+                if not is_stopped and i < NUM_STOPS and decided_stop.get(bus) != i and t >= next_check.get(bus, 0):
+                    road = traci.vehicle.getRoadID(bus)
+                    position = traci.vehicle.getLanePosition(bus)
+                    near = False
+                    if i > 0 and road == EDGES[i - 1]:
+                        remaining = LANE_LENGTH[i - 1] - position
+                        near = remaining <= SKIP_DECISION_DISTANCE
+                        if not near:
+                            # still far away: no need to look again until it could be close
+                            # (a bus is never faster than 30 m/s)
+                            next_check[bus] = t + max(1.0, (remaining - SKIP_DECISION_DISTANCE) / 30.0)
+                    elif road == EDGES[i]:
+                        near = True
+                    if near:
+                        decided_stop[bus] = i
+                        stop = STOPS[i]
+                        must_serve = (i in ALWAYS_SERVED) or (breakdown_at.get(bus_number) == i)
+                        ordered = skip_ordered.get(bus) == i
+                        if ordered or not must_serve:
+                            waiting_now = traci.busstop.getPersonCount(stop)
+                            getting_off_now = count_riders_getting_off(bus, stop)
+                            if ordered or (waiting_now == 0 and getting_off_now == 0):
+                                traci.vehicle.replaceStop(bus, 0, "")        # drive past this stop
+                                passing_stop[bus] = i
+                                if ordered:
+                                    skipped_by_controller.add((bus_number, i))
+                                    overcarried[bus] = riders_bound_for(bus, stop)
+
+                # ---- (0b) driving past stop i: note the time it passes ------------
+                if passing_stop.get(bus) == i and not is_stopped:
+                    if traci.vehicle.getRoadID(bus) == EDGES[i] and traci.vehicle.getLanePosition(bus) >= STOP_END_POSITION:
+                        stop = STOPS[i]
+                        arrivals_at_stop[stop].append(t)
+                        arrival_time[(bus_number, i)] = t
+                        last_stop_reached[bus_number] = (i, t)
+                        passed_visits[i] += 1
+                        load_sum[i] += traci.vehicle.getPersonNumber(bus)
+                        load_count[i] += 1
+                        if i < NUM_STOPS - 1:
+                            set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress)
+                        next_stop[bus] = i + 1
+                        del passing_stop[bus]
+                        was_stopped[bus] = False
+                        continue
+
                 # ---- (1) the bus has JUST arrived at stop i ----------------------
                 if is_stopped and not was_stopped[bus] and i < NUM_STOPS:
                     stop = STOPS[i]
+                    served_visits[i] += 1
+
+                    # Riders carried past a skipped stop get off here.
+                    for person in overcarried.pop(bus, []):
+                        try:
+                            traci.person.removeStages(person)
+                            overcarried_ids.add(person)
+                        except traci.TraCIException:
+                            pass
 
                     # B: this bus breaks down here and leaves service for good.
                     # Its riders get off and wait here for the next bus.
@@ -692,6 +812,14 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                         # keep the hold between 0 and the maximum allowed
                         hold = float(max(0.0, min(hold, max_hold)))
 
+                        # Skip the NEXT stop, if allowed: not at the origin, not the
+                        # last stop, and not if the bus ahead skipped that same stop.
+                        target = i + 1
+                        if skip_enabled and skip and i > 0 and target < NUM_STOPS - 1:
+                            leader = bus_ahead(bus_number, running_order, position_of, removed_buses)
+                            if leader is None or (leader, target) not in skipped_by_controller:
+                                skip_ordered[bus] = target
+
                     if gui and hold > 0:
                         traci.vehicle.setColor(bus, AMBER)
 
@@ -710,19 +838,8 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                         pass
                     if gui:
                         traci.vehicle.setColor(bus, base_colour(decide))
-                    # Running time on the next road piece: the period's typical time,
-                    # x traffic variation (T), x rain and weather stress (W).
-                    # A speed factor of 1/time_factor makes the drive take that long.
                     if i < NUM_STOPS - 1:
-                        time_factor = RUN_SCALE[i]
-                        if T:
-                            time_factor = time_factor * float(run_factor[bus_number, i]) * traffic_stress
-                        if W:
-                            time_factor = time_factor * RAIN_MULTIPLIER * float(weather_stress[bus_number, i])
-                        try:
-                            traci.vehicle.setSpeedFactor(bus, 1.0 / time_factor)
-                        except traci.TraCIException:
-                            pass
+                        set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress)
 
                 # ---- (3) the bus has just driven off: aim at the next stop --------
                 if not is_stopped and was_stopped[bus] and i < NUM_STOPS:
@@ -788,6 +905,8 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                 if float(ride.get("arrival", "-1")) >= 0:
                     if not person.get("id").startswith("tr"):
                         recorded_waits.append(float(ride.get("waitingTime", 0)))
+                elif person.get("id") in overcarried_ids:
+                    pass                           # carried past a skipped stop (counted below)
                 elif vehicle not in ("NULL", ""):
                     rides_unfinished += 1          # boarded but never got off
                 elif person.get("id").startswith("moved_"):
@@ -821,6 +940,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         "riders_moved": riders_moved,
         "riders_stranded": riders_stranded,
         "surge_factor": surge_factor,
+        "stop_served_share": served_share_list(served_visits, passed_visits),
+        "controller_skips": len(skipped_by_controller),
+        "riders_overcarried": len(overcarried_ids),
     }
 
     if trace:
@@ -864,6 +986,54 @@ def estimate_backward_headway(bus_number, i, t, running_order, position_of, remo
     else:
         expected_arrival = max(departures[follower], t) + TIME_TO_REACH[i]
     return float(max(0.0, expected_arrival - t))
+
+
+def set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress):
+    """Running time on road piece i: the period's typical time, x traffic
+    variation (T), x rain and weather stress (W). A speed factor of
+    1 / time_factor makes the drive take that long -- faster OR slower."""
+    time_factor = RUN_SCALE[i]
+    if T:
+        time_factor = time_factor * float(run_factor[bus_number, i]) * traffic_stress
+    if W:
+        time_factor = time_factor * RAIN_MULTIPLIER * float(weather_stress[bus_number, i])
+    try:
+        traci.vehicle.setSpeedFactor(bus, 1.0 / time_factor)
+    except traci.TraCIException:
+        pass
+
+
+def bus_ahead(bus_number, running_order, position_of, removed_buses):
+    """The bus running in front of this one (skipping removed buses), or None."""
+    position = position_of[bus_number] - 1
+    while position >= 0 and running_order[position] in removed_buses:
+        position = position - 1
+    if position < 0:
+        return None
+    return running_order[position]
+
+
+def riders_bound_for(bus, stop):
+    """IDs of riders on this bus whose stop is `stop`."""
+    riders = []
+    try:
+        for person in traci.vehicle.getPersonIDList(bus):
+            if traci.person.getStage(person).destStop == stop:
+                riders.append(person)
+    except traci.TraCIException:
+        pass
+    return riders
+
+
+def served_share_list(served, passed):
+    shares = []
+    for i in range(len(served)):
+        visits = served[i] + passed[i]
+        if visits > 0:
+            shares.append(served[i] / visits)
+        else:
+            shares.append(float("nan"))
+    return shares
 
 
 def count_riders_getting_off(bus, stop):

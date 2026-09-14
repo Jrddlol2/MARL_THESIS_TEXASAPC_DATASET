@@ -34,11 +34,11 @@ def train(cfg, scenario=dict(T=True), eval_every=50, eval_seeds=5):
           f"stops={cs} scenario={scenario}", flush=True)
     for ep in range(cfg.episodes):
         ctrl = MarlController(agent, cfg, training=True)
-        r = simulate(ctrl, seed=1000 + ep, control_stops=cs, **scenario)
+        r = simulate(ctrl, seed=1000 + ep, control_stops=cs, skip_enabled=cfg.skip_enabled, **scenario)
         ctrl.finalize()
         eval_cv = ""
         if (ep + 1) % eval_every == 0:
-            evs = [simulate(MarlController(agent, cfg, training=False), seed=90000 + s,
+            evs = [simulate(MarlController(agent, cfg, training=False), seed=90000 + s, skip_enabled=cfg.skip_enabled,
                             control_stops=cs, **scenario)["headway_cv"] for s in range(eval_seeds)]
             eval_cv = float(np.nanmean(evs))
             print(f"  ep {ep+1:4d}  ret {ctrl.ret:7.1f}  train_cv {r['headway_cv']:.3f}  "

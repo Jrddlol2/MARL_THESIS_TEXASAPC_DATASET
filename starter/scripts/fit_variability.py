@@ -17,6 +17,15 @@ WHAT IT DOES
       6. The headway CV of real buses, measured the same way as the simulator
       7. A split of weekday service days into CALIBRATION days (alternating)
          and TEST days (the rest), so the corridor can be tested on unseen days
+      8. How often real buses serve each stop (a record exists only when the
+         doors open), so demand can be counted PER TRIP, not per recorded stop
+
+PER TRIP, NOT PER RECORDED STOP
+    APC writes a record only when the doors open. "Mean boardings per record"
+    therefore overstates what an average bus picks up at a stop that half the
+    buses skip. The simulator uses boardings per scheduled TRIP passing the
+    stop: total boardings / trips. A trip "passes" a stop in a time window if its
+    scheduled start plus the median time to reach that stop falls in the window.
 
 WHY SPREADS ARE FITTED FROM NEIGHBOURING BUSES
     Bunching comes from DIFFERENCES between one bus and the next. A late
@@ -153,6 +162,18 @@ def split_days(events):
 # =============================================================================
 # 1-3. PER-STOP PARAMETERS
 # =============================================================================
+def trips_passing(events, stop, day_set, first, last):
+    """Number of scheduled trips that pass `stop` between `first` and `last` o'clock
+    on the given weekdays: scheduled start + median time to reach the stop."""
+    here = events[(events["stop"] == stop) & events["scheduled_start"].notna()]
+    offset = (here["open"] - here["scheduled_start"]).dt.total_seconds().median()
+    trips = events[(events["day_type"] == "weekday") & events["day"].isin(day_set)
+                   & events["scheduled_start"].notna()].drop_duplicates("trip")
+    at_stop = trips["scheduled_start"] + pd.Timedelta(seconds=float(offset))
+    hours = at_stop.dt.hour
+    return int((in_hours(hours, first, last)).sum())
+
+
 def stop_parameters(events, corridor, days):
     calibration_days = set(days.loc[days["split"] == "calibration", "day"])
     test_days = set(days.loc[days["split"] == "test", "day"])
@@ -164,6 +185,8 @@ def stop_parameters(events, corridor, days):
         for stop in corridor + [5304]:
             here = train[train["stop"] == stop]
             here_test = test[test["stop"] == stop]
+            trips = trips_passing(events, stop, calibration_days, first, last)
+            trips_test = trips_passing(events, stop, test_days, first, last)
             dry_runs = here.loc[(here["rain"] == 0) & here["run_s"].notna(), "run_s"]
             runs_train = here["run_s"].dropna()
             runs_test = here_test["run_s"].dropna()
@@ -171,8 +194,13 @@ def stop_parameters(events, corridor, days):
                 "period": period,
                 "bs_id": stop,
                 "events": len(here),
-                "mean_boardings": round(here["ons"].mean(), 3),
+                "mean_boardings": round(here["ons"].mean(), 3),          # per recorded stop
                 "mean_alightings": round(here["offs"].mean(), 3),
+                "trips": trips,
+                "boardings_per_trip": round(here["ons"].sum() / trips, 3) if trips else np.nan,
+                "alightings_per_trip": round(here["offs"].sum() / trips, 3) if trips else np.nan,
+                "served_share": round(here["trip"].nunique() / trips, 3) if trips else np.nan,
+                "served_share_test": round(here_test["trip"].nunique() / trips_test, 3) if trips_test else np.nan,
                 "dwell_median_s": round(here["dwell_time"].median(), 1),
                 "runs": len(runs_train),
                 "run_median_s": round(runs_train.median(), 1) if len(runs_train) else np.nan,

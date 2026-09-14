@@ -43,7 +43,7 @@ def evaluate(ckpt, cfg, N=20, with_baselines=True):
             cvs, wts = [], []
             for s in range(N):
                 dec = MarlController(agent, cfg, training=False) if c == "MARL" else BASELINES[c]
-                r = simulate(dec, seed=s, control_stops=cs, **kw)
+                r = simulate(dec, seed=s, control_stops=cs, skip_enabled=cfg.skip_enabled, **kw)
                 cvs.append(r["headway_cv"]); wts.append(r["wait_s"])
             D[(name, c)] = (cvs, wts)
         row = " | ".join(f"{c} {boot(D[(name,c)][0])[0]:.3f}" for c in ctrls)

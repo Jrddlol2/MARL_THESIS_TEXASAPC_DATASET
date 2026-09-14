@@ -1,11 +1,14 @@
 {
   "seeds": 30,
   "observed_mean_cv_stops_1_26": 0.504,
-  "simulated_mean_cv_stops_1_26": 0.552,
+  "simulated_mean_cv_stops_1_26": 0.556,
   "observed_cv_first_stop": 0.352,
   "simulated_cv_first_stop": 0.357,
-  "rmse_by_stop": 0.065,
-  "correlation_by_stop": 0.865,
-  "load_rmse_riders": 1.01,
-  "load_correlation": 0.985
+  "rmse_by_stop": 0.069,
+  "correlation_by_stop": 0.866,
+  "load_rmse_riders": 2.07,
+  "load_correlation": 0.989,
+  "served_share_observed_mean_free_stops": 0.641,
+  "served_share_simulated_mean_free_stops": 0.694,
+  "served_share_correlation_free_stops": 0.962
 }
