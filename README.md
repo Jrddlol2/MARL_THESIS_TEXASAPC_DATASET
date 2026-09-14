@@ -45,7 +45,7 @@ counter (APC) data, July–December 2021.
 | Corridor calibrated | **Done** — tested on held-out days: RMSPE 3.08%, GEH < 5 on 26/26 segments |
 | Simulator checked against real buses | **Done** — bunching, loads and stop service (§4) |
 | Baseline controllers (NC / FH / EH) | **Done** — 30 paired Monte Carlo runs per scenario |
-| MARL agent | **Built and tested; must be retrained** on the current simulator (§6) |
+| MARL agent | **Built and tested; must be retrained** on the current simulator (§5) |
 | Results / Discussion chapters | **Not written** |
 
 **Milestones**
@@ -160,7 +160,8 @@ Manuscript to-do list: [`docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`]
 | `config/` | `texas_capmetro_801.json` — every data-pipeline setting | yes |
 | `scripts/` | **The data half.** Raw download → cleaned data → weather attached | yes |
 | `starter/` | **The simulation half.** Corridor, SUMO, controllers, MARL, results, figures | yes |
-| `data/raw/`, `data/processed/` | The 3.7 GB APC snapshot, the clean subset, NOAA tables | **no** — too big (§9) |
+| `data/shared/` | **The cleaned datasets** (study set, both directions, weather), zipped, with checksums (§9) | yes |
+| `data/raw/`, `data/processed/` | Where the scripts read data from; the 3.7 GB APC snapshot | **no** — too big (§9) |
 | `data/audit/` | **The evidence.** Checksums, queries, row counts, coverage results | yes |
 | `docs/progress/` | The current write-up and the MSA deliverables (.docx) | yes |
 | `docs/planning/` | Risk register, manuscript change list, experiment plan, roadmap | yes |
@@ -289,10 +290,25 @@ Everything under `starter/` runs **from the `starter/` folder**.
 
 ## 9. Getting the data (do this first on a new machine)
 
-The pipeline **never downloads anything** — it reads our archived copies. Those
-files are too big for Git, so a fresh clone does not have them. You need three.
+### Fast way: the cleaned data is in the repo
 
-### 1. The APC snapshot (3.7 GB)
+To run the simulator, fit its inputs or check it against real buses, you only need the
+cleaned data. It is committed in [`data/shared/`](data/shared/README.md). From the repo root:
+
+```bash
+python scripts/unpack_shared_data.py
+```
+
+That unpacks the 229,421-row study set and the weather tables to `data/raw/` and
+`data/processed/`, and checks each file's SHA-256. Everything under `starter/` then runs.
+
+### Full way: rebuild the cleaned data from the raw snapshot
+
+Only needed to rerun the data pipeline (`scripts/pipeline/`). The pipeline **never
+downloads anything** — it reads our archived copies. Those files are too big for Git,
+so a fresh clone does not have them. You need three.
+
+#### 1. The APC snapshot (3.7 GB)
 
 From the Texas Open Data portal, dataset **`im6q-3pc9`**:
 <https://data.texas.gov/dataset/APC-Raw-July-2021-December-2021/im6q-3pc9>
@@ -317,7 +333,7 @@ sha256sum data/raw/capmetro/APC_Raw_July_2021_December_2021_full.csv
 
 If the hash does not match, stop — do not run the pipeline on it.
 
-### 2. The two NOAA weather files (~16 MB total)
+#### 2. The two NOAA weather files (~16 MB total)
 
 ```
 data/raw/noaa/LCD_USW00013958_2021.csv    Camp Mabry (primary)
@@ -331,7 +347,7 @@ data/raw/noaa/LCD_USW00013904_2021.csv    Austin-Bergstrom (cross-check)
 
 Full checksums are in `data/audit/texas_capmetro/weather_source_audit.json`.
 
-### 3. Nothing else
+#### 3. Nothing else
 
 Everything downstream is generated. **Faster option:** ask a teammate for the
 files rather than re-downloading 3.7 GB. Check the hashes either way.
@@ -345,7 +361,8 @@ files rather than re-downloading 3.7 GB. Check the hashes either way.
 
 ```bash
 # ---- the data half (from the repo root) ----------------------------------------
-python scripts/pipeline/run_all.py                 # ~100 s; rebuilds the clean data and evidence
+python scripts/unpack_shared_data.py               # ~5 s; the cleaned data from data/shared/
+python scripts/pipeline/run_all.py                 # OR ~100 s from the raw snapshot; also rebuilds the evidence
 
 # ---- the simulation half (from starter/) -----------------------------------------
 cd starter
