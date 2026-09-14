@@ -88,26 +88,26 @@ That one sentence explains most of this repository.
 
 Baseline comparison, 30 paired Monte Carlo runs per cell (2026-09-14). The simulator
 now uses the real 2021 headway (600 s), passenger demand, dwell and running-time
-variability **fitted from the APC data**, a 120 s holding cap (as in the RRL) and a
-breakdown that removes a bus. Lower headway CV = more evenly spaced buses = better.
+variability **fitted from the APC data**, buses that pass stops nobody is using, a 120 s
+holding cap (as in the RRL), Daganzo's Forward-Headway rule and a breakdown that removes a bus. Lower headway CV = more evenly spaced buses = better.
 
 | Scenario | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
-| Stage A — ordinary day (demand + traffic) | 0.552 | 0.366 (−34%) | **0.338** (−39%) |
-| + surge | 0.621 | 0.425 (−31%) | **0.395** (−36%) |
-| + weather | 0.869 | 0.793 (−9%) | 0.788 (−9%) |
-| + breakdown (one bus removed) | 0.565 | 0.401 (−29%) | **0.370** (−34%) |
-| Stage B — everything at once | 0.886 | 0.803 (−9%) | 0.808 (−9%) |
+| Stage A — ordinary day (demand + traffic) | 0.556 | 0.396 (−29%) | **0.342** (−38%) |
+| + surge | 0.596 | 0.427 (−28%) | **0.371** (−38%) |
+| + weather | 0.865 | 0.798 (−8%) | 0.786 (−9%) |
+| + breakdown (one bus removed) | 0.564 | 0.423 (−25%) | **0.370** (−34%) |
+| Stage B — everything at once | 0.876 | 0.804 (−8%) | 0.796 (−9%) |
 
 All reductions are significant (95% CIs exclude zero).
 
 **Is the simulator realistic?** On held-out weekdays real buses have headway CV 0.50;
-the No-Control simulation gives 0.55 on the same definition (first stop 0.35 vs 0.36,
-stop-by-stop r = 0.87). Calibration on alternate days tests at RMSPE 3.1% on the rest.
+the No-Control simulation gives 0.56 on the same definition (first stop 0.35 vs 0.36,
+stop-by-stop r = 0.87). Buses serve quiet stops on 69% of trips vs 64% observed. Calibration on alternate days tests at RMSPE 3.1% on the rest.
 
 **What this means for the thesis:** fixed holding rules work well on an ordinary day but
-lose about three-quarters of their effect under severe, combined disturbance (−35 to −39%
-→ −9%). A 240 s cap (−14%) or three breakdowns (−9%) do not change that. The gap is what
+lose most of their effect under severe, combined disturbance (−29 to −38% → −8 to −9%).
+A 240 s cap (−9 to −12%) or three breakdowns (−8 to −9%) do not change that. The gap is what
 the MARL controller has to close. Details: `docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`.
 
 **Where the MARL agent stands:** trained for 286 episodes. Greedy evaluation went

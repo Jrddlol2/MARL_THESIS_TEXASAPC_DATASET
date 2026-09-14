@@ -170,3 +170,13 @@ Details: `docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`.
 - **R14 decided:** 120 s headline cap, 240 s sensitivity (Stage B FH −9% vs −14%).
 - **R15 decided:** fixed breakdown count n_B = 1 (3 as a check), methods.tex updated.
 - **Headline result:** fixed holding −34/−39% on ordinary days → −9% under Stage B.
+
+### Update — 2026-09-14 (Week 2 follow-ups)
+
+- **R5 — DONE.** Skip action implemented with the manuscript's rules; `scripts/test_simulator.py` passes.
+- **R9 — DONE.** Buses pass stops with nobody waiting or alighting; demand is per trip. Served share
+  0.69 vs 0.64 observed (r = 0.96).
+- **FH formula — DONE.** Daganzo's rule (α = 0.2, d̄ = 25 s, b from fitted boarding rates).
+- **R2 — residual gap documented, not tuned:** No-Control CV 0.556 vs 0.504 (+10%), second half of the corridor.
+- **Headline:** FH −29%, EH −38% on ordinary days → −8%, −9% under Stage B.
+

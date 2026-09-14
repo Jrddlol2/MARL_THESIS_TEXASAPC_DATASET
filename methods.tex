@@ -673,11 +673,11 @@ No holding or skipping is applied. Each bus dwells only for the time required to
 The classical holding rule introduced by Daganzo~\cite{Daganzo2009}. When a bus arrives at a control stop, its holding time is:
 
 \begin{equation}
-d_{FH} = \max\!\left\{0,\, \bar{d} + g\,(H_0 - h^-)\right\}
+d_{FH} = \max\!\left\{0,\, \min\!\left[\bar{d} + g\,(H_0 - h^-),\; h_{\max}\right]\right\}
 \label{eq:fh}
 \end{equation}
 
-where $H_0$ is the desired (scheduled) headway, $h^-$ is the forward headway (time gap to the bus ahead), $\bar{d}$ is the average slack delay at equilibrium, and $g > 0$ is a control gain parameter. If a bus is running closer to the bus ahead than scheduled ($h^- < H_0$), it holds for an additional period proportional to the gap deficit; if it is already at or beyond the desired spacing ($h^- \geq H_0$), it does not hold. Parameters $\bar{d}$ and $g$ follow Daganzo's original values. FH represents local, single-agent reactive control: each bus reacts only to information about the bus immediately ahead. Because Eq.~\eqref{eq:fh} conditions only on $h^-$, FH is expected to partially correct demand- and traffic-induced bunching but to respond poorly to a breakdown: it has no observation of the enlarged gap a failed bus leaves for the bus behind it, so the trailing bus's holding decision is uninformed by the breakdown until the irregularity has already propagated back to it.
+where $H_0$ is the desired (scheduled) headway, $h^-$ is the forward headway (time gap to the bus ahead), $\bar{d}$ is the average slack delay at equilibrium, and $g > 0$ is a control gain parameter. If a bus is running closer to the bus ahead than scheduled ($h^- < H_0$), it holds for an additional period proportional to the gap deficit; if it is already at or beyond the desired spacing ($h^- \geq H_0$), it does not hold. Following Daganzo, $g = \alpha + b_s$, where $b_s$ is the extra bus delay per second of headway (the boarding rate over the stops up to the next control stop times the fitted seconds per boarding, Daganzo's Eq.~3) and $\alpha = 0.2$; the slack is $\bar{d} = 25$\,s, the values of Daganzo's worked example. The hold is capped at the same $h_{\max} = 120$\,s as EH and MARL. FH represents local, single-agent reactive control: each bus reacts only to information about the bus immediately ahead. Because Eq.~\eqref{eq:fh} conditions only on $h^-$, FH is expected to partially correct demand- and traffic-induced bunching but to respond poorly to a breakdown: it has no observation of the enlarged gap a failed bus leaves for the bus behind it, so the trailing bus's holding decision is uninformed by the breakdown until the irregularity has already propagated back to it.
 
 \subsubsection{Even Headway (EH)}
 

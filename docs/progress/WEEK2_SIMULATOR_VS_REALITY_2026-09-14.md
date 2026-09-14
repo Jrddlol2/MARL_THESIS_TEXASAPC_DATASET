@@ -28,8 +28,8 @@
 | Running time per stop pair | all-day median of `rev_seconds − dwell` | **median stop-to-stop time, only when the next record is the next stop** | Removes skipped-stop records (R9); corridor total 4,001 s vs 4,513 s before (−11%) |
 | Running-time variation | uniform 0.8–1.2 (log-sd ≈ 0.12) | **per segment, median log-sd 0.20** (0.10–0.35) | From neighbouring buses, dry events only |
 | Dispatch (trip start) | perfect, every 600 s | **per-bus sd 165 s** (robust 108 s) | Gaps between neighbours at stop 5280, scaled so the first-stop CV matches the calibration days (0.348) |
-| Demand per stop | one all-day mean, fixed count | **weekday 07–18 mean per stop; count varies day to day (variance = 3.8 × mean)** | Negative binomial; random arrival times |
-| Tech Ridge riders on board | 6.15 (all day) | **7.31** (weekday 07–18) | |
+| Demand per stop | one all-day mean per recorded stop, fixed count | **weekday 07–18 boardings per trip; count varies day to day (variance = 3.8 × mean)** | Negative binomial; random arrival times (see §5b on per-trip demand) |
+| Tech Ridge riders on board | 6.15 (all day, per record) | **6.93** (weekday 07–18, per trip) | |
 
 **Why "from neighbouring buses".** Bunching comes from the difference between one bus and
 the next. A late afternoon slows every bus together and does not bunch them. Fitting the
@@ -53,17 +53,18 @@ like a 20-minute gap). Simulated: No-Control, ordinary day (D+T), 30 seeds.
 | | Observed | Simulated |
 |---|---|---|
 | First stop (5280) | 0.352 | **0.357** |
-| Mean, stops 1–26 | 0.504 | **0.552** (+10%) |
-| Stop-by-stop RMSE | — | 0.065 |
+| Mean, stops 1–26 | 0.504 | **0.556** (+10%) |
+| Stop-by-stop RMSE | — | 0.069 |
 | Stop-by-stop correlation | — | 0.87 |
-| Loads leaving each stop vs APC `max_load` | — | RMSE 1.0 rider, r = 0.985 |
+| Loads leaving each stop vs APC `max_load` | — | about 2 riders below, r = 0.99 |
+| Share of trips serving each (non-control) stop | 0.64 | **0.69**, r = 0.96 |
 
 ![](../../starter/results/figures/headway_cv_validation.png)
 
 Bunching grows along the corridor in both (observed 0.35 → 0.56). The simulator grows a
 little faster in the second half (ends at 0.66). The earlier "0.62 observed vs 0.34
 simulated" was not like-for-like (different stops, hours and gap definition); on the same
-definition the gap is now +0.05.
+definition the gap is now +0.05. (Numbers above are for the final simulator, after §5b.)
 
 **Proposed SO1 criterion:** No-Control mean headway CV within ±15% of the observed value on
 held-out days. Met (+10%).
@@ -109,54 +110,58 @@ All are arguments of `simulate()` and options of `mc.py` (`--surge-sd`, `--eta`,
 `--traffic-sd`, `--breakdowns`, `--max-hold`). The manuscript table
 (`methods.tex`, parameter table) was updated to these values.
 
-## 6. Baselines re-run on the fitted simulator
+## 5b. Follow-ups: the four "still soft" items
 
-N = 30 paired seeds, 5 control stops, **hold cap 120 s**, one bus removed in B.
-`starter/results/mc_summary.md` (headline), `mc_summary_hold240.md`, `mc_summary_breakdowns3.md`.
+| Item | What was done | Evidence |
+|---|---|---|
+| **Stops served on demand** | 80 m before each stop the bus checks: anyone waiting, anyone on board getting off? If neither, it drives past without slowing. First, last and control stops are always served | Stops not always served: served on **69%** of simulated visits vs **64%** of real trips (test days), stop-by-stop **r = 0.96** (`results/validation/stop_service_sim_vs_observed.csv`) |
+| **Demand per trip** (found while doing the above) | APC writes a record only when the doors open, so "boardings per record" overstated demand at stops half the buses pass. Demand is now total boardings ÷ trips passing the stop | Corridor boardings 37.5 per trip vs 50.0 per record (−25%) |
+| **Skip action** | At a control stop the controller may skip the next stop (only with `skip_enabled=True`): not at the origin, not the last stop, not if the bus ahead skipped it. Riders bound for it are carried on and counted (`riders_overcarried`) | `scripts/test_simulator.py`: 13 checks pass (skip ignored when disabled, refused at origin, never two buses in a row, skipped stop served less, nobody stuck) |
+| **Forward-Headway = Daganzo** | hold = d̄ + (α + b)(H0 − h), α = 0.2, d̄ = 25 s (Daganzo's worked example, p. 7), b = boarding rate × 5.0 s per boarding over the stops to the next control stop (his Eq. 3), capped at 120 s | On headway holds 25 s; 5 min early 107 s; 5 min late 0 s |
+| **Bunching ~10% high** | Re-checked after the changes above; not tuned | Still 0.556 vs 0.504 (first half matches; stops 15–26 about +0.10). Timepoint holding by real operators could explain it, but the APC schedule field is valid on only 18% of records, so it cannot be shown |
+
+## 6. Baselines re-run on the final simulator
+
+N = 30 paired seeds, 5 control stops, **hold cap 120 s**, one bus removed in B, stops served on
+demand, Forward-Headway = Daganzo. `starter/results/mc_summary.md` (headline),
+`mc_summary_hold240.md`, `mc_summary_breakdowns3.md`.
 
 | Scenario | NC CV | FH vs NC [95% CI] | EH vs NC [95% CI] |
 |---|---|---|---|
-| Stage A (D+T, ordinary day) | 0.552 | −34% [−39, −28] | **−39% [−44, −33]** |
-| + Surge (S) | 0.621 | −31% [−36, −26] | −36% [−42, −30] |
-| + Weather (W) | 0.869 | −9% [−13, −5] | −9% [−14, −5] |
-| + Breakdown (B) | 0.565 | −29% [−33, −25] | −34% [−38, −30] |
-| **Stage B (all)** | **0.886** | **−9% [−14, −5]** | **−9% [−13, −5]** |
+| Stage A (D+T, ordinary day) | 0.556 | −29% [−35, −22] | **−38% [−44, −33]** |
+| + Surge (S) | 0.596 | −28% [−33, −23] | −38% [−42, −33] |
+| + Weather (W) | 0.865 | −8% [−10, −6] | −9% [−11, −7] |
+| + Breakdown (B) | 0.564 | −25% [−29, −20] | −34% [−39, −30] |
+| **Stage B (all)** | **0.876** | **−8% [−12, −4]** | **−9% [−13, −5]** |
 
 **Checks**
 
 | Scenario | Cap 240 s: FH / EH | 3 buses removed: FH / EH |
 |---|---|---|
-| Stage A | −41% / −45% | — |
-| + Weather | −14% / −12% | — |
-| + Breakdown | −35% / −41% | −22% / −28% |
-| Stage B | −14% / −12% | −9% / −8% |
+| Stage A | −30% / −45% | — |
+| + Weather | −9% / −12% | — |
+| + Breakdown | −26% / −41% | −20% / −28% |
+| Stage B | −9% / −12% | −8% / −9% |
 
 ![](../../starter/results/figures/degradation_curve.png)
 
-**What changed, and what it means**
+**What it means**
 
-1. **Even-Headway now beats Forward-Headway on ordinary days** (−39% vs −34%). Before the
-   backward-headway fix it could not see the bus behind, so it could not.
-2. **Fixed holding works well on an ordinary day and loses about three-quarters of its effect
-   under severe disturbance** (−34/−39% → −9%). Weather drives it: the degradation curve
-   shows both rules converging on No-Control as η grows.
-3. **The cap and the breakdown count do not change the conclusion.** A 240 s cap lifts Stage B
-   only to −14/−12%; three removals leave Stage B at −9/−8%.
-4. **MARL motivation, restated on a validated simulator:** rule-based holding is effective on
-   ordinary days but recovers only ~9% of bunching under combined severe disturbance (residual
-   CV 0.80). The target for SO2 is the gap between −9% and the ordinary-day −35 to −39%.
-
-Magnitudes changed a lot from Week 1 (Stage A NC 0.159 → 0.552) because the ordinary-day
-variability is now measured instead of assumed; the simulator was previously far too calm
-(R2).
+1. **Even-Headway beats Daganzo's Forward-Headway on ordinary days** (−38% vs −29%). Even-Headway
+   sees both neighbours; Forward-Headway is Daganzo's gentle rule (gain ≈ 0.2–0.3).
+2. **Fixed holding works well on an ordinary day and loses most of its effect under severe
+   disturbance** (−29/−38% → −8/−9%). Weather drives it.
+3. **The cap and the breakdown count do not change the conclusion.** A 240 s cap gives Stage B
+   −9/−12%; three removals give −8/−9%.
+4. **MARL motivation, on a validated simulator:** rule-based holding recovers only 8–9% of
+   bunching under combined severe disturbance (residual CV about 0.80). The SO2 target is the
+   gap between that and the ordinary-day −29 to −38%.
 
 ## 7. What is still soft
 
-- The simulator's bunching is 10% above observed, mostly in the second half of the corridor.
-- Dispatch spread is scaled to one number (first-stop CV) from 413 neighbour pairs at stop
-  5280 (43% of trips log that stop).
-- Buses stop at every stop (dwell ≥ ~8 s); real buses skip stops with no demand. Stop
-  skipping by demand (and the controller's skip action, R5) is not modelled.
-- Holding by real operators (if any) is inside the observed CV; the simulator's No-Control
-  has none.
+- The simulator bunches about 10% more than real buses, in the second half of the corridor.
+- Dispatch spread is scaled to one number (first-stop CV) from 413 neighbour pairs at stop 5280.
+- Control stops are always served (so a controller can act); real buses serve them on 47–90% of trips.
+- Simulated loads run about 2 riders below APC `max_load`, which is recorded only on door-open
+  visits (busier trips); the shape matches (r = 0.99).
 - Severe weather and breakdowns remain synthetic by necessity.
