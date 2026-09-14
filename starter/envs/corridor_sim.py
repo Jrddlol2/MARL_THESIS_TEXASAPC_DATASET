@@ -28,13 +28,16 @@ WHAT "obs" CONTAINS  (a dictionary)
     H0     scheduled headway (600 s)     cap    bus capacity (60)
     bus    bus number                    w      weather factor (1.0 = clear)
     b      1.0 once a breakdown has happened, else 0.0
+    max_hold  the longest hold allowed in this run (seconds)
 
 DISTURBANCES  (switch each on with True)
     D  dwell noise      every stop takes a random bit longer or shorter
     S  demand surge     120 extra passengers appear at one stop
     T  traffic          each road segment is randomly 0.8x - 1.2x speed
     W  weather          each road segment is randomly slowed (lognormal)
-    B  breakdown        one bus stops for 400 extra seconds at one stop
+    B  breakdown        one bus fails at a stop and is REMOVED for the rest
+                        of the run; its riders get off and wait for the
+                        next bus (Guedes & Borenstein 2018; Daganzo 2009)
 
 PASSENGERS  (from the APC data, see PART 4)
     * Each bus leaves the first stop already carrying Tech Ridge's riders.
@@ -165,9 +168,12 @@ BUSES_ON_CORRIDOR = 9
 NUM_BUSES = 2 * BUSES_ON_CORRIDOR
 
 DWELL_NOISE_CV = 0.25       # D: how much dwell times vary (coefficient of variation)
-MAX_HOLD_FRACTION = 0.4     # a controller may hold a bus at most 0.4 x H0 = 240 s
+# Longest hold: 0.4 x scheduled headway, the rule in Rodriguez et al. (2023),
+# so 0.4 x 600 = 240 s. The other RRL caps are 90-120 s at 5-6 minute
+# headways, so simulate(max_hold=120) is run as a sensitivity check.
+MAX_HOLD_FRACTION = 0.4
 LONG_STOP = 600.0           # buses are told to stop "600 s"; we release them ourselves
-BREAKDOWN_SECONDS = 400.0   # B: extra time the broken-down bus is stuck
+NUM_BREAKDOWNS = 1          # B: buses removed per run (Guedes & Borenstein 2018 use 1, then 2-3)
 WEATHER_CV = 0.8            # W: how strongly weather varies
 
 FIXED_DWELL = 6.0           # seconds to open/close doors even with nobody boarding
@@ -216,19 +222,19 @@ if not os.path.exists(VTYPE_FILE) or open(VTYPE_FILE).read() != VTYPE_TEXT:
 # =============================================================================
 # PART 3 -- THE THREE BASELINE CONTROLLERS
 # =============================================================================
-def forward_headway_hold(hf):
+def forward_headway_hold(hf, max_hold=MAX_HOLD_FRACTION * H0):
     """Forward-Headway rule: if the bus is closer than H0 to the bus ahead,
     hold it for the missing time (but never more than the maximum hold)."""
     if hf >= H0:
         return 0.0
-    return float(min(H0 - hf, MAX_HOLD_FRACTION * H0))
+    return float(min(H0 - hf, max_hold))
 
 
-def even_headway_hold(hf, hb):
+def even_headway_hold(hf, hb, max_hold=MAX_HOLD_FRACTION * H0):
     """Even-Headway rule: hold for half the difference between the gap behind
     and the gap ahead, so the bus ends up in the middle (never negative, never
     more than the maximum hold)."""
-    return float(max(0.0, min(0.5 * (hb - hf), MAX_HOLD_FRACTION * H0)))
+    return float(max(0.0, min(0.5 * (hb - hf), max_hold)))
 
 
 def no_control(obs):
@@ -236,11 +242,11 @@ def no_control(obs):
 
 
 def forward_headway(obs):
-    return forward_headway_hold(obs["hf"]), 0
+    return forward_headway_hold(obs["hf"], obs["max_hold"]), 0
 
 
 def even_headway(obs):
-    return even_headway_hold(obs["hf"], obs["hb"]), 0
+    return even_headway_hold(obs["hf"], obs["hb"], obs["max_hold"]), 0
 
 
 BASELINES = {"NC": no_control, "FH": forward_headway, "EH": even_headway}
@@ -392,11 +398,10 @@ def first_item(pair):
 BLUE = (0, 120, 255)      # GUI colours
 GREY = (160, 160, 160)
 AMBER = (255, 170, 0)
-RED = (230, 40, 40)
 
 
 def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None,
-             eta=None, trace=False, gui=False, gui_delay=20):
+             eta=None, trace=False, gui=False, gui_delay=20, max_hold=None, breakdowns=NUM_BREAKDOWNS):
     """Run the corridor once with the controller `decide`.
 
     seed           makes the random disturbances repeatable (same seed = same run)
@@ -406,6 +411,8 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     trace          also return every bus's arrival times (for Marey diagrams)
     gui            open the SUMO window and colour the buses (for demos)
     gui_delay      milliseconds the GUI waits per simulated second
+    max_hold       longest hold in seconds (None = 0.4 x H0 = 240 s)
+    breakdowns     how many buses are removed when B is on (default 1)
 
     Returns a dictionary:
         headway_cv     bunching: spread of the gaps between buses (0 = perfectly even)
@@ -414,11 +421,17 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         wait_direct    average passenger wait, as recorded by SUMO (cross-check)
         load_leaving   average riders on board as buses leave each stop
         rides_unfinished  riders who never reached their stop (should be 0)
+        buses_removed     B: buses taken out of service
+        riders_moved      B: riders who had to get off a broken-down bus
+        riders_stranded   B: moved riders no later bus picked up (should be 0)
     """
     if control_stops is None:
         control_stops = set(INTERIOR)
     else:
         control_stops = set(control_stops)
+
+    if max_hold is None:
+        max_hold = MAX_HOLD_FRACTION * H0
 
     random = np.random.default_rng(1000 + seed)
 
@@ -441,12 +454,18 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     # traffic_factor[bus][stop]: multiply the speed by this, 0.8 to 1.2 (T)
     traffic_factor = random.uniform(0.8, 1.2, size=(NUM_BUSES, NUM_STOPS))
 
-    # which bus breaks down, and at which stop (B)
-    breakdown_bus = int(random.integers(2, NUM_BUSES - 1))
+    # B: which buses fail, and at which stop. breakdown_at[bus number] = stop index.
+    # A bus is never removed from the first two or last two departures, and
+    # never at the first or last stop. The same seed gives the same breakdowns
+    # for every controller, so the comparison stays paired.
+    breakdown_at = {}
+    first_bus = int(random.integers(2, NUM_BUSES - 1))
     if B:
-        breakdown_stop = int(random.integers(1, NUM_STOPS - 1))
-    else:
-        breakdown_stop = -1
+        breakdown_at[first_bus] = int(random.integers(1, NUM_STOPS - 1))
+        while len(breakdown_at) < breakdowns:
+            extra_bus = int(random.integers(2, NUM_BUSES - 1))
+            if extra_bus not in breakdown_at:
+                breakdown_at[extra_bus] = int(random.integers(1, NUM_STOPS - 1))
 
     # ---- 5b. start SUMO ----------------------------------------------------------
     # Each run gets its own port number and file names, so several runs can
@@ -491,6 +510,8 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         entry_time = {}                    # bus -> time it started the corridor
         finish_time = {}                   # bus -> time it reached the last stop
         arrival_time = {}                  # (bus number, stop index) -> arrival time
+        removed_buses = set()              # B: bus numbers taken out of service
+        riders_moved = 0                   # B: riders who had to change bus
         breakdown_happened = False
 
         # ---- 5d. the main loop: one pass = one simulated second -----------------
@@ -534,6 +555,21 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                 # ---- (1) the bus has JUST arrived at stop i ----------------------
                 if is_stopped and not was_stopped[bus] and i < NUM_STOPS:
                     stop = STOPS[i]
+
+                    # B: this bus breaks down here and leaves service for good.
+                    # Its riders get off and wait here for the next bus.
+                    if breakdown_at.get(bus_number) == i:
+                        riders_moved += remove_broken_bus(bus, stop)
+                        removed_buses.add(bus_number)
+                        breakdown_happened = True
+                        continue
+
+                    # The bus ahead is whichever bus reached this stop last
+                    # (buses cannot overtake on this one-lane corridor).
+                    if len(arrivals_at_stop[stop]) > 0:
+                        last_arrival_here = arrivals_at_stop[stop][-1]
+                    else:
+                        last_arrival_here = None
                     arrivals_at_stop[stop].append(t)
                     arrived_at[bus] = t
                     arrival_time[(bus_number, i)] = t
@@ -558,14 +594,17 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                     hold = 0.0
                     if i in control_stops and bus_number > 0:
                         # forward headway: time since the bus ahead arrived here
-                        if (bus_number - 1, i) in arrival_time:
-                            hf = t - arrival_time[(bus_number - 1, i)]
+                        if last_arrival_here is not None:
+                            hf = t - last_arrival_here
                         else:
                             hf = H0
                         # backward headway: at the previous stop, how far behind us
-                        # the next bus arrived
-                        if (bus_number + 1, i - 1) in arrival_time and (bus_number, i - 1) in arrival_time:
-                            hb = arrival_time[(bus_number, i - 1)] - arrival_time[(bus_number + 1, i - 1)]
+                        # the next bus (still in service) arrived
+                        follower = bus_number + 1
+                        while follower in removed_buses:
+                            follower = follower + 1
+                        if (follower, i - 1) in arrival_time and (bus_number, i - 1) in arrival_time:
+                            hb = arrival_time[(bus_number, i - 1)] - arrival_time[(follower, i - 1)]
                         else:
                             hb = H0
                         try:
@@ -583,24 +622,15 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
 
                         obs = {"hf": hf, "hb": hb, "load": load, "queue": waiting, "idx": i,
                                "n": NUM_STOPS, "H0": H0, "cap": BUS_CAPACITY,
-                               "bus": bus_number, "w": w, "b": b}
+                               "bus": bus_number, "w": w, "b": b, "max_hold": max_hold}
                         hold, skip = decide(obs)
                         # keep the hold between 0 and the maximum allowed
-                        hold = float(max(0.0, min(hold, MAX_HOLD_FRACTION * H0)))
+                        hold = float(max(0.0, min(hold, max_hold)))
 
-                    # Breakdown: the chosen bus at the chosen stop is stuck longer.
-                    if B and bus_number == breakdown_bus and i == breakdown_stop:
-                        breakdown_delay = BREAKDOWN_SECONDS
-                        breakdown_happened = True
-                    else:
-                        breakdown_delay = 0.0
-
-                    if gui and breakdown_delay > 0:
-                        traci.vehicle.setColor(bus, RED)
-                    elif gui and hold > 0:
+                    if gui and hold > 0:
                         traci.vehicle.setColor(bus, AMBER)
 
-                    stop_duration[bus] = max(FIXED_DWELL, dwell, doors_time) + hold + breakdown_delay
+                    stop_duration[bus] = max(FIXED_DWELL, dwell, doors_time) + hold
                     try:
                         traci.vehicle.setMaxSpeed(bus, 30.0)
                     except traci.TraCIException:
@@ -673,16 +703,27 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
 
     # Passenger wait (cross-check): the waiting time SUMO recorded for each rider
     # who boarded at a stop (Tech Ridge riders never waited, so they are left out).
+    # Rides on a broken-down bus did not really finish, so they are skipped too;
+    # those riders' second wait (as "moved_...") is counted instead.
+    removed_names = set()
+    for b in removed_buses:
+        removed_names.add(BUS_NAMES[b])
     recorded_waits = []
     rides_unfinished = 0
+    riders_stranded = 0
     try:
         for person in ET.parse(tripinfo_file).getroot().findall("personinfo"):
             for ride in person.findall("ride"):
+                vehicle = ride.get("vehicle", "NULL")
+                if vehicle in removed_names:
+                    continue
                 if float(ride.get("arrival", "-1")) >= 0:
                     if not person.get("id").startswith("tr"):
                         recorded_waits.append(float(ride.get("waitingTime", 0)))
-                elif ride.get("vehicle", "NULL") not in ("NULL", ""):
+                elif vehicle not in ("NULL", ""):
                     rides_unfinished += 1          # boarded but never got off
+                elif person.get("id").startswith("moved_"):
+                    riders_stranded += 1           # a moved rider no bus picked up
     except Exception:
         pass
 
@@ -707,6 +748,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         "wait_direct": float(np.mean(recorded_waits)) if recorded_waits else float("nan"),
         "load_leaving": load_leaving,
         "rides_unfinished": rides_unfinished,
+        "buses_removed": len(removed_buses),
+        "riders_moved": riders_moved,
+        "riders_stranded": riders_stranded,
     }
 
     if trace:
@@ -739,6 +783,37 @@ def count_riders_getting_off(bus, stop):
     except traci.TraCIException:
         pass
     return count
+
+
+def remove_broken_bus(bus, stop):
+    """B: take a broken-down bus out of service at `stop`.
+
+    Riders going to this stop just get off. Every other rider gets off, walks
+    onto the stop, and waits for the next bus to their own stop -- so the bus
+    behind inherits them, as the manuscript describes.
+    Returns how many riders had to change bus.
+    """
+    riders = list(traci.vehicle.getPersonIDList(bus))
+    destinations = []
+    for person in riders:
+        destinations.append(traci.person.getStage(person).destStop)
+
+    traci.vehicle.remove(bus)
+
+    stop_edge = traci.lane.getEdgeID(traci.busstop.getLaneID(stop))
+    stop_position = traci.busstop.getStartPos(stop)
+    moved = 0
+    for k in range(len(riders)):
+        if destinations[k] == stop:
+            continue
+        new_id = "moved_" + riders[k]
+        destination_edge = traci.lane.getEdgeID(traci.busstop.getLaneID(destinations[k]))
+        traci.person.add(new_id, stop_edge, stop_position + 1.0)
+        # a 1-metre walk onto the stop, so SUMO counts them as waiting there
+        traci.person.appendWalkingStage(new_id, [stop_edge], stop_position + 2.0, stopID=stop)
+        traci.person.appendDrivingStage(new_id, destination_edge, "801", destinations[k])
+        moved = moved + 1
+    return moved
 
 
 def base_colour(decide):

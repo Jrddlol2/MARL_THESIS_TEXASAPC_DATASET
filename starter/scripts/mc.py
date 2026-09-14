@@ -13,19 +13,41 @@ speed lever). Run from the starter/ folder:
     python scripts/mc.py 30 8       # N=30, 8 parallel workers
     python scripts/mc.py 20 1       # serial
 Writes results/mc_results.csv and results/mc_summary.md.
+
+Options (after N and JOBS), used for sensitivity checks:
+    --max-hold 120      cap every hold at 120 s instead of 0.4 x H0 = 240 s
+    --breakdowns 3      remove 3 buses instead of 1 when B is on
+    --only-breakdown    run only the two scenarios that include B
+    --tag NAME          write results/mc_results_NAME.csv and mc_summary_NAME.md
+Example:  python scripts/mc.py 30 10 --max-hold 120 --tag hold120
 """
 import os, sys, time, csv, numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "envs"))
 from corridor_sim import simulate, BASELINES, CONTROL_STOPS, STOPS, H0, NUM_BUSES
 
-N    = int(sys.argv[1]) if len(sys.argv) > 1 else 30
-JOBS = int(sys.argv[2]) if len(sys.argv) > 2 else 6
+
+
+def option(name, default):
+    """Value written after --name on the command line, or `default`."""
+    if name in sys.argv:
+        return sys.argv[sys.argv.index(name) + 1]
+    return default
+
+
+N    = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 30
+JOBS = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 6
+MAX_HOLD = float(option("--max-hold", "nan"))          # nan = the simulator's default (0.4 x H0)
+BREAKDOWNS = int(option("--breakdowns", "1"))
+TAG = option("--tag", "")
+SUFFIX = "_" + TAG if TAG else ""
 SCEN = [("Stage A (D+T)",        dict(T=True)),
         ("Ablation S (D+T+S)",   dict(T=True, S=True)),
         ("Ablation W (D+T+W)",   dict(T=True, W=True)),
         ("Ablation B (D+T+B)",   dict(T=True, B=True)),
         ("Stage B (D+T+S+W+B)",  dict(T=True, S=True, W=True, B=True))]
+if "--only-breakdown" in sys.argv:
+    SCEN = [s for s in SCEN if s[1].get("B")]
 CTRLS = list(BASELINES)              # NC, FH, EH
 os.makedirs("results", exist_ok=True)
 
@@ -33,10 +55,14 @@ os.makedirs("results", exist_ok=True)
 def _run_one(task):
     """Worker: one (scenario, controller, seed) replication. Picklable — looks up the decide fn locally."""
     name, kw, c, seed = task
+    extra = dict(breakdowns=BREAKDOWNS)
+    if np.isfinite(MAX_HOLD):
+        extra["max_hold"] = MAX_HOLD
     try:
-        r = simulate(BASELINES[c], seed=seed, control_stops=CONTROL_STOPS, **kw)
+        r = simulate(BASELINES[c], seed=seed, control_stops=CONTROL_STOPS, **kw, **extra)
         return (name, c, seed, r["headway_cv"], r["travel_s"], r["wait_s"], r["wait_direct"])
-    except Exception:
+    except Exception as error:
+        print(f"  FAILED {name} {c} seed {seed}: {error!r}", flush=True)
         return (name, c, seed, float("nan"), float("nan"), float("nan"), float("nan"))
 
 
@@ -59,10 +85,11 @@ def paired_pct(nc, eh, n=5000, rng=np.random.default_rng(1)):
 
 def main():
     t0 = time.time()
-    print(f"control stops: {[STOPS[i] for i in CONTROL_STOPS]}  (N={N}, jobs={JOBS})", flush=True)
+    print(f"control stops: {[STOPS[i] for i in CONTROL_STOPS]}  (N={N}, jobs={JOBS}, "
+          f"max_hold={'0.4 x H0' if not np.isfinite(MAX_HOLD) else MAX_HOLD}, breakdowns={BREAKDOWNS})", flush=True)
     tasks = [(name, kw, c, s) for name, kw in SCEN for c in CTRLS for s in range(N)]
     rows = []
-    with open("results/mc_results.csv", "w", newline="") as fh:
+    with open(f"results/mc_results{SUFFIX}.csv", "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["scenario", "controller", "seed", "headway_cv", "travel_s", "wait_s", "wait_direct"])
         if JOBS > 1:
@@ -86,7 +113,9 @@ def main():
         D.setdefault((name, c), {"cv": [], "tt": [], "wt": [], "wd": []})
         D[(name, c)]["cv"].append(cv); D[(name, c)]["tt"].append(tt)
         D[(name, c)]["wt"].append(wt); D[(name, c)]["wd"].append(wd)
-    L = [f"H0 = {H0:.0f} s, {NUM_BUSES} buses, {len(STOPS)} stops, N = {N} paired seeds. "
+    cap_text = "0.4 x H0" if not np.isfinite(MAX_HOLD) else f"{MAX_HOLD:.0f} s"
+    L = [f"H0 = {H0:.0f} s, {NUM_BUSES} buses, {len(STOPS)} stops, N = {N} paired seeds, "
+         f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es). "
          f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
          f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check).", "",
          "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |",
@@ -109,9 +138,9 @@ def main():
         ewt = paired_pct(D[(name, "NC")]["wt"], D[(name, "EH")]["wt"])
         L.append(f"| {name} | {fcv[0]:+.0f}% [{fcv[1]:+.0f}, {fcv[2]:+.0f}] | {fwt[0]:+.0f}% | "
                  f"{ecv[0]:+.0f}% [{ecv[1]:+.0f}, {ecv[2]:+.0f}] | {ewt[0]:+.0f}% |")
-    open("results/mc_summary.md", "w", encoding="utf-8").write("\n".join(L) + "\n")
+    open(f"results/mc_summary{SUFFIX}.md", "w", encoding="utf-8").write("\n".join(L) + "\n")
     print("\n".join(L).encode("ascii", "replace").decode())
-    print(f"\nMC done: {len(SCEN)}x{len(CTRLS)}x{N} runs in {time.time()-t0:.0f}s -> results/mc_summary.md", flush=True)
+    print(f"\nMC done: {len(SCEN)}x{len(CTRLS)}x{N} runs in {time.time()-t0:.0f}s -> results/mc_summary{SUFFIX}.md", flush=True)
 
 
 if __name__ == "__main__":

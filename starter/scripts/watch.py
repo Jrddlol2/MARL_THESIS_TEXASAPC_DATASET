@@ -15,7 +15,7 @@ WHAT YOU SEE
         grey bus     No-Control (NC)
         blue bus     a controller is on (FH or EH)
         amber bus    being HELD at a control stop right now
-        red bus      the broken-down bus
+        (a bus that breaks down disappears; its riders wait at that stop)
         red marker   one of the 5 control stops
         dark marker  an ordinary stop
 
