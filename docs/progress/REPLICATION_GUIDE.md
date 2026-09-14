@@ -98,11 +98,11 @@ python agents\ddqn.py                              # ~31 s -> "greedy accuracy .
 python envs\reward.py                              # instant -> on-time -0.075, bunched -0.480, bunched+skip -0.730
 python scripts\train_marl.py --episodes 6 --name smoke     # ~1 min plumbing check -> experiments/smoke/
 python scripts\train_marl.py --episodes 800 --name gate    # the fail-fast gate (longer; offline)
-python scripts\eval_marl.py --ckpt experiments\gate\checkpoint.pt --N 20   # evaluate the checkpoint as 4th controller
+python scripts\eval_marl.py --ckpt experiments\gate\checkpoint.pt --N 30   # evaluate the checkpoint as 4th controller
 ```
 **Expect:** the DDQN self-test reaches ~0.9 vs 0.1 chance; the smoke run creates `experiments/smoke/`
-with `metrics.csv`; the gate's evaluation CV converges toward the fixed-holding baseline (see
-`results/figures/gate1_convergence.png`). The **full domain-randomised training** is the long offline
+with `metrics.csv`; the gate's evaluation CV should converge toward the fixed-holding baseline
+(`gate1_convergence.png` is from the old simulator; regenerate it after retraining). The **full domain-randomised training** is the long offline
 step (hours) — start it, then let it run; it writes a checkpoint + curve under `experiments/<name>/`.
 **Acceptance:** self-test accuracy ≫ 0.1; the gate run produces a converging eval-CV curve.
 

@@ -136,12 +136,11 @@ narrowing as weather intensifies — again pointing to an adaptive policy."
 python agents\ddqn.py     # ~31 s -> "greedy accuracy ... = 0.92 (chance = 0.10)"
 python envs\reward.py     # instant -> on-time -0.075, bunched -0.480, bunched+skip -0.730
 ```
-Show `results/figures/gate1_convergence.png`.
+**Do not show `gate1_convergence.png` / `gate1_curve.png`:** they come from the old simulator (5-min headway, Even-Headway bug, 240 s holds) and the agent must be retrained on the current one. Until then show the self-tests only.
 **③ Say this** "Each bus is an agent sharing one Double-DQN network — centralised training, decentralised
 execution. The self-test proves the learner works: on a controlled task it reaches 92 percent versus 10
 percent chance. The reward self-test shows the shaping — near-zero when the bus is on-headway, strongly
-negative when it's bunched. The convergence figure is the fail-fast gate; the full domain-randomised
-training runs offline over several hours."
+negative when it's bunched. Training on the validated simulator runs offline over several hours."
 **④ Why** discrete 10-action space → value-based; Double-DQN tempers the overestimation the heavy-tailed
 regime would amplify (van Hasselt et al., 2016; Mnih et al., 2015); parameter sharing = fleet-size
 invariance (Gupta et al., 2017); event-driven control = semi-MDP (Bradtke & Duff, 1995).

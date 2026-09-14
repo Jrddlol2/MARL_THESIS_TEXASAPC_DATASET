@@ -11,12 +11,13 @@ sumo/                  the CALIBRATED scenario (corridor.net.xml / .rou.xml / st
 scripts/
   extract_sim_inputs.py  streams the raw APC CSV -> dir-6 clean subset (229,421 rows) -> sim_inputs/stops.csv
   calibrate_corridor.py  builds the corridor from real geometry + dwells and calibrates edge speeds to GEH<5
-envs/bus_env.py        PettingZoo AEC env; pass sumo_cfg to run end-to-end with SUMO (SO2 logic is TODO)
+envs/bus_env.py        OLD PettingZoo skeleton, not used by anything (MARL runs through envs/marl_env.py)
 baselines/even_headway.py  Even-Headway controller (0.4*H cap), no trained model needed
 ```
 
 ## Requirements
-- **SUMO** installed (`SUMO_HOME` set) + Python 3.12 with `pip install pettingzoo gymnasium pandas numpy`.
+- **SUMO 1.27.1** installed (`SUMO_HOME` set) + Python 3.12 with `pip install -r requirements.txt`
+  (numpy, pandas, matplotlib, torch).
 - `traci`/`sumolib` ship with SUMO (the scripts add `%SUMO_HOME%\tools` to the path).
 
 ## Run it

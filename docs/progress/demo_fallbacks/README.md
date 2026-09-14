@@ -6,7 +6,7 @@ Pre-captured visuals to show if a live step fails during the panel demo.
 The non-GUI steps fall back to their committed figures in `starter/results/figures/`:
 - `calibration_validation.png` — if calibration won't run (B2)
 - `mc_headway_cv.png`, `marey_diagram.png`, `degradation_curve.png` — the results story (B5/B6)
-- `gate1_convergence.png` — the MARL learning curve (B7)
+- `gate1_convergence.png` — the MARL learning curve (B7). OLD SIMULATOR: do not show until retrained
 
 ## You must capture this one yourself (needs a display)
 The **live SUMO GUI** (step B3) can't be screenshotted headlessly. Capture it once before the panel:

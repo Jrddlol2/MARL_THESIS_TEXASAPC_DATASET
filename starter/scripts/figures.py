@@ -8,7 +8,7 @@ writes PDF+PNG to results/figures/:
   stop_service_validation share of trips serving each stop, simulated vs observed
   mc_headway_cv           headway CV by scenario, NC / FH / EH, 95% bootstrap CI
   mc_wait                 passenger wait by scenario, NC / FH / EH, 95% bootstrap CI
-Titles live in the LaTeX caption, not the image. Run from starter/ after calibrate_corridor.py and mc.py.
+Titles live in the LaTeX caption, not the image. Run from starter/ after build_real_net.py, validate_simulator.py and mc.py.
 """
 import os, sys, numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -4,7 +4,7 @@ Runs the greedy policy (and, by default, the three baselines) across the manuscr
 cells at the SAME control stops and matched seeds, and reports headway CV / wait with bootstrap 95% CIs
 plus the paired % change vs No-Control. This is the table the MARL result slots into.
 
-    python scripts/eval_marl.py --ckpt experiments/gate/checkpoint.pt --N 20
+    python scripts/eval_marl.py --ckpt experiments/gate/checkpoint.pt --N 30
 """
 import os, sys, argparse, numpy as np
 _here = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +33,7 @@ def pct(nc, o, n=5000, rng=np.random.default_rng(1)):
     return (o.mean() - nc.mean()) / nc.mean() * 100
 
 
-def evaluate(ckpt, cfg, N=20, with_baselines=True):
+def evaluate(ckpt, cfg, N=30, with_baselines=True):
     agent = DDQNAgent(OBS_DIM, N_ACTIONS, hidden=cfg.net, seed=cfg.seed); agent.load(ckpt)
     cs = list(cfg.control_stops)
     ctrls = (["NC", "FH", "EH"] if with_baselines else []) + ["MARL"]
@@ -56,7 +56,7 @@ def evaluate(ckpt, cfg, N=20, with_baselines=True):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", required=True)
-    ap.add_argument("--N", type=int, default=20)
+    ap.add_argument("--N", type=int, default=30)
     ap.add_argument("--no-baselines", action="store_true")
     a = ap.parse_args()
     print(f"control stops: {[STOPS[i] for i in Config().control_stops]}  N={a.N}")

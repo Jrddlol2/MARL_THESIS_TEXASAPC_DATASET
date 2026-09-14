@@ -1,0 +1,8 @@
+# Python 3.12. SUMO 1.27.1 installed separately (traci and sumolib come with it via SUMO_HOME).
+# Versions are the ones the 2026-09-14 results were produced with.
+numpy==2.4.4
+pandas==3.0.5
+matplotlib==3.11.1
+torch==2.12.0      # MARL agent (agents/ddqn.py); the CPU build is enough
+# only for scripts/extract_route_shape.py (re-deriving the road shape from OpenStreetMap):
+# osmium

@@ -8,3 +8,5 @@ experiments/
 sumo/view.xml
 sumo/pois.add.xml
 sumo/stops_view.add.xml
+sumo/scenario_*.xml
+results/mc_run_log*.txt

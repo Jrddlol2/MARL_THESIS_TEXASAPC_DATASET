@@ -61,10 +61,10 @@ NC / FH / EH as the weather-intensity parameter $\eta$ (the coefficient of varia
 speed factor) increases; error bars are standard errors over $N=12$ seeds per point. The control
 advantage narrows as $\eta$ grows.
 
-**gate1_convergence** — MARL fail-fast gate convergence over training episodes: (left) per-agent episode
+**gate1_convergence** — *(OLD SIMULATOR, 2026-09-13: retrain before use)* MARL fail-fast gate convergence over training episodes: (left) per-agent episode
 return and (right) per-episode headway CV, each with a 15-episode running mean. Dashed lines mark the
 No-Control and Forward-Headway baselines.
 
-**gate1_curve** — MARL learning curve for the fail-fast gate: exploring per-episode training CV and
+**gate1_curve** — *(OLD SIMULATOR, 2026-09-13: retrain before use)* MARL learning curve for the fail-fast gate: exploring per-episode training CV and
 greedy evaluation CV against the No-Control and Forward-Headway baselines; the right axis shows the
 exploration rate $\varepsilon$.

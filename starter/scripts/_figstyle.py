@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Shared publication figure style for the thesis (academic manuscript).
+r"""Shared publication figure style for the thesis (academic manuscript).
 
 Usage in a figure script:
     import _figstyle as S

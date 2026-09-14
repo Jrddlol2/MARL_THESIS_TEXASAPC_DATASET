@@ -243,7 +243,7 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 | `results/mc_results.csv` | Every Monte Carlo run |
 | `results/mc_summary.md` | **The baseline results table** |
 | `results/figures/` | Generated charts, `.png` and `.pdf` |
-| `experiments/gate1/` | The 286-episode training run (no checkpoint saved) |
+| `experiments/` | Training runs (not in Git). Runs from before 2026-09-14 used the old simulator and are archived under `experiments/_old_simulator/` |
 
 ### `config/` and `data/`
 
