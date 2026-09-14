@@ -10,6 +10,7 @@ the semi-MDP assembly; parameter sharing = one agent instance serves every bus.
 DDQN hyperparameters, control stops, training budget. Copy it, change a field, run; commit nothing.
 """
 from dataclasses import dataclass
+import math
 import numpy as np
 from obs import featurize, OBS_DIM
 from reward import compose, decode_action
@@ -27,6 +28,9 @@ class Config:
     H0: float = 600.0; dt: float = 300.0; skip_enabled: bool = False
     # DDQN hyperparameters
     lr: float = 1e-3; gamma: float = 0.99
+    # discount: "event" = e^(-beta * seconds between a bus's decisions) (methods.tex, Bradtke & Duff);
+    # "fixed" = gamma per decision. beta defaults to a discount of 0.99 per scheduled headway (600 s).
+    discount: str = "event"; beta: float = -math.log(0.99) / 600.0
     eps_start: float = 1.0; eps_end: float = 0.05; eps_decay: int = 30_000
     buffer: int = 100_000; batch: int = 64; target_every: int = 500; warmup: int = 1_000
     net: tuple = (128, 128)
@@ -52,12 +56,19 @@ class MarlController:
             r = compose(pobs, obs, pa, self.cfg)
             self.ret += r; self.n += 1
             if self.training:
-                self.agent.push(pov, pa, r, ov, False)
+                self.agent.push(pov, pa, r, ov, False, discount=self.discount(pobs, obs))
                 self.agent.learn()
         a = self.agent.act(ov, greedy=not self.training)
         self.prev[bi] = (ov, a, obs)
         hold, skip = decode_action(a, self.cfg.H0, self.cfg.dt)
         return hold, (skip if self.cfg.skip_enabled else 0)
+
+    def discount(self, prev_obs, obs):
+        """Discount for the transition from this bus's previous decision to this one."""
+        if self.cfg.discount == "fixed":
+            return self.cfg.gamma
+        elapsed = max(0.0, obs["t"] - prev_obs["t"])
+        return math.exp(-self.cfg.beta * elapsed)
 
     def finalize(self):
         """End of episode: drop each bus's last (obs, action) — it has no next state to bootstrap from."""

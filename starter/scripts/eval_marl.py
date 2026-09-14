@@ -4,7 +4,11 @@ Runs the greedy policy (and, by default, the three baselines) across the manuscr
 cells at the SAME control stops and matched seeds, and reports headway CV / wait with bootstrap 95% CIs
 plus the paired % change vs No-Control. This is the table the MARL result slots into.
 
-    python scripts/eval_marl.py --ckpt experiments/gate/checkpoint.pt --N 30
+    python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt --N 30
+
+THE GATE (decided 2026-09-14, before training): in Stage A the greedy MARL policy must have a lower
+mean headway CV than Even-Headway on the same seeds 0-29 (EH = 0.342 in results/mc_summary.md).
+The paired 95% CI of the difference is printed too.
 """
 import os, sys, argparse, numpy as np
 _here = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +54,21 @@ def evaluate(ckpt, cfg, N=30, with_baselines=True):
         pv = "" if not with_baselines else "  vs NC: " + ", ".join(
             f"{c} {pct(D[(name,'NC')][0], D[(name,c)][0]):+.0f}%" for c in ctrls if c != "NC")
         print(f"{name:20s} | {row}{pv}", flush=True)
+    if with_baselines:
+        gate_verdict(D)
     return D
+
+
+def gate_verdict(D, rng=np.random.default_rng(2)):
+    """Stage A: does MARL beat Even-Headway? Paired by seed."""
+    marl, eh = np.asarray(D[("Stage A (D+T)", "MARL")][0]), np.asarray(D[("Stage A (D+T)", "EH")][0])
+    ok = np.isfinite(marl) & np.isfinite(eh); diff = marl[ok] - eh[ok]
+    boots = [np.mean(rng.choice(diff, len(diff), True)) for _ in range(5000)]
+    lo, hi = np.percentile(boots, [2.5, 97.5])
+    verdict = "PASS" if marl[ok].mean() < eh[ok].mean() else "FAIL"
+    print()
+    print(f"GATE (Stage A, MARL vs Even-Headway): MARL {marl[ok].mean():.3f} vs EH {eh[ok].mean():.3f}, "
+          f"difference {diff.mean():+.3f} [95% CI {lo:+.3f}, {hi:+.3f}] -> {verdict}", flush=True)
 
 
 if __name__ == "__main__":

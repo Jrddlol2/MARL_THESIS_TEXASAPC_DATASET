@@ -181,7 +181,7 @@ L1082 base_colour()  L1089 write_coloured_stops()  L1103 zoom_to_corridor()
 
 | Check | Result |
 |---|---|
-| `scripts/test_simulator.py` (13 checks: Daganzo FH, EH uses hb, skip rules, stop serving) | All pass |
+| `scripts/test_simulator.py` (18 checks: Daganzo FH, EH uses hb, skip rules, stop serving, breakdown flag) | All pass |
 | Same seed across Python sessions | Identical |
 | No-Control headway CV vs observed test days (30 seeds) | 0.556 vs 0.504; first stop 0.357 vs 0.352; by-stop r = 0.87 |
 | Share of trips serving each stop (stops not always served) | 0.69 vs 0.64 observed, r = 0.96 |

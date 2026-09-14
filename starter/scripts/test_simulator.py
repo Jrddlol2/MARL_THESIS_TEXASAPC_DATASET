@@ -15,6 +15,8 @@ WHAT IT CHECKS
        carried on, and nobody is left stuck on a bus.
     7. Stops are served on demand: some ordinary stops are passed, while the
        first stop, the last stop and the control stops are always served.
+    8. The breakdown flag reaches only buses behind the broken-down bus, and
+       the decision time t given to controllers increases for each bus.
 
 RUN      python scripts/test_simulator.py        (from starter/, ~2 min)
          Prints PASS / FAIL for each check and exits with 1 if any fail.
@@ -105,6 +107,34 @@ some_passed = any(served[i] < 1.0 for i in range(C.NUM_STOPS) if i not in C.ALWA
 check("first, last and control stops always served", always)
 check("some ordinary stops are passed", some_passed,
       f"lowest served share {min(served):.2f}")
+
+# 8. Breakdown flag: only buses behind the broken-down bus see it -------------------------------
+decisions = []          # (time, bus, breakdown flag) at every decision
+
+
+def spy_breakdown_flag(obs):
+    decisions.append((obs["t"], obs["bus"], obs["b"]))
+    return 0.0, 0
+
+
+broken = C.simulate(spy_breakdown_flag, seed=3, T=True, B=True, control_stops=C.CONTROL_STOPS)
+flag_times = [t for t, bus, b in decisions if b == 1.0]
+check("a bus was removed", broken["buses_removed"] == 1)
+check("breakdown flag reaches buses behind it", len(flag_times) > 0, f"{len(flag_times)} flagged decisions")
+if flag_times:
+    unflagged_later = [bus for t, bus, b in decisions if t > min(flag_times) and b == 0.0]
+    check("buses ahead of the breakdown are not flagged", len(unflagged_later) > 0,
+          f"{len(unflagged_later)} unflagged decisions after the first flag")
+switched_off = False
+times_per_bus = {}
+for t, bus, b in decisions:
+    earlier = times_per_bus.setdefault(bus, [])
+    if b == 0.0 and any(flag == 1.0 for _, flag in earlier):
+        switched_off = True
+    earlier.append((t, b))
+check("breakdown flag never switches off for a bus", not switched_off)
+check("decision time t increases for each bus",
+      all([t for t, _ in rows] == sorted({t for t, _ in rows}) for rows in times_per_bus.values()))
 
 print()
 if failures:

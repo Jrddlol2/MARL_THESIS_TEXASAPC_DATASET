@@ -32,8 +32,10 @@ WHAT "obs" CONTAINS  (a dictionary)
     idx    stop number (0 = first)       n      number of stops
     H0     scheduled headway (600 s)     cap    bus capacity (60)
     bus    bus number                    w      weather factor (1.0 = clear)
-    b      1.0 once a breakdown has happened, else 0.0
+    b      1.0 if a bus ahead of this one has broken down, else 0.0
     max_hold  the longest hold allowed in this run (seconds)
+    t      simulation time of this decision (seconds); the MARL agent uses it
+           to discount by the time between a bus's decisions
 
 DISTURBANCES  (switch each on with True; D and T are on in every scenario)
     D  demand       passenger counts vary day to day (fitted: 3.8x Poisson)
@@ -636,7 +638,6 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         last_stop_reached = {}             # bus number -> (stop index, arrival time)
         removed_buses = set()              # B: bus numbers taken out of service
         riders_moved = 0                   # B: riders who had to change bus
-        breakdown_happened = False
         decided_stop = {}                  # bus -> stop index it has already decided about
         passing_stop = {}                  # bus -> stop index it is driving past
         skip_ordered = {}                  # bus -> stop index the controller told it to skip
@@ -749,7 +750,6 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                     if breakdown_at.get(bus_number) == i:
                         riders_moved += remove_broken_bus(bus, stop)
                         removed_buses.add(bus_number)
-                        breakdown_happened = True
                         continue
 
                     # The bus ahead is whichever bus reached this stop last
@@ -800,14 +800,17 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                             w = float(weather_stress[bus_number, i])
                         else:
                             w = 1.0
-                        if breakdown_happened:
-                            b = 1.0
-                        else:
-                            b = 0.0
+                        # Breakdown flag: 1 only if a bus AHEAD of this one has broken
+                        # down (the incident is downstream, so this bus meets the gap).
+                        b = 0.0
+                        for broken in removed_buses:
+                            if position_of[broken] < position_of[bus_number]:
+                                b = 1.0
 
                         obs = {"hf": hf, "hb": hb, "load": load, "queue": waiting, "idx": i,
                                "n": NUM_STOPS, "H0": H0, "cap": BUS_CAPACITY,
-                               "bus": bus_number, "w": w, "b": b, "max_hold": max_hold}
+                               "bus": bus_number, "w": w, "b": b, "max_hold": max_hold,
+                               "t": t}
                         hold, skip = decide(obs)
                         # keep the hold between 0 and the maximum allowed
                         hold = float(max(0.0, min(hold, max_hold)))

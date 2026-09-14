@@ -127,22 +127,27 @@ Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/p
 
 ## 5. What's next
 
-**Before training (these change what the agent learns):**
+**Ready for training (done 2026-09-14):**
 
-1. **Event-based discount.** `methods.tex` discounts by elapsed time (e^(−βt), Bradtke & Duff);
-   `agents/ddqn.py` uses a flat γ = 0.99.
-2. **Save checkpoints during training** (every 50 episodes, resumable, best model kept). A run takes
-   about 3 hours; the earlier run saved nothing.
-3. **Write down the pass mark first.** Proposed: greedy evaluation over seeds 0–29 beats
-   Forward-Headway in Stage A (0.396); Even-Headway (0.342) is the stretch goal.
-4. **Breakdown flag.** It is currently 1 for every bus once any bus breaks down; the manuscript says
-   "downstream incident".
+- **Event-based discount.** Each transition is discounted by e^(−β·Δt), Δt = seconds between the bus's
+  two decisions (Bradtke & Duff, as in `methods.tex`). β defaults to 0.99 per scheduled headway.
+- **Checkpoints during training.** `training_state.pt` every 50 episodes (`--resume` continues exactly),
+  `checkpoint_best.pt` = best evaluation CV so far (evaluated on seeds 90000+, never the test seeds).
+- **Breakdown flag** is 1 only for buses behind the broken-down bus.
+- **The pass mark, fixed before training:** in Stage A, the greedy MARL policy's mean headway CV over
+  seeds 0–29 must be **below Even-Headway (0.342)**. `eval_marl.py` prints PASS or FAIL with a paired 95% CI.
+
+**Next:** the Stage A gate run (`train_marl.py --episodes 800 --name gate`, about 3 hours), then
+`eval_marl.py --ckpt experiments/gate/checkpoint_best.pt`. If it passes: skip action, then reward weights.
 
 **Manuscript text that no longer matches the code:**
 
 - `methods.tex:18, 38` say training runs in a separate lightweight Python simulator. It runs in
-  SUMO (about 13 s per episode).
-- `methods.tex:291` says a chronological calibration/test split. The code alternates service days.
+  SUMO (about 13 s per episode). **Decided: change the text.**
+- `methods.tex:291` says a chronological calibration/test split. The code alternates service days,
+  because weekday ridership varies by month (October is 31% above July), so a date-order split would
+  test on busier months than it calibrates on. **Pending decision** (recommended: change the text and
+  report a date-order split as a check).
 - `methods.tex:69–83` declare GEH on bus counts and RMSE. The code uses GEH on running times and RMSPE.
 - `results.tex`, `discussion.tex`, `futurework.tex` are template text from another thesis (§7).
 
@@ -230,7 +235,7 @@ Everything under `starter/` runs **from the `starter/` folder**.
 | `scripts/fit_variability.py` | **Fits demand, dwell, running-time spread and trip-start spread from APC** → `sim_inputs/fitted/`; splits service days into calibration and test days |
 | `scripts/build_real_net.py` | Builds the SUMO network and calibrates it on calibration days → `results/calibration_real.csv` |
 | `scripts/validate_simulator.py` | Bunching, loads and stop service vs real buses → `results/validation/` |
-| `scripts/test_simulator.py` | 13 pass/fail checks of the control rules (FH, EH, skip, stop serving) |
+| `scripts/test_simulator.py` | 18 pass/fail checks (FH, EH, skip, stop serving, breakdown flag) |
 
 **Running experiments**
 
@@ -368,15 +373,15 @@ python scripts/pipeline/run_all.py                 # OR ~100 s from the raw snap
 cd starter
 python scripts/fit_variability.py                  # ~2 min  -> sim_inputs/fitted/
 python scripts/build_real_net.py                   # ~15 s   -> SUMO network + calibration_real.csv
-python scripts/test_simulator.py                   # ~2 min  -> 13 PASS lines
+python scripts/test_simulator.py                   # ~3 min  -> 18 PASS lines
 python scripts/validate_simulator.py               #         -> results/validation/
 python scripts/mc.py 30 10                         # ~1.5 h on 10 workers -> the baseline table
 python scripts/figures.py                          # redraw the figures
 
 # MARL
 python scripts/train_marl.py --episodes 3 --eval_every 3 --name smoke     # ~2 min plumbing check
-python scripts/train_marl.py --episodes 800 --name gate                   # ~3 h
-python scripts/eval_marl.py --ckpt experiments/gate/checkpoint.pt         # vs NC/FH/EH, seeds 0-29
+python scripts/train_marl.py --episodes 800 --name gate                   # ~3 h; add --resume to continue
+python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt    # vs NC/FH/EH, seeds 0-29, PASS/FAIL
 
 # watch buses move
 python scripts/watch.py EH StageB

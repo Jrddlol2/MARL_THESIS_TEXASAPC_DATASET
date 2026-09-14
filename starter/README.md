@@ -24,6 +24,6 @@ experiments/   training runs (not in Git)
 ## Quick check that everything works
 
 ```bash
-python scripts/test_simulator.py                                          # ~2 min, 13 PASS lines
-python scripts/train_marl.py --episodes 3 --eval_every 3 --name smoke     # ~2 min
+python scripts/test_simulator.py                                          # ~3 min, 18 PASS lines
+python scripts/train_marl.py --episodes 3 --eval_every 3 --save_every 3 --name smoke     # ~2 min
 ```
