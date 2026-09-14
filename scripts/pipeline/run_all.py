@@ -1,49 +1,33 @@
 """
 =============================================================================
- RUN THE DATA PIPELINE  (steps 1 -> 4, in order)
+ RUN THE WHOLE DATA PIPELINE  (steps 1 -> 4, in order)
 =============================================================================
 
-    python scripts/pipeline/run_all.py
+    python scripts/pipeline/run_all.py            (about 1 minute)
 
     01_extract_dir6.py     the 229,421-row direction-6 study set
-    02_prepare_weather.py  NOAA timezone normalisation
-    03_join_weather.py     the 90-minute nearest-observation join
-    04_gtfs_gate.py        the direction-label gate
+    02_prepare_weather.py  fix the NOAA weather clock
+    03_join_weather.py     match weather to each bus event (90-minute rule)
+    04_gtfs_gate.py        write down the direction-name rule
 
-NOT PART OF THE PIPELINE
-    audit_route_selection.py answers "why Route 801 and not 803?" and produces
-    the cleaning-funnel numbers on the slide. It is EVIDENCE, not a processing
-    step -- nothing downstream reads its output, and the route decision it
-    justifies was settled long ago. Run it when you need to regenerate that
-    evidence, not on every pipeline run:
+NOT INCLUDED
+    audit_route_selection.py ("why Route 801?") is evidence, not a processing
+    step. Run it by itself when you need those numbers again:
 
         python scripts/pipeline/audit_route_selection.py
 
-ORDER MATTERS
-    03 needs the study set from 01 and the weather tables from 02.
-    01, 02 and 04 can each be run on their own.
-
-NO NETWORK
-    Every step reads our archived, checksummed copies of the source data.
-    Nothing here downloads anything -- `grep -r urllib scripts/pipeline/`
-    returns nothing. See common.py for why, and the README's "Getting the
-    data" section for how to obtain the source files on a new machine.
-
-HOW LONG
-    About 60 seconds. Step 1 dominates: it reads all 9.2 million rows of the
-    3.7 GB snapshot. Steps 2, 3 and 4 take a second or two each.
+ORDER
+    Step 3 needs the outputs of Steps 1 and 2. The others can run alone.
 =============================================================================
 """
 
-from __future__ import annotations
-
-import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+THIS_FOLDER = Path(__file__).resolve().parent
 
+# (script file, what it does)
 STEPS = [
     ("01_extract_dir6.py", "Extract the direction-6 study set"),
     ("02_prepare_weather.py", "Normalise the NOAA weather observations"),
@@ -52,25 +36,27 @@ STEPS = [
 ]
 
 
-def main() -> int:
-    argparse.ArgumentParser(description=__doc__).parse_args()
-
-    for index, (script, description) in enumerate(STEPS, start=1):
+def main():
+    step_number = 0
+    for script, description in STEPS:
+        step_number = step_number + 1
         print("\n" + "=" * 78)
-        print(f" STEP {index} OF {len(STEPS)}  --  {description}")
+        print(f" STEP {step_number} OF {len(STEPS)}  --  {description}")
         print("=" * 78)
 
-        result = subprocess.run([sys.executable, str(HERE / script)])
+        # Run the step as its own Python program, exactly as if typed by hand.
+        result = subprocess.run([sys.executable, str(THIS_FOLDER / script)])
+
+        # A return code other than 0 means the step failed: stop here.
         if result.returncode != 0:
-            print(f"\nFAILED at step {index} ({script}). Stopping.", file=sys.stderr)
-            return result.returncode
+            print(f"\nFAILED at step {step_number} ({script}). Stopping.", file=sys.stderr)
+            sys.exit(result.returncode)
 
     print("\n" + "=" * 78)
     print(" ALL STEPS COMPLETE")
     print("=" * 78)
     print(" Evidence written to data/audit/texas_capmetro/")
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

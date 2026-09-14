@@ -1,170 +1,142 @@
 """
 =============================================================================
- STEP 2 OF 4  --  NORMALISE THE NOAA WEATHER OBSERVATIONS
+ STEP 2 OF 4  --  CLEAN UP THE NOAA WEATHER OBSERVATIONS
 =============================================================================
 
-WHAT THIS STEP ANSWERS
-    The APC file has no weather column. Weather has to come from outside, and
-    it has to be put on the same clock as the bus data before anything can be
-    matched. This step does that; Step 3 does the matching.
+WHY THIS STEP EXISTS
+    The bus data has no weather column. Weather comes from NOAA weather
+    stations, and it must be put on the same clock as the bus data before the
+    two can be matched. This step fixes the clock; Step 3 does the matching.
 
 THE TWO STATIONS
-    Camp Mabry      USW00013958   PRIMARY      sits beside the corridor
-    Austin-Bergstrom USW00013904  SENSITIVITY  southeast of the city
+    Camp Mabry        USW00013958   main station, beside the corridor
+    Austin-Bergstrom  USW00013904   second station, used as a cross-check
 
-    Two stations, not one, so the join has a cross-check. Step 4 compares
-    their rain flags and reports how often they agree -- which is how we
-    quantify the fact that rain in Austin is spatially patchy.
+THE TRICKY PART: TIME ZONES
+    NOAA writes times in LOCAL STANDARD TIME and never uses daylight saving.
+    So in July, a NOAA time of "15:00" is really 16:00 on an Austin clock.
+    If we ignored this, every summer reading would be one hour off.
 
-THE HARD PART: TIME ZONES
-    This is the single most error-prone thing in the whole data pipeline, and
-    it is worth understanding.
+    So for every reading we:
+        1. treat the NOAA time as "UTC minus 6 hours",
+        2. convert it to Austin time (America/Chicago),
+        3. save BOTH the UTC time and the Austin time.
 
-    NOAA Local Climatological Data timestamps are in LOCAL STANDARD TIME with
-    NO daylight-saving adjustment. That is NOAA's documented convention. So a
-    NOAA reading stamped "15:00" in July is really 16:00 on an Austin clock.
+WHAT COUNTS AS RAIN  (rain_flag = 1 if ANY of these is true)
+    * the precipitation amount is more than zero
+    * the precipitation field is "T" (a trace of rain)
+    * the weather code contains RA (rain), DZ (drizzle) or TS (thunderstorm)
 
-    If we ignored that, every summer observation would be off by one hour --
-    which would smear rain onto dry bus events and vice versa for roughly half
-    the study window, silently.
+DUPLICATES
+    NOAA sometimes sends two reports for the same minute. We keep the one with
+    the most filled-in fields.
 
-    So we:
-        1. read each NOAA timestamp as a fixed UTC-06:00 instant,
-        2. convert that instant to America/Chicago,
-        3. store BOTH the UTC instant and the Austin local time.
-
-    Step 3 matches on the UTC instant, which is unambiguous.
-
-WHAT COUNTS AS RAIN
-    rain_flag is 1 if ANY of these hold:
-        * the precipitation value is greater than zero
-        * the precipitation field is "T" (trace)
-        * the present-weather code contains RA (rain), DZ (drizzle) or TS
-          (thunderstorm)
-    This is deliberately inclusive: we are building an EXPOSURE variable, not
-    a rainfall measurement.
-
-DEDUPLICATION
-    NOAA sometimes reports more than once for the same instant (a routine
-    hourly report plus an off-cycle special report). We keep ONE row per
-    instant -- the one with the most fields populated, scored below -- so the
-    nearest-observation search in Step 3 has no ties to break.
-
-    No network: it reads the NOAA files we already hold. See common.py for why,
-    and the README's "Getting the data" section for how to obtain them.
-
-INPUTS   data/raw/noaa/LCD_USW00013958_2021.csv   archived NOAA file, Camp Mabry
-         data/raw/noaa/LCD_USW00013904_2021.csv   archived NOAA file, Bergstrom
-         config/texas_capmetro_801.json           station ids and source URLs
-
-OUTPUTS
-         data/processed/texas_capmetro/weather_camp_mabry_2021_jul_dec.csv
+INPUT    data/raw/noaa/LCD_USW00013958_2021.csv   (Camp Mabry)
+         data/raw/noaa/LCD_USW00013904_2021.csv   (Bergstrom)
+OUTPUT   data/processed/texas_capmetro/weather_camp_mabry_2021_jul_dec.csv
          data/processed/texas_capmetro/weather_bergstrom_2021_jul_dec.csv
          data/audit/texas_capmetro/weather_source_audit.json
 
-RUN      python scripts/pipeline/02_prepare_weather.py
+RUN      python scripts/pipeline/02_prepare_weather.py     (a few seconds)
 =============================================================================
 """
 
-from __future__ import annotations
-
-import argparse
 import csv
 import sys
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import (  # noqa: E402
-    AUDIT_DIR,
-    NOAA_LOCAL_STANDARD_TIME,
-    PROCESSED_DIR,
-    RAW_NOAA_DIR,
-    ROOT,
-    UTC,
-    require_file,
-    ensure_dirs,
-    first_value,
-    load_config,
-    parse_flagged_number,
-    sha256_file,
-    write_json,
-)
+import common
+
+STUDY_START = date(2021, 7, 1)
+STUDY_END = date(2021, 12, 31)
+AUSTIN = ZoneInfo("America/Chicago")
+
+# Columns that describe WHERE/WHEN a reading is from, not a measurement.
+# They are ignored when we score how complete a reading is.
+LABEL_COLUMNS = ["station_key", "station_id", "timestamp_utc", "timestamp_austin",
+                 "source_timestamp_local_standard"]
 
 
-def normalize_weather_station(
-    station_key: str, station: dict[str, Any], raw_path: Path
-) -> tuple[Path, dict[str, Any]]:
-    """Turn one raw NOAA LCD file into a clean, time-corrected observation table."""
-    start_date = date(2021, 7, 1)
-    end_date = date(2021, 12, 31)
-    austin = ZoneInfo("America/Chicago")
+def clean_one_station(station_key, station, raw_file):
+    """Read one raw NOAA file and write a clean, time-corrected table.
 
-    # keyed by UTC instant so duplicates collapse automatically
-    by_timestamp: dict[datetime, dict[str, Any]] = {}
+    Returns a small summary (the "audit") of what was written.
+    """
+    # One entry per UTC time. If a time appears twice, we keep the better row.
+    best_row_at_time = {}
+    score_at_time = {}
 
-    with raw_path.open("r", encoding="utf-8-sig", newline="") as handle:
-        for row in csv.DictReader(handle):
-            # --- 1. parse the timestamp -------------------------------------
-            date_value = first_value(row, "DATE", "Date")
-            if not date_value:
-                continue
+    with open(raw_file, "r", encoding="utf-8-sig", newline="") as file:
+        for row in csv.DictReader(file):
+
+            # ---- 1. read the time ------------------------------------------
+            date_text = common.first_value(row, "DATE", "Date")
+            if date_text == "":
+                continue                                    # no time: skip row
             try:
-                naive = datetime.fromisoformat(date_value.replace("Z", "+00:00"))
+                reading_time = datetime.fromisoformat(date_text.replace("Z", "+00:00"))
             except ValueError:
-                continue
+                continue                                    # unreadable time: skip row
 
-            if naive.tzinfo is not None:
-                # already carries an offset -- trust it
-                noaa_instant = naive.astimezone(UTC)
+            if reading_time.tzinfo is not None:
+                # The time already says its own time zone, so trust it.
+                time_utc = reading_time.astimezone(common.UTC)
             else:
-                # the normal case: local standard time, no DST -> fixed UTC-06:00
-                noaa_instant = naive.replace(tzinfo=NOAA_LOCAL_STANDARD_TIME).astimezone(UTC)
+                # Normal case: NOAA local standard time = UTC-06:00, all year.
+                time_utc = reading_time.replace(tzinfo=common.NOAA_LOCAL_STANDARD_TIME)
+                time_utc = time_utc.astimezone(common.UTC)
 
-            local = noaa_instant.astimezone(austin)
+            time_austin = time_utc.astimezone(AUSTIN)
 
-            # --- 2. keep only the study window ------------------------------
-            if not (start_date <= local.date() <= end_date):
+            # ---- 2. keep only July-December 2021 ---------------------------
+            if time_austin.date() < STUDY_START or time_austin.date() > STUDY_END:
                 continue
 
-            # --- 3. pull out the measurements -------------------------------
-            precipitation_raw = first_value(row, "HourlyPrecipitation")
-            weather_code = first_value(row, "HourlyPresentWeatherType", "HourlyWeatherType")
-            temperature = parse_flagged_number(first_value(row, "HourlyDryBulbTemperature"))
-            humidity = parse_flagged_number(first_value(row, "HourlyRelativeHumidity"))
-            wind = parse_flagged_number(first_value(row, "HourlyWindSpeed"))
-            visibility = parse_flagged_number(first_value(row, "HourlyVisibility"))
-            precipitation = parse_flagged_number(precipitation_raw)
+            # ---- 3. read the measurements ----------------------------------
+            precipitation_text = common.first_value(row, "HourlyPrecipitation")
+            weather_code = common.first_value(row, "HourlyPresentWeatherType", "HourlyWeatherType")
+            temperature = common.parse_flagged_number(common.first_value(row, "HourlyDryBulbTemperature"))
+            humidity = common.parse_flagged_number(common.first_value(row, "HourlyRelativeHumidity"))
+            wind = common.parse_flagged_number(common.first_value(row, "HourlyWindSpeed"))
+            visibility = common.parse_flagged_number(common.first_value(row, "HourlyVisibility"))
+            precipitation = common.parse_flagged_number(precipitation_text)
 
-            # Skip administrative rows that carry no actual measurement.
-            has_hourly_measurement = any(
-                value is not None
-                for value in (temperature, humidity, wind, visibility, precipitation)
-            ) or bool(weather_code)
-            if not has_hourly_measurement:
+            # Skip office/admin rows that contain no measurement at all.
+            has_a_measurement = False
+            for value in [temperature, humidity, wind, visibility, precipitation]:
+                if value is not None:
+                    has_a_measurement = True
+            if weather_code != "":
+                has_a_measurement = True
+            if not has_a_measurement:
                 continue
 
-            # --- 4. decide the rain flag ------------------------------------
-            upper_weather = weather_code.upper()
-            trace = precipitation_raw.upper().startswith("T")
-            rain_flag = bool(
-                trace
-                or (precipitation is not None and precipitation > 0)
-                or any(code in upper_weather for code in ("RA", "DZ", "TS"))
-            )
+            # ---- 4. decide whether it was raining --------------------------
+            is_trace = precipitation_text.upper().startswith("T")
+            has_rain_amount = precipitation is not None and precipitation > 0
+            has_rain_code = False
+            for code in ["RA", "DZ", "TS"]:
+                if code in weather_code.upper():
+                    has_rain_code = True
 
-            normalized = {
+            if is_trace or has_rain_amount or has_rain_code:
+                rain_flag = 1
+            else:
+                rain_flag = 0
+
+            clean_row = {
                 "station_key": station_key,
                 "station_id": station["station_id"],
-                "timestamp_utc": noaa_instant.isoformat(),
-                "timestamp_austin": local.isoformat(),
-                "source_timestamp_local_standard": date_value,
-                "report_type": first_value(row, "REPORT_TYPE", "ReportType"),
+                "timestamp_utc": time_utc.isoformat(),
+                "timestamp_austin": time_austin.isoformat(),
+                "source_timestamp_local_standard": date_text,
+                "report_type": common.first_value(row, "REPORT_TYPE", "ReportType"),
                 "precipitation": precipitation,
-                "precipitation_raw": precipitation_raw,
-                "rain_flag": int(rain_flag),
+                "precipitation_raw": precipitation_text,
+                "rain_flag": rain_flag,
                 "present_weather": weather_code,
                 "visibility": visibility,
                 "temperature": temperature,
@@ -172,79 +144,95 @@ def normalize_weather_station(
                 "wind_speed": wind,
             }
 
-            # --- 5. keep the most complete row for this instant -------------
-            # score = how many measurement fields are actually populated
-            score = sum(
-                value not in (None, "")
-                for key, value in normalized.items()
-                if key
-                not in {
-                    "station_key",
-                    "station_id",
-                    "timestamp_utc",
-                    "timestamp_austin",
-                    "source_timestamp_local_standard",
-                }
-            )
-            previous = by_timestamp.get(noaa_instant)
-            if previous is None or score > previous["_score"]:
-                normalized["_score"] = score
-                by_timestamp[noaa_instant] = normalized
+            # ---- 5. if this time was already seen, keep the fuller row ------
+            score = 0
+            for column, value in clean_row.items():
+                if column in LABEL_COLUMNS:
+                    continue
+                if value is not None and value != "":
+                    score = score + 1
 
-    # --- write out, sorted by time (Step 4 relies on this order) -------------
+            if time_utc not in best_row_at_time or score > score_at_time[time_utc]:
+                best_row_at_time[time_utc] = clean_row
+                score_at_time[time_utc] = score
+
+    # ---- write the rows out, oldest first --------------------------------------
     rows = []
-    for timestamp in sorted(by_timestamp):
-        row = dict(by_timestamp[timestamp])
-        row.pop("_score", None)  # drop the internal scoring field
-        rows.append(row)
+    for time_utc in sorted(best_row_at_time):
+        rows.append(best_row_at_time[time_utc])
 
-    output_path = PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv"
-    fieldnames = list(rows[0]) if rows else ["station_key", "timestamp_utc"]
-    temporary = output_path.with_suffix(output_path.suffix + ".part")
-    with temporary.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+    output_file = common.PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv"
+    if len(rows) > 0:
+        column_names = list(rows[0].keys())
+    else:
+        column_names = ["station_key", "timestamp_utc"]
+
+    temporary_file = output_file.with_suffix(output_file.suffix + ".part")
+    with open(temporary_file, "w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=column_names)
         writer.writeheader()
         writer.writerows(rows)
-    temporary.replace(output_path)
+    temporary_file.replace(output_file)
+
+    # ---- summary numbers for the audit file ------------------------------------
+    rain_rows = 0
+    rows_with_precipitation = 0
+    rows_with_visibility = 0
+    for row in rows:
+        rain_rows = rain_rows + row["rain_flag"]
+        if row["precipitation"] is not None:
+            rows_with_precipitation = rows_with_precipitation + 1
+        if row["visibility"] is not None:
+            rows_with_visibility = rows_with_visibility + 1
+
+    if len(rows) > 0:
+        first_time = rows[0]["timestamp_austin"]
+        last_time = rows[-1]["timestamp_austin"]
+    else:
+        first_time = None
+        last_time = None
 
     audit = {
         "station_key": station_key,
         "name": station["name"],
         "station_id": station["station_id"],
         "records": len(rows),
-        "first_timestamp_austin": rows[0]["timestamp_austin"] if rows else None,
-        "last_timestamp_austin": rows[-1]["timestamp_austin"] if rows else None,
-        "rain_flag_records": sum(int(row["rain_flag"]) for row in rows),
-        "records_with_precipitation_value": sum(
-            row["precipitation"] is not None for row in rows
-        ),
-        "records_with_visibility": sum(row["visibility"] is not None for row in rows),
-        "processed_path": output_path.relative_to(ROOT).as_posix(),
-        "processed_sha256": sha256_file(output_path),
+        "first_timestamp_austin": first_time,
+        "last_timestamp_austin": last_time,
+        "rain_flag_records": rain_rows,
+        "records_with_precipitation_value": rows_with_precipitation,
+        "records_with_visibility": rows_with_visibility,
+        "processed_path": output_file.relative_to(common.ROOT).as_posix(),
+        "processed_sha256": common.sha256_file(output_file),
     }
-    return output_path, audit
+    return audit
 
 
-def prepare_weather(config: dict[str, Any]) -> dict[str, Any]:
+def prepare_weather(config):
+    """Clean both stations and write weather_source_audit.json."""
     weather = config["weather"]
-    downloads: dict[str, Any] = {}
-    stations: dict[str, Any] = {}
+    downloads = {}
+    stations = {}
 
-    for key, config_key in (("camp_mabry", "primary_station"), ("bergstrom", "secondary_station")):
+    # (short name used in file names, name of the station block in the config)
+    for station_key, config_key in [("camp_mabry", "primary_station"),
+                                    ("bergstrom", "secondary_station")]:
         station = weather[config_key]
-        # the archived file is named after the last segment of the source URL
-        raw_path = RAW_NOAA_DIR / station["url"].rsplit("/", 1)[-1]
-        require_file(raw_path, f"the NOAA raw file for {station['name']}")
-        downloads[key] = {
+
+        # Our saved raw file has the same name as the last part of the NOAA URL.
+        raw_file = common.RAW_NOAA_DIR / station["url"].split("/")[-1]
+        common.require_file(raw_file, f"the NOAA raw file for {station['name']}")
+
+        downloads[station_key] = {
             "source_url": station["url"],
-            "path": raw_path.relative_to(ROOT).as_posix(),
-            "bytes": raw_path.stat().st_size,
-            "sha256": sha256_file(raw_path),
+            "path": raw_file.relative_to(common.ROOT).as_posix(),
+            "bytes": raw_file.stat().st_size,
+            "sha256": common.sha256_file(raw_file),
         }
-        _, stations[key] = normalize_weather_station(key, station, raw_path)
+        stations[station_key] = clean_one_station(station_key, station, raw_file)
 
     evidence = {
-        "generated_utc": datetime.now(UTC).isoformat(),
+        "generated_utc": datetime.now(common.UTC).isoformat(),
         "product": weather["product"],
         "citation_doi": weather["citation_doi"],
         "source_time_basis": weather["time_basis"],
@@ -256,23 +244,19 @@ def prepare_weather(config: dict[str, Any]) -> dict[str, Any]:
         "downloads": downloads,
         "stations": stations,
     }
-    write_json(AUDIT_DIR / "weather_source_audit.json", evidence)
+    common.write_json(common.AUDIT_DIR / "weather_source_audit.json", evidence)
     return evidence
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args()
-
-    ensure_dirs()
-    evidence = prepare_weather(load_config())
+def main():
+    common.ensure_dirs()
+    evidence = prepare_weather(common.load_config())
 
     print("\nStep 2 complete.")
-    for key, station in evidence["stations"].items():
+    for station in evidence["stations"].values():
         print(f"  {station['name']:<36} {station['records']:>6,} observations, "
               f"{station['rain_flag_records']:>4,} rain-flagged")
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

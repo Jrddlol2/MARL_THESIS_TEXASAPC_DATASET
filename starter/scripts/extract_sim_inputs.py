@@ -77,10 +77,12 @@ if not RAW.exists():
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---- read the 3.7 GB file a million rows at a time, keeping the clean ones ---
-parts, n_raw = [], 0
+# dtype=str: read everything as text.  na_filter=False: blanks stay "" (not NaN).
+clean_pieces = []
+raw_row_count = 0
 for chunk in pd.read_csv(RAW, usecols=NEEDED, dtype=str, chunksize=1_000_000,
                          na_filter=False):
-    n_raw += len(chunk)
+    raw_row_count = raw_row_count + len(chunk)
     keep = (
         (chunk["route_id"] == "801")                           # 1. the route
         & (chunk["route_id"] == chunk["current_route_id"])     # 2. not reassigned
@@ -89,10 +91,11 @@ for chunk in pd.read_csv(RAW, usecols=NEEDED, dtype=str, chunksize=1_000_000,
         & (chunk["bs_id"] != "0")                              # 5. a real stop
         & (chunk["direction_code_id"] == "6")                  # 6. the direction
     )
-    parts.append(chunk[keep])
+    clean_pieces.append(chunk[keep])
 
-df = pd.concat(parts, ignore_index=True)
-print(f"raw {n_raw:,} -> dir-6 clean {len(df):,} (expect 229,421)")
+# glue the clean pieces back into one table
+df = pd.concat(clean_pieces, ignore_index=True)
+print(f"raw {raw_row_count:,} -> dir-6 clean {len(df):,} (expect 229,421)")
 
 # ---- parse the numeric columns (the source types everything as text) --------
 for column in ["actual_sequence", "ons", "offs", "dwell_time",
@@ -103,7 +106,9 @@ for column in ["actual_sequence", "ons", "offs", "dwell_time",
 df["run_seconds"] = (df["rev_seconds"] - df["dwell_time"]).clip(lower=0)
 
 # ---- one row per stop -------------------------------------------------------
-# median for times and distance (robust to outliers), mean for demand
+# groupby("bs_id") puts all rows of the same stop together; agg() then makes one
+# summary number per column, written as   new_name=(source_column, "how").
+# median for times and distance (not pulled by extreme values), mean for demand.
 stops = (
     df.groupby("bs_id")
       .agg(

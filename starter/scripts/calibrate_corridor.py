@@ -1,84 +1,215 @@
-"""First SUMO calibration pass for the reduced corridor.
-
-Builds a SUMO net from real stop coordinates (geometry), sets dwells from real medians,
-and iterates edge speeds until simulated segment travel times match the empirical run_s
-targets. Acceptance: GEH < 5 on > 85% of segments (methods §3.2.3), reported with RMSPE.
-
-NOTE ON GEH: methods define GEH on hourly bus VOLUME; when buses are injected at the
-observed frequency, volume matches by construction. Here GEH is applied to segment TRAVEL
-TIMES as a closeness statistic, paired with RMSPE (which is the binding travel-time metric).
 """
-import os, sys, subprocess, math
-import numpy as np, pandas as pd
+=============================================================================
+ CALIBRATE THE CORRIDOR  (straight-line "schematic" network)
+=============================================================================
+
+WHAT IT DOES
+    1. Builds a SUMO road network from the real stop positions: one straight
+       road piece between each pair of neighbouring stops.
+    2. Drives ONE bus down it, stopping at every stop for the observed dwell.
+    3. Measures how long the bus took between each pair of stops.
+    4. Compares that with the real bus data (run_s in sim_inputs/stops.csv).
+    5. Adjusts each road piece's speed limit and repeats, until they match.
+
+WHEN IS IT "GOOD ENOUGH"  (manuscript section 3.2.3)
+    * GEH < 5 on at least 85% of segments, AND
+    * RMSPE < 2%
+
+    GEH   = sqrt( 2 (simulated - observed)^2 / (simulated + observed) )
+            a standard traffic-model closeness score; under 5 is a good match
+    RMSPE = root-mean-square percentage error over all segments
+
+    Note: GEH is normally used on vehicle COUNTS. Our bus counts match by
+    design, so here GEH is applied to travel TIMES, and RMSPE is the main test.
+
+INPUT    corridor.txt, sim_inputs/stop_coordinates.csv, sim_inputs/stops.csv
+OUTPUT   sumo/corridor.nod.xml, .edg.xml, .net.xml, .rou.xml, .sumocfg,
+         sumo/stops.add.xml, results/calibration.csv
+
+RUN      python scripts/calibrate_corridor.py        (from starter/, ~10 s)
+
+The real-road-shape version of this script is scripts/build_real_net.py.
+=============================================================================
+"""
+
+import math
+import os
+import subprocess
+import sys
+
+import numpy as np
+import pandas as pd
+
 if "SUMO_HOME" in os.environ:
     sys.path.insert(0, os.path.join(os.environ["SUMO_HOME"], "tools"))
 import traci
 from sumolib import checkBinary
 
-NC, SUMO = checkBinary("netconvert"), checkBinary("sumo")
-CORRIDOR = [l.strip() for l in open("corridor.txt") if l.strip()]   # full 26-stop dir-6 corridor
+NETCONVERT = checkBinary("netconvert")   # SUMO tool that turns node/edge files into a network
+SUMO = checkBinary("sumo")               # SUMO without the window
+
+# ---- read the corridor ---------------------------------------------------------
+CORRIDOR = []                            # stop ids in driving order (27 stops)
+for line in open("corridor.txt"):
+    if line.strip() != "":
+        CORRIDOR.append(line.strip())
+NUM_STOPS = len(CORRIDOR)
+
+STOP_IDS = []
+for stop in CORRIDOR:
+    STOP_IDS.append(int(stop))
+
 os.makedirs("sumo", exist_ok=True)
 
-coords = pd.read_csv("sim_inputs/stop_coordinates.csv").set_index("bs_id")
-si = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id")
-ids = [int(x) for x in CORRIDOR]
-c, d = coords.loc[ids], si.loc[ids]
-lat0, lon0 = c["mean_lat"].mean(), c["mean_lon"].mean()
-X = (c["mean_lon"] - lon0) * math.cos(math.radians(lat0)) * 111320
-Y = (c["mean_lat"] - lat0) * 110540
-xy = list(zip(X.values, Y.values))
-dist = [math.hypot(xy[i+1][0]-xy[i][0], xy[i+1][1]-xy[i][1]) for i in range(len(ids)-1)]
-target = d["run_s"].values[:len(dist)]
-dwell = d["dwell_s"].values
+coordinates = pd.read_csv("sim_inputs/stop_coordinates.csv").set_index("bs_id").loc[STOP_IDS]
+stop_data = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[STOP_IDS]
+
+# ---- turn latitude/longitude into metres ----------------------------------------
+# Around the corridor's centre, 1 degree of latitude  = 110,540 m and
+#                                1 degree of longitude = 111,320 m x cos(latitude).
+center_lat = coordinates["mean_lat"].mean()
+center_lon = coordinates["mean_lon"].mean()
+x_metres = ((coordinates["mean_lon"] - center_lon) * math.cos(math.radians(center_lat)) * 111320).values
+y_metres = ((coordinates["mean_lat"] - center_lat) * 110540).values
+
+# straight-line distance from each stop to the next
+distance = []
+for i in range(NUM_STOPS - 1):
+    distance.append(math.hypot(x_metres[i + 1] - x_metres[i], y_metres[i + 1] - y_metres[i]))
+
+observed_time = stop_data["run_s"].values[:len(distance)]   # target: real driving seconds
+dwell = stop_data["dwell_s"].values                          # real seconds stopped
+
+
+def write_file(name, text):
+    file = open(name, "w")
+    file.write(text)
+    file.close()
 
 
 def build_and_run(speeds):
-    n = len(CORRIDOR)
-    xs = [0.0]
-    for L in dist: xs.append(xs[-1] + L)
-    xs.append(xs[-1] + 500)
-    open("sumo/corridor.nod.xml", "w").write("<nodes>\n" + "".join(f'  <node id="n{i}" x="{x:.1f}" y="0"/>\n' for i, x in enumerate(xs)) + "</nodes>\n")
-    open("sumo/corridor.edg.xml", "w").write("<edges>\n" + "".join(f'  <edge id="e{i}" from="n{i}" to="n{i+1}" numLanes="1" speed="{speeds[i]:.2f}"/>\n' for i in range(n)) + "</edges>\n")
-    subprocess.run([NC, "--node-files=sumo/corridor.nod.xml", "--edge-files=sumo/corridor.edg.xml", "--output-file=sumo/corridor.net.xml"], check=True, capture_output=True)
-    open("sumo/stops.add.xml", "w").write("<additional>\n" + "".join(f'  <busStop id="{CORRIDOR[i]}" lane="e{i}_0" startPos="5" endPos="25"/>\n' for i in range(n)) + "</additional>\n")
-    stopxml = "".join(f'    <stop busStop="{CORRIDOR[i]}" duration="{dwell[i]:.0f}"/>\n' for i in range(n))
-    open("sumo/corridor.rou.xml", "w").write(
-        '<routes>\n  <vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30"/>\n'
-        f'  <route id="r" edges="{" ".join(f"e{i}" for i in range(n))}"/>\n'
-        f'  <vehicle id="b0" type="bus" route="r" depart="0">\n{stopxml}  </vehicle>\n</routes>\n')
-    open("sumo/corridor.sumocfg", "w").write(
-        '<configuration>\n <input>\n  <net-file value="corridor.net.xml"/>\n  <route-files value="corridor.rou.xml"/>\n'
-        '  <additional-files value="stops.add.xml"/>\n </input>\n <time><begin value="0"/><end value="9000"/></time>\n</configuration>\n')
+    """Build the network with these speed limits, drive one bus, and
+    return the simulated driving time for each segment."""
+
+    # ---- nodes: points on a straight line, spaced by the real distances ----------
+    positions = [0.0]
+    for length in distance:
+        positions.append(positions[-1] + length)
+    positions.append(positions[-1] + 500)        # a 500 m road piece after the last stop
+
+    text = "<nodes>\n"
+    for i in range(len(positions)):
+        text += f'  <node id="n{i}" x="{positions[i]:.1f}" y="0"/>\n'
+    text += "</nodes>\n"
+    write_file("sumo/corridor.nod.xml", text)
+
+    # ---- edges: road piece e{i} goes from node i to node i+1 -------------------
+    text = "<edges>\n"
+    for i in range(NUM_STOPS):
+        text += f'  <edge id="e{i}" from="n{i}" to="n{i+1}" numLanes="1" speed="{speeds[i]:.2f}"/>\n'
+    text += "</edges>\n"
+    write_file("sumo/corridor.edg.xml", text)
+
+    # ---- netconvert joins nodes + edges into a SUMO network file ------------------
+    subprocess.run([NETCONVERT, "--node-files=sumo/corridor.nod.xml",
+                    "--edge-files=sumo/corridor.edg.xml",
+                    "--output-file=sumo/corridor.net.xml"], check=True, capture_output=True)
+
+    # ---- bus stops: stop i sits 5-25 m into road piece e{i} ---------------------
+    text = "<additional>\n"
+    for i in range(NUM_STOPS):
+        text += f'  <busStop id="{CORRIDOR[i]}" lane="e{i}_0" startPos="5" endPos="25"/>\n'
+    text += "</additional>\n"
+    write_file("sumo/stops.add.xml", text)
+
+    # ---- one bus that stops at every stop for the observed dwell ----------------
+    stop_lines = ""
+    for i in range(NUM_STOPS):
+        stop_lines += f'    <stop busStop="{CORRIDOR[i]}" duration="{dwell[i]:.0f}"/>\n'
+    edge_list = ""
+    for i in range(NUM_STOPS):
+        if i > 0:
+            edge_list += " "
+        edge_list += f"e{i}"
+    write_file("sumo/corridor.rou.xml",
+               '<routes>\n  <vType id="bus" vClass="bus" length="12" accel="1.2" decel="4.0" maxSpeed="30"/>\n'
+               f'  <route id="r" edges="{edge_list}"/>\n'
+               f'  <vehicle id="b0" type="bus" route="r" depart="0">\n{stop_lines}  </vehicle>\n</routes>\n')
+
+    # ---- the SUMO configuration file (open this in sumo-gui to watch the bus) -----
+    write_file("sumo/corridor.sumocfg",
+               '<configuration>\n <input>\n  <net-file value="corridor.net.xml"/>\n  <route-files value="corridor.rou.xml"/>\n'
+               '  <additional-files value="stops.add.xml"/>\n </input>\n <time><begin value="0"/><end value="9000"/></time>\n</configuration>\n')
+
+    # ---- run SUMO and note when the bus stops and starts ------------------------
     traci.start([SUMO, "-c", "sumo/corridor.sumocfg", "--no-warnings", "true", "--no-step-log", "true"])
-    arr, dep, prev, t = [], [], False, 0
+    arrive_times = []
+    leave_times = []
+    was_stopped = False
+    t = 0
     while traci.simulation.getMinExpectedNumber() > 0 and t < 9000:
-        traci.simulationStep(); t = traci.simulation.getTime()
-        s = traci.vehicle.isStopped("b0") if "b0" in traci.vehicle.getIDList() else False
-        if s and not prev: arr.append(t)
-        if not s and prev: dep.append(t)
-        prev = s
+        traci.simulationStep()
+        t = traci.simulation.getTime()
+        if "b0" in traci.vehicle.getIDList():
+            is_stopped = traci.vehicle.isStopped("b0")
+        else:
+            is_stopped = False
+        if is_stopped and not was_stopped:
+            arrive_times.append(t)             # just stopped = arrived at a stop
+        if not is_stopped and was_stopped:
+            leave_times.append(t)              # just started = left a stop
+        was_stopped = is_stopped
     traci.close()
-    return np.array([arr[i+1] - dep[i] for i in range(min(len(arr)-1, len(dep), len(dist)))])
+
+    # driving time of segment i = arrival at stop i+1 minus departure from stop i
+    count = min(len(arrive_times) - 1, len(leave_times), len(distance))
+    driving_time = []
+    for i in range(count):
+        driving_time.append(arrive_times[i + 1] - leave_times[i])
+    return np.array(driving_time)
 
 
 def main():
-    speeds = [dist[i] / target[i] for i in range(len(dist))] + [10.0]
-    for it in range(1, 13):
-        M = build_and_run(speeds); k = len(M); C = target[:k]
-        geh = np.sqrt(2 * (M - C) ** 2 / (M + C))
-        rmspe = np.sqrt(np.mean(((M - C) / C) ** 2)) * 100
-        ok = np.mean(geh < 5) * 100
-        print(f"iter {it}: <5:{ok:.0f}% RMSPE={rmspe:.2f}% GEHmax={geh.max():.2f}")
-        if ok >= 85 and rmspe < 2.0:
-            print(f"calibration criterion met (RMSPE {rmspe:.2f}%, GEH<5 on {ok:.0f}%) -> sumo/corridor.* is calibrated")
-            print("final segment times (s):", [round(v) for v in M])
+    # First guess: speed = distance / observed time. The last (extra) piece gets 10 m/s.
+    speeds = []
+    for i in range(len(distance)):
+        speeds.append(distance[i] / observed_time[i])
+    speeds.append(10.0)
+
+    for iteration in range(1, 13):
+        simulated = build_and_run(speeds)
+        count = len(simulated)
+        observed = observed_time[:count]
+
+        geh = np.sqrt(2 * (simulated - observed) ** 2 / (simulated + observed))
+        rmspe = np.sqrt(np.mean(((simulated - observed) / observed) ** 2)) * 100
+        percent_geh_ok = np.mean(geh < 5) * 100
+        print(f"iter {iteration}: <5:{percent_geh_ok:.0f}% RMSPE={rmspe:.2f}% GEHmax={geh.max():.2f}")
+
+        if percent_geh_ok >= 85 and rmspe < 2.0:
+            print(f"calibration criterion met (RMSPE {rmspe:.2f}%, GEH<5 on {percent_geh_ok:.0f}%) -> sumo/corridor.* is calibrated")
+            rounded = []
+            for value in simulated:
+                rounded.append(round(value))
+            print("final segment times (s):", rounded)
+
             os.makedirs("results", exist_ok=True)
-            with open("results/calibration.csv", "w") as fh:
-                fh.write("segment,observed_s,simulated_s,geh,pct_err\n")
-                for i in range(k):
-                    fh.write(f"{CORRIDOR[i]}-{CORRIDOR[i+1]},{C[i]:.0f},{M[i]:.0f},{geh[i]:.2f},{(M[i]-C[i])/C[i]*100:+.1f}\n")
-            print(f"wrote results/calibration.csv (RMSPE {rmspe:.2f}%)"); return
-        for i in range(k): speeds[i] *= M[i] / C[i]
+            file = open("results/calibration.csv", "w")
+            file.write("segment,observed_s,simulated_s,geh,pct_err\n")
+            for i in range(count):
+                percent_error = (simulated[i] - observed[i]) / observed[i] * 100
+                file.write(f"{CORRIDOR[i]}-{CORRIDOR[i+1]},{observed[i]:.0f},{simulated[i]:.0f},"
+                           f"{geh[i]:.2f},{percent_error:+.1f}\n")
+            file.close()
+            print(f"wrote results/calibration.csv (RMSPE {rmspe:.2f}%)")
+            return
+
+        # Not good enough yet: if a segment was too slow, raise its speed limit
+        # in proportion (and lower it if it was too fast), then try again.
+        for i in range(count):
+            speeds[i] = speeds[i] * (simulated[i] / observed[i])
+
+    print("calibration did not meet the criterion after 12 iterations")
 
 
 if __name__ == "__main__":

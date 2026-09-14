@@ -1,214 +1,215 @@
 """
 =============================================================================
- STEP 3 OF 4  --  JOIN WEATHER TO EVERY BUS STOP EVENT
+ STEP 3 OF 4  --  MATCH WEATHER TO EVERY BUS STOP EVENT
 =============================================================================
 
-WHAT THIS STEP ANSWERS
-    "Was it raining when this bus stopped here?" -- for all 229,421 events.
+THE QUESTION
+    "Was it raining when this bus stopped here?"  -- for all 229,421 events.
 
 THE METHOD
-    pandas.merge_asof: for each APC stop event, take the NOAA observation
-    CLOSEST IN TIME, and accept it only if it is within 90 minutes.
-
-    merge_asof is the standard tool for exactly this job -- joining two
-    time-ordered tables on "nearest time" rather than on an exact key.
+    For each bus event, find the NOAA reading CLOSEST IN TIME, and accept it
+    only if it is within 90 minutes. pandas has a ready-made tool for this
+    kind of "nearest time" match: pd.merge_asof.
 
 WHY 90 MINUTES
-    It is a coverage guarantee, not a modelling choice.
+    The biggest gap between two Camp Mabry readings is 120 minutes, so no bus
+    event is ever more than 60 minutes from a reading. 90 minutes is safely
+    above that. In practice the typical gap is 12.7 minutes and every event
+    gets a match (100% coverage). The 90 is stored in the config file.
 
-    The largest gap between consecutive Camp Mabry observations in the study
-    window is 120 minutes. So the worst case for any bus event is landing dead
-    in the middle of such a gap -- 60 minutes from the nearest observation.
-    A 90-minute tolerance clears that bound with 50% headroom.
+THE DAYLIGHT-SAVING HOUR
+    On 7 November 2021 the clocks went back, so 01:00-02:00 happened twice in
+    Austin. A bus time inside that hour could mean either one. We convert every
+    time both ways, count how many rows come out different (the unclear
+    ones), use the first meaning, and report the count.
 
-    It never actually binds: the realised median join gap is 12.7 minutes,
-    p95 is 27.9 minutes, and coverage comes out at 100%. If the cap were doing
-    real work, coverage would be below 100%.
+WHAT THIS DOES *NOT* PROVE
+    It reports the median segment time on dry vs rainy events (204 s vs 212 s).
+    That is only a description. Rain in Austin tends to fall in the afternoon
+    rush hour, so part of the difference is traffic, not rain.
 
-    The value lives in config/texas_capmetro_801.json as
-    weather.nearest_join_tolerance_minutes -- change it there, not here.
-
-THE ONE SUBTLE BIT: DST AMBIGUITY
-    On 7 November 2021 the hour 01:00-02:00 happened TWICE in Austin. A bare
-    APC timestamp inside that hour is genuinely ambiguous.
-
-    We localize twice -- once assuming the first pass through the hour
-    (ambiguous=True, i.e. still on daylight time) and once assuming the second
-    (ambiguous=False) -- and count the rows where those two give different UTC
-    instants. Those are the ambiguous ones. We then use the first pass, and
-    report the count, rather than silently guessing.
-
-WHAT THIS STEP DOES *NOT* ESTABLISH
-    It reports the pooled median segment time on dry vs rainy events
-    (204 s vs 212 s). That difference is DESCRIPTIVE ONLY. Austin rain is
-    convective and clusters in the afternoon, so part of the gap is rush hour,
-    not rain. A real rain multiplier has to be estimated within segment,
-    time-of-day and day-type strata. The warning is written into the output
-    file so it cannot be quoted out of context.
-
-INPUTS   data/raw/capmetro/route_801_direction_6_clean.csv   (Step 1)
-         data/processed/texas_capmetro/weather_*.csv          (Step 2)
-
-OUTPUTS  data/audit/texas_capmetro/weather_join_audit.json
+INPUT    data/raw/capmetro/route_801_direction_6_clean.csv     (from Step 1)
+         data/processed/texas_capmetro/weather_*.csv            (from Step 2)
+OUTPUT   data/audit/texas_capmetro/weather_join_audit.json
          data/audit/texas_capmetro/WEATHER_FEASIBILITY_EVIDENCE.md
 
-RUN      python scripts/pipeline/03_join_weather.py
+RUN      python scripts/pipeline/03_join_weather.py        (a few seconds)
 =============================================================================
 """
 
-from __future__ import annotations
-
-import argparse
 import math
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import (  # noqa: E402
-    AUDIT_DIR, PROCESSED_DIR, ROOT, UTC,
-    ensure_dirs, load_config, require_file, sha256_file, write_json, write_text,
-)
+import common
 
 
-def load_apc_events(path: Path, timezone_name: str) -> tuple[pd.DataFrame, int]:
-    """Read the study set and put its timestamps on an unambiguous UTC clock.
+def load_bus_events(csv_file, timezone_name):
+    """Read the bus events and give each one an exact UTC time.
 
-    The APC file has NO timezone column, so reading these as Austin local time
-    is an explicit assumption -- documented as such in the manuscript, not
-    presented as fact. It is corroborated by the observed service window in the
-    data (roughly 04:00-24:00) matching the published timetable's 5 AM-12:30 AM
-    span; a UTC reading would displace it by five to six hours.
+    The bus file has no time zone column, so we ASSUME its times are Austin
+    local time. The data supports this: buses run from about 04:00 to 24:00,
+    which matches the published 5 AM - 12:30 AM timetable.
 
-    Returns (events, dst_ambiguous_count).
+    Returns two things: the table, and how many times fell in the repeated hour.
     """
-    events = pd.read_csv(
-        path, usecols=["apc_date_time", "rev_seconds", "rev_distance"], dtype=str
-    )
-    naive = pd.to_datetime(events["apc_date_time"], format="%Y%m%d%H%M%S", errors="coerce")
+    events = pd.read_csv(csv_file, usecols=["apc_date_time", "rev_seconds", "rev_distance"],
+                         dtype=str)
 
-    # See "THE ONE SUBTLE BIT" above: localize both ways, and where the two
-    # disagree the timestamp fell inside the repeated fall-back hour.
-    first_pass = naive.dt.tz_localize(timezone_name, ambiguous=True, nonexistent="shift_forward")
-    second_pass = naive.dt.tz_localize(timezone_name, ambiguous=False, nonexistent="shift_forward")
-    dst_ambiguous = int((first_pass != second_pass).sum())
+    # "20210701053012" -> 2021-07-01 05:30:12   (no time zone yet)
+    local_time = pd.to_datetime(events["apc_date_time"], format="%Y%m%d%H%M%S", errors="coerce")
 
-    events["event_time"] = first_pass.dt.tz_convert("UTC")
-    for column in ("rev_seconds", "rev_distance"):
-        events[column] = pd.to_numeric(events[column], errors="coerce")
+    # Attach the Austin time zone twice: once assuming the FIRST pass through
+    # the repeated hour, once assuming the SECOND. Where they differ, the time
+    # was unclear.
+    first_meaning = local_time.dt.tz_localize(timezone_name, ambiguous=True,
+                                              nonexistent="shift_forward")
+    second_meaning = local_time.dt.tz_localize(timezone_name, ambiguous=False,
+                                               nonexistent="shift_forward")
+    unclear_count = int((first_meaning != second_meaning).sum())
 
-    return events, dst_ambiguous
+    events["event_time"] = first_meaning.dt.tz_convert("UTC")
+    events["rev_seconds"] = pd.to_numeric(events["rev_seconds"], errors="coerce")
+    events["rev_distance"] = pd.to_numeric(events["rev_distance"], errors="coerce")
+
+    return events, unclear_count
 
 
-def load_weather(station_key: str) -> pd.DataFrame:
-    """Read one station's normalized observations, sorted by time for merge_asof."""
-    path = require_file(
-        PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv",
+def load_weather(station_key):
+    """Read one station's clean weather table, sorted by time."""
+    csv_file = common.require_file(
+        common.PROCESSED_DIR / f"weather_{station_key}_2021_jul_dec.csv",
         f"the normalized weather table for {station_key} (run 02_prepare_weather.py first)",
     )
-    weather = pd.read_csv(path, usecols=["timestamp_utc", "rain_flag"])
+    weather = pd.read_csv(csv_file, usecols=["timestamp_utc", "rain_flag"])
     weather["obs_time"] = pd.to_datetime(weather["timestamp_utc"], utc=True)
-    return weather[["obs_time", "rain_flag"]].sort_values("obs_time").reset_index(drop=True)
+    weather = weather[["obs_time", "rain_flag"]]
+    weather = weather.sort_values("obs_time").reset_index(drop=True)
+    return weather
 
 
-def join_nearest(events: pd.DataFrame, weather: pd.DataFrame, tolerance: pd.Timedelta,
-                 suffix: str) -> pd.DataFrame:
-    """Attach each event's nearest observation within `tolerance`.
+def match_nearest_reading(events, weather, max_gap, name):
+    """Give each bus event the closest weather reading within max_gap.
 
-    Unmatched events get NaN, which is how we measure coverage.
+    New columns added (NAME = "primary" or "secondary"):
+        obs_time_NAME    time of the matched reading
+        rain_NAME        its rain flag (empty if no reading was close enough)
+        delta_min_NAME   minutes between the bus event and the reading
     """
-    joined = pd.merge_asof(
+    weather = weather.rename(columns={"obs_time": "obs_time_" + name,
+                                      "rain_flag": "rain_" + name})
+    matched = pd.merge_asof(
         events.sort_values("event_time"),
-        weather.rename(columns={"obs_time": f"obs_time_{suffix}",
-                                "rain_flag": f"rain_{suffix}"}),
+        weather,
         left_on="event_time",
-        right_on=f"obs_time_{suffix}",
-        direction="nearest",
-        tolerance=tolerance,
+        right_on="obs_time_" + name,
+        direction="nearest",        # closest reading, before OR after
+        tolerance=max_gap,          # but no further away than this
     )
-    joined[f"delta_min_{suffix}"] = (
-        (joined["event_time"] - joined[f"obs_time_{suffix}"]).abs().dt.total_seconds() / 60
-    )
-    return joined
+    gap = (matched["event_time"] - matched["obs_time_" + name]).abs()
+    matched["delta_min_" + name] = gap.dt.total_seconds() / 60
+    return matched
 
 
-def audit_weather_join(config: dict[str, Any]) -> dict[str, Any]:
-    apc_path = require_file(
-        ROOT / config["apc"]["raw_output"],
+def join_weather(config):
+    bus_file = common.require_file(
+        common.ROOT / config["apc"]["raw_output"],
         "the direction-6 study set (run 01_extract_dir6.py first)",
     )
-    tolerance_minutes = int(config["weather"]["nearest_join_tolerance_minutes"])
-    tolerance = pd.Timedelta(minutes=tolerance_minutes)
+    max_gap_minutes = int(config["weather"]["nearest_join_tolerance_minutes"])
+    max_gap = pd.Timedelta(minutes=max_gap_minutes)
 
-    events, dst_ambiguous = load_apc_events(apc_path, config["study"]["timezone"])
-    apc_rows = len(events)
+    events, unclear_count = load_bus_events(bus_file, config["study"]["timezone"])
+    total_events = len(events)
 
-    # --- the two joins: primary station, then the sensitivity cross-check ----
-    joined = join_nearest(events, load_weather("camp_mabry"), tolerance, "primary")
-    joined = join_nearest(joined, load_weather("bergstrom"), tolerance, "secondary")
+    # ---- match to the main station, then to the cross-check station ---------
+    joined = match_nearest_reading(events, load_weather("camp_mabry"), max_gap, "primary")
+    joined = match_nearest_reading(joined, load_weather("bergstrom"), max_gap, "secondary")
 
-    matched = joined["rain_primary"].notna()
-    primary = joined[matched]
+    has_match = joined["rain_primary"].notna()
+    matched = joined[has_match]
+    matched_count = int(has_match.sum())
 
-    # --- coverage and how close the matches actually were --------------------
-    deltas = primary["delta_min_primary"].to_numpy()
-    # NB: the p95 here is the plain order statistic used since the first audit
-    # (ceil(0.95 n)-th value), NOT pandas' interpolated quantile.
-    p95 = float(np.sort(deltas)[max(0, math.ceil(0.95 * len(deltas)) - 1)]) if len(deltas) else None
+    # ---- how close were the matches? -----------------------------------------
+    gaps = matched["delta_min_primary"].to_numpy()
+    if len(gaps) > 0:
+        median_gap = round(float(np.median(gaps)), 3)
+        # 95th percentile, taken as the plain sorted value at position ceil(0.95 n)
+        sorted_gaps = np.sort(gaps)
+        position = max(0, math.ceil(0.95 * len(gaps)) - 1)
+        p95_gap = round(float(sorted_gaps[position]), 3)
+    else:
+        median_gap = None
+        p95_gap = None
 
-    rain = primary["rain_primary"].astype(int)
-    both_matched = primary["rain_secondary"].notna()
-    agree = int((rain[both_matched] == primary.loc[both_matched, "rain_secondary"]).sum())
+    # ---- do the two stations agree on rain? ----------------------------------
+    rain = matched["rain_primary"].astype(int)
+    both_matched = matched["rain_secondary"].notna()
+    both_count = int(both_matched.sum())
+    agree_count = int((rain[both_matched] == matched.loc[both_matched, "rain_secondary"]).sum())
 
     counts = {
-        "apc_rows": apc_rows,
-        "primary_matched": int(matched.sum()),
+        "apc_rows": total_events,
+        "primary_matched": matched_count,
         "primary_rain_exposed_rows": int(rain.sum()),
-        "secondary_matched": int(both_matched.sum()),
-        "station_rain_flag_agreement": agree,
-        "station_rain_flag_disagreement": int(both_matched.sum()) - agree,
+        "secondary_matched": both_count,
+        "station_rain_flag_agreement": agree_count,
+        "station_rain_flag_disagreement": both_count - agree_count,
     }
-    if dst_ambiguous:
-        counts["dst_ambiguous_apc_rows_fold0_used"] = dst_ambiguous
-    if apc_rows - int(matched.sum()):
-        counts["primary_unmatched"] = apc_rows - int(matched.sum())
+    if unclear_count > 0:
+        counts["dst_ambiguous_apc_rows_fold0_used"] = unclear_count
+    if total_events - matched_count > 0:
+        counts["primary_unmatched"] = total_events - matched_count
 
-    # --- the descriptive wet/dry comparison (NOT a causal effect) -------------
-    # only segments with BOTH positive time and positive distance
-    usable = primary[(primary["rev_seconds"] > 0) & (primary["rev_distance"] > 0)]
-    wet = usable.loc[usable["rain_primary"] == 1, "rev_seconds"]
-    dry = usable.loc[usable["rain_primary"] == 0, "rev_seconds"]
+    # ---- dry vs rainy segment times (description only, NOT cause and effect) --
+    # use only segments with a positive time AND a positive distance
+    usable = matched[(matched["rev_seconds"] > 0) & (matched["rev_distance"] > 0)]
+    wet_times = usable.loc[usable["rain_primary"] == 1, "rev_seconds"]
+    dry_times = usable.loc[usable["rain_primary"] == 0, "rev_seconds"]
 
-    join_coverage = counts["primary_matched"] / apc_rows if apc_rows else 0
-    # The feasibility rule was declared BEFORE seeing the result.
-    feasible = join_coverage >= 0.95 and counts["primary_rain_exposed_rows"] >= 1000
+    if len(dry_times) > 0:
+        dry_median = round(float(dry_times.median()), 3)
+    else:
+        dry_median = None
+    if len(wet_times) > 0:
+        wet_median = round(float(wet_times.median()), 3)
+    else:
+        wet_median = None
+
+    # ---- the pass/fail rule (decided BEFORE looking at the result) -------------
+    if total_events > 0:
+        coverage = matched_count / total_events
+        secondary_coverage_percent = round(100 * both_count / total_events, 3)
+    else:
+        coverage = 0
+        secondary_coverage_percent = 0
+    feasible = coverage >= 0.95 and counts["primary_rain_exposed_rows"] >= 1000
 
     evidence = {
-        "generated_utc": datetime.now(UTC).isoformat(),
-        "apc_subset_sha256": sha256_file(apc_path),
+        "generated_utc": datetime.now(common.UTC).isoformat(),
+        "apc_subset_sha256": common.sha256_file(bus_file),
         "apc_timestamp_interpretation": config["apc"]["timestamp_assumption"],
         "dst_policy": (
             "APC wall-clock timestamps are localized to America/Chicago. Ambiguous fall-back "
             "timestamps use fold=0 and are counted explicitly. NOAA local-standard timestamps "
             "are converted from fixed UTC-06:00 to America/Chicago before matching."
         ),
-        "join_method": f"nearest NOAA observation within {tolerance_minutes} minutes",
-        "counts": dict(sorted(counts.items())),
-        "primary_join_coverage_percent": round(100 * join_coverage, 3),
-        "secondary_join_coverage_percent": round(100 * counts["secondary_matched"] / apc_rows, 3)
-        if apc_rows else 0,
-        "median_absolute_join_delta_minutes": round(float(np.median(deltas)), 3)
-        if len(deltas) else None,
-        "p95_absolute_join_delta_minutes": round(p95, 3) if p95 is not None else None,
+        "join_method": f"nearest NOAA observation within {max_gap_minutes} minutes",
+        "counts": counts,
+        "primary_join_coverage_percent": round(100 * coverage, 3),
+        "secondary_join_coverage_percent": secondary_coverage_percent,
+        "median_absolute_join_delta_minutes": median_gap,
+        "p95_absolute_join_delta_minutes": p95_gap,
         "descriptive_unadjusted_segment_medians": {
-            "dry_positive_time_distance_segments": len(dry),
-            "rain_positive_time_distance_segments": len(wet),
-            "dry_median_rev_seconds": round(float(dry.median()), 3) if len(dry) else None,
-            "rain_median_rev_seconds": round(float(wet.median()), 3) if len(wet) else None,
+            "dry_positive_time_distance_segments": len(dry_times),
+            "rain_positive_time_distance_segments": len(wet_times),
+            "dry_median_rev_seconds": dry_median,
+            "rain_median_rev_seconds": wet_median,
             "warning": (
                 "These pooled medians are descriptive only and must not be interpreted as a "
                 "causal weather multiplier; segment, time-of-day, and day-type controls are required."
@@ -221,29 +222,35 @@ def audit_weather_join(config: dict[str, Any]) -> dict[str, Any]:
             "Severe/extreme weather outside observed support remains an explicitly synthetic stress test."
         ),
     }
-    write_json(AUDIT_DIR / "weather_join_audit.json", evidence)
+    common.write_json(common.AUDIT_DIR / "weather_join_audit.json", evidence)
 
-    write_text(AUDIT_DIR / "WEATHER_FEASIBILITY_EVIDENCE.md", "\n".join([
+    if feasible:
+        feasible_word = "yes"
+    else:
+        feasible_word = "no"
+    lines = [
         "# Weather-join feasibility audit",
         "",
-        f"- APC rows: {apc_rows:,}",
+        f"- APC rows: {total_events:,}",
         f"- Camp Mabry join coverage: {evidence['primary_join_coverage_percent']}%",
         f"- Austin-Bergstrom sensitivity join coverage: {evidence['secondary_join_coverage_percent']}%",
         f"- Rain-exposed APC rows at Camp Mabry: {counts['primary_rain_exposed_rows']:,}",
-        f"- DST-ambiguous APC rows (fold=0 used): {dst_ambiguous:,}",
-        f"- Ordinary-weather calibration feasible under the declared coverage rule: {'yes' if feasible else 'no'}",
+        f"- DST-ambiguous APC rows (fold=0 used): {unclear_count:,}",
+        f"- Ordinary-weather calibration feasible under the declared coverage rule: {feasible_word}",
         "",
         "The join is technically feasible if the rule above passes, but feasibility is not evidence of a causal rain effect. Any multiplier must be estimated with segment, time-of-day, and day-type controls. Severe weather remains a labeled synthetic stress test.",
-    ]))
+    ]
+    common.write_text(common.AUDIT_DIR / "WEATHER_FEASIBILITY_EVIDENCE.md", "\n".join(lines))
     return evidence
 
 
-def main() -> int:
-    argparse.ArgumentParser(description=__doc__).parse_args()
-
-    ensure_dirs()
-    evidence = audit_weather_join(load_config())
+def main():
+    common.ensure_dirs()
+    evidence = join_weather(common.load_config())
     counts = evidence["counts"]
+
+    agree = counts["station_rain_flag_agreement"]
+    both = agree + counts["station_rain_flag_disagreement"]
 
     print("\nStep 3 complete.")
     print(f"  APC events joined : {counts['primary_matched']:,} / {counts['apc_rows']:,} "
@@ -251,12 +258,9 @@ def main() -> int:
     print(f"  rain-exposed      : {counts['primary_rain_exposed_rows']:,}")
     print(f"  median join gap   : {evidence['median_absolute_join_delta_minutes']} min "
           f"(p95 {evidence['p95_absolute_join_delta_minutes']})")
-    agree = counts["station_rain_flag_agreement"]
-    total = agree + counts["station_rain_flag_disagreement"]
-    print(f"  two-station agree : {agree:,} / {total:,} ({100 * agree / total:.1f}%)")
+    print(f"  two-station agree : {agree:,} / {both:,} ({100 * agree / both:.1f}%)")
     print(f"  feasible          : {evidence['ordinary_weather_calibration_feasible']}")
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
