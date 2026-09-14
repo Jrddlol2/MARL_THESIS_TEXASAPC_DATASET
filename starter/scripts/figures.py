@@ -8,6 +8,7 @@ writes PDF+PNG to results/figures/:
   stop_service_validation share of trips serving each stop, simulated vs observed
   mc_headway_cv           headway CV by scenario, NC / FH / EH, 95% bootstrap CI
   mc_wait                 passenger wait by scenario, NC / FH / EH, 95% bootstrap CI
+  stageB_weather_sweep    Stage B by weather strength (observed rain, eta 0.3-1.3), CV and wait
 Titles live in the LaTeX caption, not the image. Run from starter/ after build_real_net.py, validate_simulator.py and mc.py.
 """
 import os, sys, numpy as np, pandas as pd
@@ -96,11 +97,46 @@ def scenario_fig(plt, df, col, ylabel, fname):
     S.save(fig, fname)
 
 
+SWEEP = [("observed\nrain", "results/mc_results_observed_rain.csv"),
+         ("0.3", "results/mc_results_stageB_eta0.3.csv"),
+         ("0.6", "results/mc_results_stageB_eta0.6.csv"),
+         ("0.8", "results/mc_results.csv"),
+         ("1.0", "results/mc_results_stageB_eta1.0.csv"),
+         ("1.3", "results/mc_results_stageB_eta1.3.csv")]
+
+
+def weather_sweep_fig(plt):
+    """Stage B (D+T+S+W+B) by weather strength: headway CV and wait, NC / FH / EH, 95% bootstrap CI.
+    Also writes the numbers to results/stageB_weather_sweep.csv."""
+    if not all(os.path.exists(f) for _, f in SWEEP): return
+    table = []
+    fig, axes = plt.subplots(1, 2, figsize=S.WIDE)
+    x = np.arange(len(SWEEP))
+    for ax, col, ylabel in [(axes[0], "headway_cv", "Headway CV (bunching)"), (axes[1], "wait_s", "Mean passenger wait (s)")]:
+        for c, color in CTRLS:
+            m, lo, hi = [], [], []
+            for level, f in SWEEP:
+                d = pd.read_csv(f)
+                v = d[(d.scenario == "Stage B (D+T+S+W+B)") & (d.controller == c)][col].values
+                pm, plo, phi = boot(v); m.append(pm); lo.append(pm - plo); hi.append(phi - pm)
+                table.append((level.replace("\n", " "), c, col, pm, plo, phi, len(v)))
+            ax.errorbar(x, m, yerr=[lo, hi], color=color, marker="o", ms=3.5, lw=1.2, capsize=2, label=c)
+        ax.set_xticks(x); ax.set_xticklabels([level for level, _ in SWEEP])
+        ax.set_ylabel(ylabel)
+        ax.grid(axis="y")
+    axes[0].legend(title="Controller", loc="upper left")
+    fig.supxlabel("Stage B weather: observed rain only, then synthetic stress $\\eta$", fontsize=9)
+    S.save(fig, "stageB_weather_sweep")
+    pd.DataFrame(table, columns=["weather", "controller", "metric", "mean", "ci_low", "ci_high", "n"]) \
+        .to_csv("results/stageB_weather_sweep.csv", index=False)
+
+
 def main():
     S.apply()
     import matplotlib.pyplot as plt
     calibration_fig(plt)
     validation_figs(plt)
+    weather_sweep_fig(plt)
     if os.path.exists("results/mc_results.csv"):
         df = pd.read_csv("results/mc_results.csv")
         scenario_fig(plt, df, "headway_cv", "Headway CV (bunching)", "mc_headway_cv")

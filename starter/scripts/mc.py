@@ -21,8 +21,12 @@ Options (after N and JOBS), used for sensitivity checks:
     --eta 1.2           synthetic weather strength (default 0.8)
     --traffic-sd 0.1    extra episode-wide traffic stress sigma_s (default 0 = off)
     --only-breakdown    run only the two scenarios that include B
+    --only A,W,StageB   run only these scenarios (A, S, W, B, StageB)
     --tag NAME          write results/mc_results_NAME.csv and mc_summary_NAME.md
 Example:  python scripts/mc.py 30 10 --max-hold 240 --tag hold240
+          python scripts/mc.py 30 10 --eta 0 --only W,StageB --tag observed_rain
+With --eta 0 the weather W is the observed ordinary-rain slow-down only (manuscript definition for
+the W ablation and the observed-weather Stage B cell).
 """
 import os, sys, time, csv, numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -52,6 +56,11 @@ SCEN = [("Stage A (D+T)",        dict(T=True)),
         ("Ablation W (D+T+W)",   dict(T=True, W=True)),
         ("Ablation B (D+T+B)",   dict(T=True, B=True)),
         ("Stage B (D+T+S+W+B)",  dict(T=True, S=True, W=True, B=True))]
+SHORT_NAMES = {"A": "Stage A (D+T)", "S": "Ablation S (D+T+S)", "W": "Ablation W (D+T+W)",
+               "B": "Ablation B (D+T+B)", "StageB": "Stage B (D+T+S+W+B)"}
+if "--only" in sys.argv:
+    wanted = [SHORT_NAMES[k] for k in option("--only", "").split(",")]
+    SCEN = [s for s in SCEN if s[0] in wanted]
 if "--only-breakdown" in sys.argv:
     SCEN = [s for s in SCEN if s[1].get("B")]
 CTRLS = list(BASELINES)              # NC, FH, EH
@@ -124,7 +133,8 @@ def main():
          f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es), surge sigma_d {SURGE_SD}, weather eta {ETA}, "
          f"traffic stress sigma_s {TRAFFIC_SD}. Ordinary-day variability fitted from APC (fit_variability.py). "
          f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
-         f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check).", "",
+         f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check)."
+         + (" Weather W = observed ordinary-rain slow-down only (eta 0)." if ETA == 0 else ""), "",
          "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |",
          "|---|---|---|---|---|--:|--:|"]
     for name, _ in SCEN:

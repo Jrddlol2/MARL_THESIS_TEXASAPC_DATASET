@@ -4,5 +4,6 @@ numpy==2.4.4
 pandas==3.0.5
 matplotlib==3.11.1
 torch==2.12.0      # MARL agent (agents/ddqn.py); the CPU build is enough
+scipy==1.17.1      # statistical tests in scripts/eval_marl.py
 # only for scripts/extract_route_shape.py (re-deriving the road shape from OpenStreetMap):
 # osmium

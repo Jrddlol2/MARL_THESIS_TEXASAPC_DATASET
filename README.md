@@ -103,25 +103,42 @@ service days it was not fitted on (`starter/results/validation/`):
 
 ### Baselines
 
-30 paired runs per scenario, 10-minute headway, holds capped at 120 s (as in the
-RRL), one bus removed in a breakdown. Lower headway CV = more evenly spaced buses.
+The manuscript's evaluation matrix (`methods.tex`, Stage A / Stage B evaluation). 30 paired runs
+per scenario, 10-minute headway, holds capped at 120 s (as in the RRL), one bus removed in a
+breakdown. Lower headway CV = more evenly spaced buses.
 
 | Scenario | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
 | Stage A — ordinary day (demand + traffic) | 0.556 | 0.396 (−29%) | **0.342** (−38%) |
 | + surge | 0.596 | 0.427 (−28%) | **0.371** (−38%) |
-| + weather | 0.865 | 0.798 (−8%) | 0.786 (−9%) |
+| + weather (observed ordinary rain) | 0.559 | 0.400 (−28%) | **0.346** (−38%) |
 | + breakdown (one bus removed) | 0.564 | 0.423 (−25%) | **0.370** (−34%) |
-| Stage B — everything at once | 0.876 | 0.804 (−8%) | 0.796 (−9%) |
+| Stage B — everything, observed rain | 0.609 | 0.458 (−25%) | **0.404** (−34%) |
 
-All reductions are significant (95% CIs exclude zero). A 240 s cap gives −9/−12% in
-Stage B and three breakdowns give −8/−9%, so neither changes the conclusion.
+**Stage B weather sweep** — everything on, with the labelled synthetic weather stress η on top of
+observed rain (`results/stageB_weather_sweep.csv`, figure `stageB_weather_sweep.png`):
 
-**What this means:** fixed holding rules work well on an ordinary day but lose most
-of their effect under severe, combined disturbance. That gap is what the MARL
-controller has to close.
+| Weather | No Control | Forward-Headway | Even-Headway |
+|---|---|---|---|
+| observed rain only | 0.609 | 0.458 (−25%) | 0.404 (−34%) |
+| η = 0.3 | 0.685 | 0.574 (−16%) | 0.534 (−22%) |
+| η = 0.6 | 0.820 | 0.742 (−9%) | 0.725 (−12%) |
+| η = 0.8 *(earlier headline)* | 0.876 | 0.804 (−8%) | 0.796 (−9%) |
+| η = 1.0 | 0.904 | 0.836 (−8%) | 0.832 (−8%) |
+| η = 1.3 | 0.929 | 0.862 (−7%) | 0.864 (−7%) |
 
-Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md).
+All reductions are significant (95% CIs exclude zero). A 240 s cap (−9/−12% at η = 0.8) or three
+breakdowns (−8/−9%) do not change the picture.
+
+**What this means:** surge, breakdowns and observed rain barely weaken fixed holding: Even-Headway
+still cuts bunching by about a third. What defeats it is **strong weather stress**: its advantage
+shrinks from −34% to −12% by η = 0.6 and to −7% by η = 1.3, and Forward-Headway and Even-Headway
+become indistinguishable. That gap — beyond observed conditions, so labelled synthetic — is what the
+MARL controller has to close. The earlier "+ weather" row (0.865, −8/−9%) used η = 0.8, not the
+manuscript's observed-rain definition.
+
+Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md)
+(its Stage B reading used η = 0.8 only; the sweep above supersedes it).
 
 ---
 
@@ -135,7 +152,12 @@ Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/p
   `checkpoint_best.pt` = best evaluation CV so far (evaluated on seeds 90000+, never the test seeds).
 - **Breakdown flag** is 1 only for buses behind the broken-down bus.
 - **The pass mark, fixed before training:** in Stage A, the greedy MARL policy's mean headway CV over
-  seeds 0–29 must be **below Even-Headway (0.342)**. `eval_marl.py` prints PASS or FAIL with a paired 95% CI.
+  seeds 0–29 must be **below Even-Headway (0.342)**.
+- **`eval_marl.py` follows the manuscript:** all 9 evaluation cells (Stage A, S, W observed rain, B, Stage B
+  observed rain and η 0.3/0.6/1.0/1.3), the manuscript's acceptance criteria (Stage A: wait no worse than EH
+  and CV below NC; Stage B: wait below the best baseline in every cell) plus the training gate. Paired
+  Wilcoxon, Holm-corrected, α 0.05, fixed before any MARL result.
+- **All baseline cells of that matrix are run** (§4).
 
 **Next:** the Stage A gate run (`train_marl.py --episodes 800 --name gate`, about 3 hours), then
 `eval_marl.py --ckpt experiments/gate/checkpoint_best.pt`. If it passes: skip action, then reward weights.
@@ -268,7 +290,8 @@ Everything under `starter/` runs **from the `starter/` folder**.
 | `sumo/` | SUMO networks; the simulator uses `corridor_real.net.xml` and `stops_real.add.xml` |
 | `results/calibration_real.csv` | Per-segment running time, observed vs simulated, calibration and test days |
 | `results/validation/` | Simulator vs real buses |
-| `results/mc_summary.md` | **The baseline table** (`_hold240`, `_breakdowns3` = checks) |
+| `results/mc_summary*.md` | **The baseline tables**: headline, `_observed_rain`, `_stageB_eta*` (the weather sweep), `_hold240` and `_breakdowns3` (checks) |
+| `results/stageB_weather_sweep.csv` | Stage B by weather strength, all controllers |
 | `results/archive/` | Results from earlier simulator versions |
 | `legacy/` | Old scripts kept for reference, not used by anything current ([`legacy/README.md`](starter/legacy/README.md)) |
 | `experiments/` | Training runs (not in Git) |
@@ -375,13 +398,16 @@ python scripts/fit_variability.py                  # ~2 min  -> sim_inputs/fitte
 python scripts/build_real_net.py                   # ~15 s   -> SUMO network + calibration_real.csv
 python scripts/test_simulator.py                   # ~3 min  -> 18 PASS lines
 python scripts/validate_simulator.py               #         -> results/validation/
-python scripts/mc.py 30 10                         # ~1.5 h on 10 workers -> the baseline table
+python scripts/mc.py 30 10                         # ~25 min on 10 workers -> the baseline table
+python scripts/mc.py 30 10 --eta 0 --only W,StageB --tag observed_rain     # manuscript W and Stage B cells
+python scripts/mc.py 30 10 --eta 0.3 --only StageB --tag stageB_eta0.3     # sweep; also 0.6, 1.0, 1.3
 python scripts/figures.py                          # redraw the figures
 
 # MARL
 python scripts/train_marl.py --episodes 3 --eval_every 3 --name smoke     # ~2 min plumbing check
 python scripts/train_marl.py --episodes 800 --name gate                   # ~3 h; add --resume to continue
-python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt    # vs NC/FH/EH, seeds 0-29, PASS/FAIL
+python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt --cells A   # the gate: Stage A only
+python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt             # full matrix, 270 MARL runs
 
 # watch buses move
 python scripts/watch.py EH StageB

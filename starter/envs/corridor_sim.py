@@ -553,13 +553,12 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     # T: how early or late each bus starts its trip, drawn from the observed deviations
     dispatch_draw = random.choice(DISPATCH_SAMPLE, size=NUM_BUSES)
 
-    # W: synthetic weather stress per bus per segment, mean 1, clipped to [0.5, 3]
-    if weather_cv > 0:
-        log_variance = math.log(1 + weather_cv * weather_cv)
-        weather_stress = random.lognormal(-0.5 * log_variance, math.sqrt(log_variance), size=(NUM_BUSES, NUM_STOPS))
-        weather_stress = np.clip(weather_stress, 0.5, 3.0)
-    else:
-        weather_stress = np.ones((NUM_BUSES, NUM_STOPS))
+    # W: synthetic weather stress per bus per segment, mean 1, clipped to [0.5, 3].
+    # Drawn even when eta = 0 (every value is then exactly 1), so the draws after it
+    # (surge, breakdown) are the same at every weather strength.
+    log_variance = math.log(1 + weather_cv * weather_cv)
+    weather_stress = random.lognormal(-0.5 * log_variance, math.sqrt(log_variance), size=(NUM_BUSES, NUM_STOPS))
+    weather_stress = np.clip(weather_stress, 0.5, 3.0)
 
     # S: one demand multiplier for the whole run
     surge_draw = random.normal(1.0, max(surge_sd, 1e-12))
