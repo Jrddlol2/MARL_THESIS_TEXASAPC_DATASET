@@ -1,8 +1,11 @@
 """Generate the paper figures from saved results (full 26-stop corridor), publication style (_figstyle).
 
-Reads results/calibration.csv (from calibrate_corridor.py) and results/mc_results.csv (from mc.py) and
+Reads results/calibration_real.csv (from build_real_net.py), results/validation/ (validate_simulator.py)
+and results/mc_results.csv (from mc.py) and
 writes PDF+PNG to results/figures/:
-  calibration_validation  simulated vs observed segment running times (GEH<5)
+  calibration_validation  simulated vs observed segment running times, calibration + test days
+  load_profile_validation riders on board vs APC max_load
+  stop_service_validation share of trips serving each stop, simulated vs observed
   mc_headway_cv           headway CV by scenario, NC / FH / EH, 95% bootstrap CI
   mc_wait                 passenger wait by scenario, NC / FH / EH, 95% bootstrap CI
 Titles live in the LaTeX caption, not the image. Run from starter/ after calibrate_corridor.py and mc.py.
@@ -24,20 +27,57 @@ def boot(x, f=np.mean, n=5000, rng=np.random.default_rng(0)):
 
 
 def calibration_fig(plt):
-    if not os.path.exists("results/calibration.csv"): return
-    c = pd.read_csv("results/calibration.csv")
+    """Simulated vs observed running time per segment: calibration days (filled)
+    and held-out test days (open), from build_real_net.py."""
+    if not os.path.exists("results/calibration_real.csv"): return
+    c = pd.read_csv("results/calibration_real.csv")
     fig, ax = plt.subplots(figsize=S.SQUARE)
-    lim = max(c.observed_s.max(), c.simulated_s.max()) * 1.08
+    lim = max(c.observed_s.max(), c.simulated_s.max(), c.observed_test_s.max()) * 1.08
     ax.plot([0, lim], [0, lim], "--", color=S.GREY, lw=1, label="perfect match")
-    ax.scatter(c.observed_s, c.simulated_s, s=28, color=S.PRIMARY, zorder=3, edgecolor="white", linewidth=0.4)
+    ax.scatter(c.observed_s, c.simulated_s, s=28, color=S.PRIMARY, zorder=3, edgecolor="white", linewidth=0.4,
+               label="calibration days")
+    ax.scatter(c.observed_test_s, c.simulated_s, s=28, facecolor="none", edgecolor=S.VERM, linewidth=0.9, zorder=4,
+               label="held-out test days")
     rmspe = np.sqrt(np.mean(((c.simulated_s - c.observed_s) / c.observed_s) ** 2)) * 100
+    rmspe_test = np.sqrt(np.mean(((c.simulated_s - c.observed_test_s) / c.observed_test_s) ** 2)) * 100
+    ok = int((c.geh < 5).sum()); ok_test = int((c.geh_test < 5).sum())
     ax.set_xlabel("Observed segment running time (s, APC)")
     ax.set_ylabel("Simulated segment running time (s, SUMO)")
-    ax.text(0.04, 0.96, f"RMSPE {rmspe:.2f}%\nGEH $<$ 5 on {len(c)}/{len(c)} segments",
-            transform=ax.transAxes, va="top", ha="left", fontsize=7.5,
+    ax.text(0.04, 0.96, f"Calibration days: RMSPE {rmspe:.2f}%, GEH $<$ 5 on {ok}/{len(c)}\n"
+                        f"Test days: RMSPE {rmspe_test:.2f}%, GEH $<$ 5 on {ok_test}/{len(c)}",
+            transform=ax.transAxes, va="top", ha="left", fontsize=7,
             bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#cccccc", lw=0.6))
     ax.set_xlim(0, lim); ax.set_ylim(0, lim); ax.legend(loc="lower right")
     S.save(fig, "calibration_validation")
+
+
+def validation_figs(plt):
+    """Loads and stop service, simulated vs observed (from validate_simulator.py)."""
+    if os.path.exists("results/validation/load_profile_sim_vs_observed.csv"):
+        d = pd.read_csv("results/validation/load_profile_sim_vs_observed.csv")
+        fig, ax = plt.subplots(figsize=S.WIDE)
+        ax.plot(d.stop_index, d.apc_mean_max_load, color=S.GREY, marker="o", label="APC mean max_load (door-open visits, weekday 07-18)")
+        ax.plot(d.stop_index, d.simulated_load_leaving, color=S.BLUE, marker="s", label="Simulated riders on board leaving stop (No-Control)")
+        ax.set_xticks(d.stop_index); ax.set_xticklabels(d.bs_id, rotation=90)
+        ax.set_xlabel("Stop (bs_id), in driving order"); ax.set_ylabel("Riders on board")
+        ax.set_ylim(bottom=0); ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=1, frameon=False)
+        S.save(fig, "load_profile_validation")
+    if os.path.exists("results/validation/stop_service_sim_vs_observed.csv"):
+        d = pd.read_csv("results/validation/stop_service_sim_vs_observed.csv")
+        free = d[~d.always_served_in_simulator]
+        fig, ax = plt.subplots(figsize=S.WIDE)
+        x = np.arange(len(d)); w = 0.4
+        ax.bar(x - w / 2, d.observed_served_share, w, color=S.GREY, label="Observed share of trips serving the stop (test days)")
+        ax.bar(x + w / 2, d.simulated_served_share, w, color=S.BLUE, label="Simulated (No-Control, 30 seeds)")
+        for i in d.index[d.always_served_in_simulator]:
+            ax.text(i + w / 2, 1.02, "*", ha="center", va="bottom", fontsize=9)
+        r = np.corrcoef(free.observed_served_share, free.simulated_served_share)[0, 1]
+        ax.set_xticks(x); ax.set_xticklabels(d.bs_id, rotation=90)
+        ax.set_xlabel("Stop (bs_id), in driving order  (* always served: first, last, control stops)")
+        ax.set_ylabel("Share of trips that stop"); ax.set_ylim(0, 1.15)
+        ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False,
+                  title=f"stops not marked *: r = {r:.2f}", title_fontsize=8)
+        S.save(fig, "stop_service_validation")
 
 
 def scenario_fig(plt, df, col, ylabel, fname):
@@ -60,6 +100,7 @@ def main():
     S.apply()
     import matplotlib.pyplot as plt
     calibration_fig(plt)
+    validation_figs(plt)
     if os.path.exists("results/mc_results.csv"):
         df = pd.read_csv("results/mc_results.csv")
         scenario_fig(plt, df, "headway_cv", "Headway CV (bunching)", "mc_headway_cv")
