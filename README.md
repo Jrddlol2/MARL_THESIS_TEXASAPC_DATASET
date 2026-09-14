@@ -95,15 +95,19 @@ stops. Lower headway CV = more evenly spaced buses = better.
 | Stage A — demand + traffic | 0.159 | **0.121** (−24%) | 0.123 (−23%) |
 | + surge | 0.166 | **0.132** (−21%) | 0.132 (−20%) |
 | + weather | 0.755 | **0.611** (−19%) | 0.654 (−13%) |
-| + breakdown | 0.219 | **0.169** (−23%) | 0.174 (−20%) |
-| Stage B — everything at once | 0.771 | **0.631** (−18%) | 0.674 (−13%) |
+| + breakdown (one bus removed) | 0.236 | **0.198** (−16%) | 0.205 (−13%) |
+| Stage B — everything at once | 0.752 | **0.622** (−17%) | 0.661 (−12%) |
 
 All reductions are significant (95% CIs exclude zero).
 
 **What this means for the thesis:** simple holding rules still help under severe,
 combined disturbance, but they leave most of the added bunching in place — under
-Stage B the best rule still has CV 0.63, about five times its mild-disturbance
-level — and their benefit shrinks as disturbance grows. That remaining gap is what
+Stage B the best rule still has CV 0.62, about five times its mild-disturbance
+level — and their benefit shrinks as disturbance grows. Two sensitivity checks make
+this sharper: with the 120 s holding cap used in the RRL (instead of 0.4 × 600 = 240 s)
+the Stage B benefit falls to −10% / −9%, and with three buses removed the
+breakdown-only benefit falls to −8% / −7% (EH not significant)
+(`docs/progress/BREAKDOWN_AND_HOLD_CAP_2026-09-14.md`). That remaining gap is what
 the MARL controller has to close. (The earlier claim that holding "stops working"
 under severe disturbance came from runs at the wrong 300 s headway and does not
 hold: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.)

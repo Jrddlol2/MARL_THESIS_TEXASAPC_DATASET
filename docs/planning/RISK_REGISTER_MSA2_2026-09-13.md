@@ -139,3 +139,16 @@ Details: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.
 - **R6 — next:** retrain from scratch at H0 = 600 (holds up to 240 s), with checkpoints and seeds 0–29.
 - **New open items:** surge (120 riders / 900 s) is now 1.5 headways, relatively harsher; breakdown
   is a 400-s delay, not a bus removal as the manuscript describes.
+
+### Update — 2026-09-14 (later): breakdown and holding cap
+
+- **Breakdown now removes a bus** (Guedes & Borenstein 2018; Daganzo 2009); the 400 s delay had no
+  source, and `methods.tex` wrongly cited Cao et al. for removal (fixed). New Stage B: FH −17%, EH −12%.
+- **New risk R14 — the holding cap drives the Stage B result.** 0.4 × 600 = 240 s is double every
+  absolute cap in the RRL (90–120 s). At a 120 s cap, Stage B benefit falls to FH −10%, EH −9%.
+  Under Stage B, FH holds at the 240 s cap on 22% of decisions. **Decide the headline cap** and
+  report the other as sensitivity; give MARL the same cap.
+- **New risk R15 — breakdown count.** Code removes a fixed number (1; 3 as a check), manuscript
+  describes a per-timestep Poisson trial. With 3 removals the breakdown-only benefit is FH −8%
+  [−15, −0], EH −7% [−14, +1].
+- Details: `docs/progress/BREAKDOWN_AND_HOLD_CAP_2026-09-14.md`.

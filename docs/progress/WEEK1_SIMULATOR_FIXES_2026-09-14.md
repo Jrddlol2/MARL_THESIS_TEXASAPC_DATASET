@@ -47,6 +47,10 @@ APC `max_load` and the boarding/alighting means are all averages over recorded s
 
 ## 3. The 30-seed baselines, re-run
 
+> **Superseded for the two breakdown rows (same day):** breakdown is now a bus removal,
+> not a 400 s delay. New B rows: + Breakdown FH −16%, EH −13%; Stage B FH −17%, EH −12%.
+> See `BREAKDOWN_AND_HOLD_CAP_2026-09-14.md`. All other rows are unchanged.
+
 N = 30 paired seeds per cell, 5 control stops, 450 runs, 23 min on 10 workers.
 Old results (H0 = 300, 12 buses) are kept in `starter/results/archive_H0_300/`.
 
