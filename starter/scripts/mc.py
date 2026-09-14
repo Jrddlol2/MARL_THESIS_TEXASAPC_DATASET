@@ -15,11 +15,14 @@ speed lever). Run from the starter/ folder:
 Writes results/mc_results.csv and results/mc_summary.md.
 
 Options (after N and JOBS), used for sensitivity checks:
-    --max-hold 120      cap every hold at 120 s instead of 0.4 x H0 = 240 s
+    --max-hold 240      cap every hold at 240 s instead of the default 120 s
     --breakdowns 3      remove 3 buses instead of 1 when B is on
+    --surge-sd 2        surge strength sigma_d (default 1; Wang & Sun test 1, 2, 3)
+    --eta 1.2           synthetic weather strength (default 0.8)
+    --traffic-sd 0.1    extra episode-wide traffic stress sigma_s (default 0 = off)
     --only-breakdown    run only the two scenarios that include B
     --tag NAME          write results/mc_results_NAME.csv and mc_summary_NAME.md
-Example:  python scripts/mc.py 30 10 --max-hold 120 --tag hold120
+Example:  python scripts/mc.py 30 10 --max-hold 240 --tag hold240
 """
 import os, sys, time, csv, numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -37,8 +40,11 @@ def option(name, default):
 
 N    = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 30
 JOBS = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 6
-MAX_HOLD = float(option("--max-hold", "nan"))          # nan = the simulator's default (0.4 x H0)
+MAX_HOLD = float(option("--max-hold", "nan"))          # nan = the simulator's default (120 s)
 BREAKDOWNS = int(option("--breakdowns", "1"))
+SURGE_SD = float(option("--surge-sd", "1.0"))
+ETA = float(option("--eta", "0.8"))
+TRAFFIC_SD = float(option("--traffic-sd", "0.0"))
 TAG = option("--tag", "")
 SUFFIX = "_" + TAG if TAG else ""
 SCEN = [("Stage A (D+T)",        dict(T=True)),
@@ -55,7 +61,7 @@ os.makedirs("results", exist_ok=True)
 def _run_one(task):
     """Worker: one (scenario, controller, seed) replication. Picklable — looks up the decide fn locally."""
     name, kw, c, seed = task
-    extra = dict(breakdowns=BREAKDOWNS)
+    extra = dict(breakdowns=BREAKDOWNS, surge_sd=SURGE_SD, eta=ETA, traffic_stress_sd=TRAFFIC_SD)
     if np.isfinite(MAX_HOLD):
         extra["max_hold"] = MAX_HOLD
     try:
@@ -86,7 +92,7 @@ def paired_pct(nc, eh, n=5000, rng=np.random.default_rng(1)):
 def main():
     t0 = time.time()
     print(f"control stops: {[STOPS[i] for i in CONTROL_STOPS]}  (N={N}, jobs={JOBS}, "
-          f"max_hold={'0.4 x H0' if not np.isfinite(MAX_HOLD) else MAX_HOLD}, breakdowns={BREAKDOWNS})", flush=True)
+          f"max_hold={'120 (default)' if not np.isfinite(MAX_HOLD) else MAX_HOLD}, breakdowns={BREAKDOWNS}, surge_sd={SURGE_SD}, eta={ETA}, traffic_sd={TRAFFIC_SD})", flush=True)
     tasks = [(name, kw, c, s) for name, kw in SCEN for c in CTRLS for s in range(N)]
     rows = []
     with open(f"results/mc_results{SUFFIX}.csv", "w", newline="") as fh:
@@ -113,9 +119,10 @@ def main():
         D.setdefault((name, c), {"cv": [], "tt": [], "wt": [], "wd": []})
         D[(name, c)]["cv"].append(cv); D[(name, c)]["tt"].append(tt)
         D[(name, c)]["wt"].append(wt); D[(name, c)]["wd"].append(wd)
-    cap_text = "0.4 x H0" if not np.isfinite(MAX_HOLD) else f"{MAX_HOLD:.0f} s"
+    cap_text = "120 s" if not np.isfinite(MAX_HOLD) else f"{MAX_HOLD:.0f} s"
     L = [f"H0 = {H0:.0f} s, {NUM_BUSES} buses, {len(STOPS)} stops, N = {N} paired seeds, "
-         f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es). "
+         f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es), surge sigma_d {SURGE_SD}, weather eta {ETA}, "
+         f"traffic stress sigma_s {TRAFFIC_SD}. Ordinary-day variability fitted from APC (fit_variability.py). "
          f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
          f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check).", "",
          "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |",

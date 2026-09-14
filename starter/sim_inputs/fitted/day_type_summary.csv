@@ -1,0 +1,13 @@
+day_type,period,service_days,boardings_per_day,boardings_per_hour
+weekday,ALL,128,1555.1,141.4
+weekday,AM,128,445.8,148.6
+weekday,MID,128,663.5,132.7
+weekday,PM,128,445.8,148.6
+saturday,ALL,25,1206.0,109.6
+saturday,AM,25,313.5,104.5
+saturday,MID,25,553.4,110.7
+saturday,PM,25,339.2,113.1
+sunday_holiday,ALL,30,915.3,83.2
+sunday_holiday,AM,30,234.9,78.3
+sunday_holiday,MID,30,437.5,87.5
+sunday_holiday,PM,30,242.9,81.0

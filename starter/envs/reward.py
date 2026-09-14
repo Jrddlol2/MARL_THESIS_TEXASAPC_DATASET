@@ -14,7 +14,7 @@ scalar reward; `decode_action` maps the discrete action id to (hold_seconds, ski
 Q_REF = 20.0                           # reference queue for normalization (tunable scale constant)
 
 
-def decode_action(a, H0=600.0, dt=600.0):
+def decode_action(a, H0=600.0, dt=300.0):
     """action id 0..9 -> (hold_seconds, skip). alpha in {0,.1,.2,.3,.4}, scaled by dt (=ΔT); skip binary."""
     alpha = (a % 5) * 0.1
     skip = a // 5
@@ -58,7 +58,7 @@ def compose(prev, cur, a_prev, cfg):
 
 
 if __name__ == "__main__":
-    cfg = dict(irr="dev", wait="queue", skip="stranded", w=(1.0, 0.5, 1.0), H0=600.0, dt=600.0)
+    cfg = dict(irr="dev", wait="queue", skip="stranded", w=(1.0, 0.5, 1.0), H0=600.0, dt=300.0)
     prev = dict(hf=600, hb=600, load=20, queue=5, cap=60)
     on_time = dict(hf=600, hb=600, queue=3, cap=60)     # perfect headway -> ~0 penalty
     bunched = dict(hf=240, hb=960, queue=12, cap=60)    # early + long back gap -> large penalty

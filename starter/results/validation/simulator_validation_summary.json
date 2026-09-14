@@ -1,0 +1,11 @@
+{
+  "seeds": 30,
+  "observed_mean_cv_stops_1_26": 0.504,
+  "simulated_mean_cv_stops_1_26": 0.552,
+  "observed_cv_first_stop": 0.352,
+  "simulated_cv_first_stop": 0.357,
+  "rmse_by_stop": 0.065,
+  "correlation_by_stop": 0.865,
+  "load_rmse_riders": 1.01,
+  "load_correlation": 0.985
+}

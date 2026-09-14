@@ -23,7 +23,8 @@ class Config:
     irr: str = "dev"; wait: str = "queue"; skip: str = "stranded"
     w: tuple = (1.0, 0.5, 1.0)
     # action
-    H0: float = 600.0; dt: float = 600.0; skip_enabled: bool = False
+    # dt = max hold / 0.4, so holds are 0-120 s (the same cap as FH and EH)
+    H0: float = 600.0; dt: float = 300.0; skip_enabled: bool = False
     # DDQN hyperparameters
     lr: float = 1e-3; gamma: float = 0.99
     eps_start: float = 1.0; eps_end: float = 0.05; eps_decay: int = 30_000

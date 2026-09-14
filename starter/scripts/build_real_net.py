@@ -20,7 +20,13 @@ WHAT IT DOES
     the road smooth, so buses do not get stuck on sharp kinks.)
 
 INPUT    corridor.txt, sim_inputs/route_shape.csv, sim_inputs/route_shape_stops.csv,
-         sim_inputs/stops.csv
+         sim_inputs/fitted/stop_params.csv   (from scripts/fit_variability.py)
+
+TARGETS  Median stop-to-stop running time on weekday 07:00-18:00, using only
+         CALIBRATION days (every other service day) and only records where the
+         bus's next record is the next stop. The other half of the days (TEST
+         days) is never used for fitting -- the script reports how well the
+         calibrated corridor matches them.
 OUTPUT   sumo/corridor_real.nod.xml, .edg.xml, .net.xml, .rou.xml, .sumocfg,
          sumo/stops_real.add.xml, results/calibration_real.csv
 
@@ -163,7 +169,8 @@ def write_stops_and_bus(dwell):
         edge_list += f"e{i}"
 
     file = open("sumo/corridor_real.rou.xml", "w")
-    file.write('<routes>\n  <vType id="bus" vClass="bus" length="12" accel="1.2" '
+    # speedDev="0": no hidden random speed variation from SUMO itself
+    file.write('<routes>\n  <vType id="bus" vClass="bus" length="12" speedFactor="1" speedDev="0" accel="1.2" '
                'decel="4.0" maxSpeed="30"/>\n'
                f'  <route id="r" edges="{edge_list}"/>\n'
                f'  <vehicle id="b0" type="bus" route="r" depart="0">\n{stop_lines}  </vehicle>\n'
@@ -217,7 +224,8 @@ def main():
     route_points = list(zip(shape_table["x"].values, shape_table["y"].values))
     route_totals = distance_so_far(route_points)
     stop_positions = pd.read_csv("sim_inputs/route_shape_stops.csv").set_index("bs_id")
-    stop_data = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[STOP_IDS]
+    fitted = pd.read_csv("sim_inputs/fitted/stop_params.csv")
+    stop_data = fitted[fitted["period"] == "ALL"].set_index("bs_id").loc[STOP_IDS]
 
     # ---- nodes: one on the route line at each stop ------------------------------
     metres_along = []                 # how far along the route each stop is
@@ -246,8 +254,9 @@ def main():
     distance = []
     for i in range(NUM_STOPS - 1):
         distance.append(metres_along[i + 1] - metres_along[i])
-    observed_time = stop_data["run_s"].values[:len(distance)]
-    dwell = stop_data["dwell_s"].values
+    observed_time = stop_data["run_median_s"].values[:len(distance)]       # calibration days
+    test_time = stop_data["run_median_test_s"].values[:len(distance)]      # held-out test days
+    dwell = stop_data["dwell_median_s"].values
 
     straight_line = 0.0
     for i in range(NUM_STOPS - 1):
@@ -281,15 +290,25 @@ def main():
         if percent_geh_ok >= 85 and rmspe < 2.0:
             print(f"\ncalibration met on the REAL-GEOMETRY net "
                   f"(RMSPE {rmspe:.2f}%, GEH<5 on {percent_geh_ok:.0f}% of {count} segments)")
+            # How well does the same calibrated corridor match the TEST days?
+            test = test_time[:count]
+            geh_test = np.sqrt(2 * (simulated - test) ** 2 / (simulated + test))
+            rmspe_test = np.sqrt(np.mean(((simulated - test) / test) ** 2)) * 100
+            percent_test_ok = np.mean(geh_test < 5) * 100
+            print(f"held-out TEST days: GEH<5 on {percent_test_ok:.0f}%  RMSPE={rmspe_test:.2f}%  "
+                  f"GEHmax={geh_test.max():.2f}")
+
             os.makedirs("results", exist_ok=True)
             file = open("results/calibration_real.csv", "w")
-            file.write("segment,length_m,observed_s,simulated_s,geh,pct_err\n")
+            file.write("segment,length_m,observed_s,simulated_s,geh,pct_err,observed_test_s,geh_test,pct_err_test\n")
             for i in range(count):
                 percent_error = (simulated[i] - observed[i]) / observed[i] * 100
+                percent_error_test = (simulated[i] - test[i]) / test[i] * 100
                 file.write(f"{CORRIDOR[i]}-{CORRIDOR[i+1]},{distance[i]:.1f},{observed[i]:.0f},"
-                           f"{simulated[i]:.0f},{geh[i]:.2f},{percent_error:+.1f}\n")
+                           f"{simulated[i]:.0f},{geh[i]:.2f},{percent_error:+.1f},"
+                           f"{test[i]:.0f},{geh_test[i]:.2f},{percent_error_test:+.1f}\n")
             file.close()
-            print("wrote results/calibration_real.csv")
+            print("wrote results/calibration_real.csv (calibration days + held-out test days)")
             print("wrote sumo/corridor_real.{nod,edg,net,rou,sumocfg}.xml + sumo/stops_real.add.xml")
             return
 
