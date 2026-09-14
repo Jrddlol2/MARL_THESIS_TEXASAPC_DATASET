@@ -1,4 +1,8 @@
-"""Baseline evaluation harness (SO3): No-Control vs Even-Headway, with passenger demand.
+"""LEGACY (kept for reference; superseded by envs/corridor_sim.py + scripts/mc.py, which are the
+authoritative simulator). H0 updated to 600 s (2021 timetable) on 2026-09-14; the rest of this
+script's model (12 buses, riders to the last stop) is NOT updated.
+
+Baseline evaluation harness (SO3): No-Control vs Even-Headway, with passenger demand.
 
 A fleet runs the calibrated corridor at scheduled headway H0 with stochastic dwell (stand-in
 for demand variability that induces bunching). Passengers are injected at each stop at the
@@ -20,7 +24,7 @@ from sumolib import checkBinary
 
 STOPS = [l.strip() for l in open("corridor.txt") if l.strip()]   # full 26-stop dir-6 corridor
 EDGES = [f"e{i}" for i in range(len(STOPS))]
-H0, NBUS, CV_DWELL, CAP, BIG = 300.0, 12, 0.25, 0.4, 600.0
+H0, NBUS, CV_DWELL, CAP, BIG = 600.0, 12, 0.25, 0.4, 600.0
 FIXED_DWELL, BOARD_S, MAX_SERV = 6.0, 4.0, 90.0   # dwell = door time + boarding_s * waiting pax (capped)
 
 d = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[[int(s) for s in STOPS]]

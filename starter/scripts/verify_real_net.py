@@ -1,6 +1,10 @@
-"""Verification for the real-geometry viewer net — traversal + frozen-results parity.
+"""LEGACY (kept for reference; superseded by envs/corridor_sim.py + scripts/mc.py, which are the
+authoritative simulator). H0 updated to 600 s (2021 timetable) on 2026-09-14; the rest of this
+script's model (12 buses, riders to the last stop) is NOT updated.
 
-(A) TRAVERSAL: drives BOTH nets headless with the viewer's mechanics (12 buses, H0=300 s,
+Verification for the real-geometry viewer net — traversal + frozen-results parity.
+
+(A) TRAVERSAL: drives BOTH nets headless with the viewer's mechanics (12 buses, H0=600 s,
     stochastic dwell, Even-Headway holding at the five control stops, weather + breakdown) over
     several SUMO seeds. The schematic net is the CONTROL: a completion rate that matches it
     shows any shortfall comes from the stochastic scenario, not from the real geometry. This is
@@ -33,7 +37,7 @@ sys.path.insert(0, os.getcwd())
 STOPS = [l.strip() for l in open("corridor.txt") if l.strip()]
 IDS = [int(s) for s in STOPS]
 EDGES = [f"e{i}" for i in range(len(STOPS))]
-H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 300.0, 12, 0.6, 0.4, 600.0, 400.0, 0.8
+H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 600.0, 12, 0.6, 0.4, 600.0, 400.0, 0.8
 CONTROL_STOPS = {0, 1, 5, 17, 20}
 
 _d = pd.read_csv("sim_inputs/stops.csv").set_index("bs_id").loc[IDS]

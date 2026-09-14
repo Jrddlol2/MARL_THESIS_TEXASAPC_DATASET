@@ -8,7 +8,7 @@ primary/robust) and SUMO's per-passenger recording (`wait_direct`, cross-check).
 paired % change vs No-Control.
 
 Runs in PARALLEL across processes (SUMO is CPU-bound and single-threaded per instance, so this is the
-speed lever). Run from the repo root:
+speed lever). Run from the starter/ folder:
     python scripts/mc.py            # N=30, jobs=6
     python scripts/mc.py 30 8       # N=30, 8 parallel workers
     python scripts/mc.py 20 1       # serial
@@ -17,7 +17,7 @@ Writes results/mc_results.csv and results/mc_summary.md.
 import os, sys, time, csv, numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "envs"))
-from corridor_sim import simulate, BASELINES, CONTROL_STOPS, STOPS
+from corridor_sim import simulate, BASELINES, CONTROL_STOPS, STOPS, H0, NUM_BUSES
 
 N    = int(sys.argv[1]) if len(sys.argv) > 1 else 30
 JOBS = int(sys.argv[2]) if len(sys.argv) > 2 else 6
@@ -86,7 +86,8 @@ def main():
         D.setdefault((name, c), {"cv": [], "tt": [], "wt": [], "wd": []})
         D[(name, c)]["cv"].append(cv); D[(name, c)]["tt"].append(tt)
         D[(name, c)]["wt"].append(wt); D[(name, c)]["wd"].append(wd)
-    L = [f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
+    L = [f"H0 = {H0:.0f} s, {NUM_BUSES} buses, {len(STOPS)} stops, N = {N} paired seeds. "
+         f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
          f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check).", "",
          "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |",
          "|---|---|---|---|---|--:|--:|"]

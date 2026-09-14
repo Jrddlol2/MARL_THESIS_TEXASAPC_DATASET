@@ -32,7 +32,7 @@ def featurize(o):
 
 
 if __name__ == "__main__":
-    o = dict(hf=300, hb=300, load=20, queue=5, idx=5, n=26, H0=300.0, cap=60, bus=3, w=1.0, b=0.0)
+    o = dict(hf=600, hb=600, load=20, queue=5, idx=5, n=27, H0=600.0, cap=60, bus=3, w=1.0, b=0.0)
     v = featurize(o)
     print("obs vector (len %d):" % len(v), np.round(v, 3))
     assert len(v) == OBS_DIM

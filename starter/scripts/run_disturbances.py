@@ -1,4 +1,8 @@
-"""Disturbance generators (SO1.2) — full D/S/T/W/B suite + scenario comparison (NC vs EH).
+"""LEGACY (kept for reference; superseded by envs/corridor_sim.py + scripts/mc.py, which are the
+authoritative simulator). H0 updated to 600 s (2021 timetable) on 2026-09-14; the rest of this
+script's model (12 buses, riders to the last stop) is NOT updated.
+
+Disturbance generators (SO1.2) — full D/S/T/W/B suite + scenario comparison (NC vs EH).
 
 Generators (toggle per run):
   D  baseline stochastic demand — always on (persons injected at empirical APC boarding rates).
@@ -28,7 +32,7 @@ DIST = [math.hypot(Xs.values[i+1]-Xs.values[i], Ys.values[i+1]-Ys.values[i]) for
 SEGV = [DIST[i] / d["run_s"].values[i] for i in range(len(DIST))]
 BASE = {STOPS[i]: max(8.0, float(d["dwell_s"].values[i]))        for i in range(len(STOPS))}
 DEM  = {STOPS[i]: max(0.0, float(d["mean_boardings"].values[i])) for i in range(len(STOPS))}
-H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 300.0, 12, 0.25, 0.4, 600.0, 400.0, 0.8
+H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 600.0, 12, 0.25, 0.4, 600.0, 400.0, 0.8
 FIXED_DWELL, BOARD_S, MAX_SERV = 6.0, 4.0, 90.0   # dwell = door time + boarding_s * waiting pax (capped)
 # CUM[i] = time for a bus leaving the terminal at t=0 to reach stop i (run + upstream dwell);
 # used to align each stop's demand window with when buses actually serve it (steady-state waits).

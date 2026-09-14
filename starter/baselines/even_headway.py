@@ -9,5 +9,5 @@ class EvenHeadwayController:
     def act(self, bus_state): return {"hold_s": even_headway_hold(bus_state["forward_headway_s"], self.H)}
 
 if __name__ == "__main__":
-    c = EvenHeadwayController(300)
-    for h in (120, 300, 420): print(f"fwd={h}s -> hold {c.act({'forward_headway_s': h})['hold_s']:.0f}s")
+    c = EvenHeadwayController(600)
+    for h in (240, 600, 840): print(f"fwd={h}s -> hold {c.act({'forward_headway_s': h})['hold_s']:.0f}s")
