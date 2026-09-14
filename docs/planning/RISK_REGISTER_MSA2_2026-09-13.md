@@ -152,3 +152,21 @@ Details: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.
   describes a per-timestep Poisson trial. With 3 removals the breakdown-only benefit is FH −8%
   [−15, −0], EH −7% [−14, +1].
 - Details: `docs/progress/BREAKDOWN_AND_HOLD_CAP_2026-09-14.md`.
+
+### Update — 2026-09-14 (Week 2)
+
+Details: `docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`.
+
+- **R3 — DONE.** Demand, dwell, running time and their spreads fitted from APC (weekday 07–18,
+  calibration days); by period AM/MID/PM available.
+- **R2 — DONE (criterion proposed).** Like-for-like observed headway CV 0.504 (test days) vs
+  simulated No-Control 0.552 (+10%); first stop 0.352 vs 0.357; by-stop r = 0.87.
+- **R7 — DONE.** Calibration on alternate days: RMSPE 0.90%; held-out days RMSPE 3.08%, GEH < 5 26/26.
+- **R9 — DONE for running time.** Targets now use only records whose next record is the next stop
+  (old targets ~11% too slow). Demand-driven stop skipping by real buses is still not modelled.
+- **R11 — ordinary rain estimated:** +1.35% [−0.8, +2.5], not significant; severe weather stays synthetic.
+- **New, fixed:** Even-Headway's backward headway was always the 600 s fallback (never saw the bus
+  behind), and "faster" traffic draws had no effect.
+- **R14 decided:** 120 s headline cap, 240 s sensitivity (Stage B FH −9% vs −14%).
+- **R15 decided:** fixed breakdown count n_B = 1 (3 as a check), methods.tex updated.
+- **Headline result:** fixed holding −34/−39% on ordinary days → −9% under Stage B.

@@ -1,5 +1,9 @@
 # Breakdown as bus removal, and the holding-cap check
 
+> **Superseded (same day, Week 2):** the simulator now uses fitted variability, a 120 s
+> holding cap and a corrected backward headway. Current results:
+> `WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`. The numbers below are kept as a record.
+
 **Date:** 2026-09-14 · **Follows:** `WEEK1_SIMULATOR_FIXES_2026-09-14.md` ·
 **Code:** `starter/envs/corridor_sim.py`, `starter/scripts/mc.py` ·
 **Results:** `starter/results/mc_summary.md` (main), `mc_summary_hold120.md`, `mc_summary_breakdowns3.md`

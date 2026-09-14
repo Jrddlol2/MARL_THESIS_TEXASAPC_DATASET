@@ -143,7 +143,7 @@ Fleet size (active buses) & $N$ & to be finalized (data pending): derive from co
 Control stop count & --- & to be finalized (design): select from 29 observed stop IDs using Section~\ref{subsec:control-stop-selection} criteria after calibration/validation & Section~\ref{subsec:control-stop-selection} \\
 Scheduled headway & $H_0$ & to be finalized (data pending): 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
 Bus passenger capacity & --- & to be finalized (data pending): verified vehicle/fleet specification & CapMetro fleet specification \\
-Maximum holding duration & $\Delta T$ & to be finalized (design) during implementation & Section~\ref{subsec:marl-arch} (Action Space) \\
+Maximum holding duration & $\Delta T$ & 300\,s, so the largest hold is $0.4\,\Delta T = 120$\,s, the absolute cap used in the reviewed holding studies~\cite{Rodriguez2023Cooperative,Tang2024Curriculum}; $\Delta T = H_0 = 600$\,s (240\,s cap) is a sensitivity case & Section~\ref{subsec:marl-arch} (Action Space) \\
 Holding action bins & $\Omega$ & $\{0.0, 0.1, 0.2, 0.3, 0.4\}$ & Section~\ref{subsec:marl-arch} (Action Space) \\
 Action space size per agent & $|A_i|$ & 10 (5 hold $\times$ 2 skip) & Section~\ref{subsec:marl-arch} (Action Space) \\
 Monte Carlo runs per cell & $N_{\text{runs}}$ & $\geq 30$ & Section~\ref{sec:research-design} \\
@@ -154,9 +154,9 @@ Discount / event-based discount & $\gamma$, $\beta$ & to be finalized (design): 
 \midrule
 
 Synthetic severe-weather intensity & $\eta$ & $\{0.0, 0.3, 0.6, 1.0, 1.3\}$; values above observed support are stress tests & Section~\ref{subsec:stochastic-vars} \\
-Demand-surge scale & $f_d$ & $\mathcal{N}(1,\sigma_d^2)$ with a design-phase $\sigma_d$ and support clipped to $[1,3]$ & Section~\ref{subsec:stochastic-vars} \\
-Traffic-speed stress scale & $f_s$ & $\mathcal{N}(1,\sigma_s^2)$ with a design-phase $\sigma_s$ and support clipped to $[0.8,1.2]$ & Section~\ref{subsec:stochastic-vars} \\
-Breakdown rate & $\lambda$ & to be finalized (design): declared scenario rate (events per bus-hour); APC contains no failure events & Section~\ref{subsec:stochastic-vars} \\
+Demand-surge scale & $f_d$ & $\mathcal{N}(1,\sigma_d^2)$ clipped to $[1,10]$, with $\sigma_d = 1$ (sensitivity: 2, 3), following Wang and Sun~\cite{Wangsun} & Section~\ref{subsec:stochastic-vars} \\
+Traffic-speed stress scale & $f_s$ & $\mathcal{N}(1,\sigma_s^2)$ clipped to $[0.8,1.2]$~\cite{Wangsun}; $\sigma_s = 0$ in the main evaluation because ordinary variation is already the fitted empirical distribution (T), and $\sigma_s \le 0.3$ is available as a stress case & Section~\ref{subsec:stochastic-vars} \\
+Breakdowns per episode & $n_B$ & 1 (sensitivity case: 3), following the single- and multiple-disruption designs of Guedes and Borenstein~\cite{Guedes2018Rescheduling}; APC contains no failure events & Section~\ref{subsec:stochastic-vars} \\
 
 \midrule
 \multicolumn{4}{l}{\textit{Derived empirical/calibration parameters}} \\
@@ -304,7 +304,7 @@ This study distinguishes five disturbance classes, denoted D, S, T, W, and B:
 \item \textbf{Demand surge (S):} an episode-level multiplicative scaling factor, with standard deviation $\sigma_d$ (Table~\ref{tab:notation}), that amplifies baseline boarding rates above their empirical mean. S is the controlled experimental variable; D is always present, and S is what is added on top of it. Setting $\sigma_d = 0$ removes the surge and leaves only baseline demand variability (D).
 \item \textbf{Ordinary travel-time variation (T):} the always-present empirical per-(segment, time-of-day, day-type) running-time distribution derived from \texttt{rev\_seconds} (net of the current-stop dwell). An optional episode-level stress scale $f_s$ may broaden this baseline, with its standard deviation $\sigma_s$ selected separately from the $[0.8,1.2]$ clip support.
 \item \textbf{Weather-induced delay (W):} an additive experimental layer. Within observed support, W is estimated by comparing rain-exposed and dry observations within segment/time/day strata. Outside that support, W is a labeled synthetic lognormal stress with coefficient of variation $\eta$. W composes with rather than replaces T.
-\item \textbf{Discrete bus breakdown (B):} a Poisson-distributed discrete event, with rate $\lambda$, that permanently removes one bus from the active agent set for the remainder of the simulated day.
+\item \textbf{Discrete bus breakdown (B):} a discrete event that permanently removes a bus from the active agent set for the remainder of the episode; $n_B$ buses fail per episode (Table~\ref{tab:notation}).
 \end{itemize}
 
 The generators that produce S, W, and B are sampled independently conditional on the always-active D and T baselines: no causal chain links them within the simulation. A breakdown does not trigger a demand surge or weather delay, and weather does not induce a mechanical failure. This factorial choice supports attribution in the single-disturbance ablations; it is not a claim that real disturbances are causally independent.
@@ -342,9 +342,9 @@ $\sigma_s$ &
 Standard deviation of the per-episode traffic-speed scaling factor. $\sigma_s=0$ fixes cruising speed at its baseline mean. &
 dimensionless \\
 
-$\lambda$ &
-Rate parameter of the Poisson process governing bus breakdowns. $\lambda=0$ disables breakdowns. &
-events/hour \\
+$n_B$ &
+Number of buses that fail in an episode, each at a randomly drawn bus and stop. $n_B=0$ disables breakdowns. &
+buses per episode \\
 
 $\mu$ &
 Baseline (empirical) mean inter-stop travel time for a given segment and time-of-day bin. &
@@ -469,7 +469,7 @@ The mapping from $\eta$ to named weather severity is not established. The sweep 
 
 \subsubsection{Bus Breakdowns}
 
-Unlike the perturbations above, a bus breakdown is a \textit{discrete event} that removes a vehicle from active simulation. Guedes and Borenstein~\cite{Guedes2018Rescheduling} model serious public-transit vehicle failures in which the disabled vehicle is towed and its trip is cut, and Daganzo~\cite{Daganzo2009} describes a failed bus going out of service with its run reassigned to the following bus; these two sources support the removal semantics. Cao et al.~\cite{Cao2022Train} model train malfunctions in an adjacent MARL setting as temporary stops of random duration triggered by a Poisson process, so they support random event timing but not removal. None of these sources provides an empirical CapMetro failure rate; the APC data contain no breakdown field. Breakdowns are therefore a labeled synthetic stressor triggered at random times from a Poisson process~\cite{Kingman1993Poisson} with a configurable scenario rate $\lambda$ (Table~\ref{tab:notation}). In implementation, at each discrete simulation timestep of length $dt$, a Bernoulli trial with probability $\lambda \cdot dt$ is evaluated independently for each active bus; a success removes that bus from the active agent set for the remainder of the simulated day. When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set, leaving an enlarged headway between the trailing bus $b_{k-1}$ and the leading bus $b_{k+1}$. The passengers that $b_k$ would have served accumulate at the stops ahead of $b_{k-1}$, so the trailing bus inherits this residual demand as it advances.
+Unlike the perturbations above, a bus breakdown is a \textit{discrete event} that removes a vehicle from active simulation. Guedes and Borenstein~\cite{Guedes2018Rescheduling} model serious public-transit vehicle failures in which the disabled vehicle is towed and its trip is cut, and Daganzo~\cite{Daganzo2009} describes a failed bus going out of service with its run reassigned to the following bus; these two sources support the removal semantics. Cao et al.~\cite{Cao2022Train} model train malfunctions in an adjacent MARL setting as temporary stops of random duration triggered by a Poisson process, so they support random event timing but not removal. None of these sources provides an empirical CapMetro failure rate; the APC data contain no breakdown field. Breakdowns are therefore a labeled synthetic stressor. The count follows the experimental design of Guedes and Borenstein~\cite{Guedes2018Rescheduling}, who introduce one disruption and then two to three near-simultaneous disruptions as a robustness test: each episode removes $n_B = 1$ bus in the main evaluation and $n_B = 3$ buses in a sensitivity case (Table~\ref{tab:notation}). The failed bus and the stop at which it fails are drawn from the episode seed before the simulation starts, so every controller faces the identical breakdown. The failed bus is removed for the remainder of the episode; passengers on board alight at that stop and wait for the next bus to their own destination. When a breakdown occurs at bus $b_k$, $b_k$ is removed from the active agent set, leaving an enlarged headway between the trailing bus $b_{k-1}$ and the leading bus $b_{k+1}$. The passengers that $b_k$ would have served accumulate at the stops ahead of $b_{k-1}$, so the trailing bus inherits this residual demand as it advances.
 
 A breakdown does not override any surviving agent's policy; it changes the state and reward landscape. Removing $b_k$ enlarges the gap between the trailing and leading buses, and passengers that would have boarded $b_k$ continue accumulating in the simulated queues. A trailing agent may choose to hold less or skip a stop to close the gap, but a skipped stop serves neither boarding nor alighting passengers in that event and therefore incurs the waiting/skip penalty. The environment never injects a recovery action: every hold/skip decision originates from $\pi_\theta$.
 
@@ -561,7 +561,7 @@ As Table~\ref{tab:observation-features} shows, the environment generates each ru
 The agent's action $a_{i,t} = \pi_\theta(s_{i,t})$ combines two discrete components, following Rodriguez et al.~\cite{Rodriguez2023Cooperative}:
 
 \begin{itemize}
-\item \textbf{Holding control:} a holding-strength parameter $\alpha_{i,t} \in \Omega = \{0.0, 0.1, 0.2, 0.3, 0.4\}$, multiplied by a maximum holding duration $\Delta T$ to yield seconds held; $\alpha_{i,t} = 0$ means no holding.
+\item \textbf{Holding control:} a holding-strength parameter $\alpha_{i,t} \in \Omega = \{0.0, 0.1, 0.2, 0.3, 0.4\}$, multiplied by a maximum holding duration $\Delta T = 300$\,s to yield seconds held, so holds are 0, 30, 60, 90 or 120\,s; $\alpha_{i,t} = 0$ means no holding.
 \item \textbf{Stop-skipping:} a binary decision to bypass the next stop, allowing headway recovery at an explicit passenger-service cost. The policy chooses the action from local delay, load, and queue state; no capacity threshold is assumed until vehicle capacity is verified. Skipping is disallowed at the origin terminal and is not permitted if the immediately preceding trip already skipped that stop, so no stop is skipped by two consecutive trips.
 \end{itemize}
 
@@ -684,11 +684,11 @@ where $H_0$ is the desired (scheduled) headway, $h^-$ is the forward headway (ti
 A more globally aware rule that holds buses to equalize the forward and backward gaps simultaneously, following Rodriguez et al.~\cite{Rodriguez2023Cooperative}:
 
 \begin{equation}
-T_{EH} = \max\!\left\{\min\!\left[\frac{\hat{h}^+ - h^-}{2},\; 0.4\,H_0\right],\, 0\right\}
+T_{EH} = \max\!\left\{\min\!\left[\frac{\hat{h}^+ - h^-}{2},\; h_{\max}\right],\, 0\right\}
 \label{eq:eh}
 \end{equation}
 
-where $h^-$ is the forward headway, $\hat{h}^+$ is the estimated backward headway (time gap to the bus behind), and $\frac{\hat{h}^+ - h^-}{2}$ is the holding time that would split the difference evenly between the two gaps. The hold is capped at $0.4\,H_0$ (40\% of the scheduled headway), the bound Rodriguez et al.\ used to prevent excessive intervention. This cap matches the maximum value in the MARL action set $\Omega = \{0, 0.1, 0.2, 0.3, 0.4\}$, so EH and MARL are constrained to the same maximum hold and the comparison is fair. EH represents globally-aware reactive control: it uses information about both neighbors but follows a fixed rule rather than a learned policy. Because Eq.~\eqref{eq:eh} is a fixed linear rule computed from the currently observed gaps, EH is expected to handle breakdowns better than FH, since the enlarged backward gap $\hat{h}^+$ enters the rule directly, but it has no mechanism to anticipate or discount the heavier-tailed delays that the weather generator introduces, since the rule was not designed with a heavy-tailed disturbance in mind.
+where $h^-$ is the forward headway, $\hat{h}^+$ is the estimated backward headway (time gap to the bus behind), and $\frac{\hat{h}^+ - h^-}{2}$ is the holding time that would split the difference evenly between the two gaps. The hold is capped at $h_{\max} = 120$\,s. Rodriguez et al.\ bound holds at $0.4\,H$ to prevent excessive intervention, which at their 5-minute headway is 120\,s, and note that the value should follow agency policy; the other holding studies reviewed cap holds at 90--120\,s~\cite{Wang2023MultiObj,Liu2023DRLHolding,Tang2024Curriculum}. Applying $0.4\,H_0$ at this corridor's 10-minute headway would allow 240\,s, beyond any cap in the reviewed studies, so 240\,s is reported only as a sensitivity case. The cap equals the largest MARL hold $0.4\,\Delta T$, so EH and MARL are constrained to the same maximum hold and the comparison is fair. EH represents globally-aware reactive control: it uses information about both neighbors but follows a fixed rule rather than a learned policy. Because Eq.~\eqref{eq:eh} is a fixed linear rule computed from the currently observed gaps, EH is expected to handle breakdowns better than FH, since the enlarged backward gap $\hat{h}^+$ enters the rule directly, but it has no mechanism to anticipate or discount the heavier-tailed delays that the weather generator introduces, since the rule was not designed with a heavy-tailed disturbance in mind.
 
 \subsubsection{Baseline Comparisons}
 

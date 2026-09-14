@@ -86,31 +86,29 @@ That one sentence explains most of this repository.
 
 ## 4. What we have found so far
 
-Baseline comparison, 30 paired Monte Carlo runs per cell, re-run 2026-09-14 at the
-real 2021 headway (600 s), with 18 buses and passengers who get off at their own
-stops. Lower headway CV = more evenly spaced buses = better.
+Baseline comparison, 30 paired Monte Carlo runs per cell (2026-09-14). The simulator
+now uses the real 2021 headway (600 s), passenger demand, dwell and running-time
+variability **fitted from the APC data**, a 120 s holding cap (as in the RRL) and a
+breakdown that removes a bus. Lower headway CV = more evenly spaced buses = better.
 
 | Scenario | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
-| Stage A — demand + traffic | 0.159 | **0.121** (−24%) | 0.123 (−23%) |
-| + surge | 0.166 | **0.132** (−21%) | 0.132 (−20%) |
-| + weather | 0.755 | **0.611** (−19%) | 0.654 (−13%) |
-| + breakdown (one bus removed) | 0.236 | **0.198** (−16%) | 0.205 (−13%) |
-| Stage B — everything at once | 0.752 | **0.622** (−17%) | 0.661 (−12%) |
+| Stage A — ordinary day (demand + traffic) | 0.552 | 0.366 (−34%) | **0.338** (−39%) |
+| + surge | 0.621 | 0.425 (−31%) | **0.395** (−36%) |
+| + weather | 0.869 | 0.793 (−9%) | 0.788 (−9%) |
+| + breakdown (one bus removed) | 0.565 | 0.401 (−29%) | **0.370** (−34%) |
+| Stage B — everything at once | 0.886 | 0.803 (−9%) | 0.808 (−9%) |
 
 All reductions are significant (95% CIs exclude zero).
 
-**What this means for the thesis:** simple holding rules still help under severe,
-combined disturbance, but they leave most of the added bunching in place — under
-Stage B the best rule still has CV 0.62, about five times its mild-disturbance
-level — and their benefit shrinks as disturbance grows. Two sensitivity checks make
-this sharper: with the 120 s holding cap used in the RRL (instead of 0.4 × 600 = 240 s)
-the Stage B benefit falls to −10% / −9%, and with three buses removed the
-breakdown-only benefit falls to −8% / −7% (EH not significant)
-(`docs/progress/BREAKDOWN_AND_HOLD_CAP_2026-09-14.md`). That remaining gap is what
-the MARL controller has to close. (The earlier claim that holding "stops working"
-under severe disturbance came from runs at the wrong 300 s headway and does not
-hold: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.)
+**Is the simulator realistic?** On held-out weekdays real buses have headway CV 0.50;
+the No-Control simulation gives 0.55 on the same definition (first stop 0.35 vs 0.36,
+stop-by-stop r = 0.87). Calibration on alternate days tests at RMSPE 3.1% on the rest.
+
+**What this means for the thesis:** fixed holding rules work well on an ordinary day but
+lose about three-quarters of their effect under severe, combined disturbance (−35 to −39%
+→ −9%). A 240 s cap (−14%) or three breakdowns (−9%) do not change that. The gap is what
+the MARL controller has to close. Details: `docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`.
 
 **Where the MARL agent stands:** trained for 286 episodes. Greedy evaluation went
 `0.244 → 0.255 → 0.235 → 0.234 → 0.251 → 0.251 → 0.228` — i.e. it learned

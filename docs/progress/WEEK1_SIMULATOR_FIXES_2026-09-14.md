@@ -1,5 +1,9 @@
 # Week 1 — making the simulator trustworthy
 
+> **Superseded (same day, Week 2):** the simulator now uses fitted variability, a 120 s
+> holding cap and a corrected backward headway. Current results:
+> `WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`. The numbers below are kept as a record.
+
 **Date:** 2026-09-14 · **Covers:** risk register R1, R4, R8 and code-review issues K1–K5 ·
 **Code:** `starter/envs/corridor_sim.py` · **Results:** `starter/results/mc_summary.md`
 
