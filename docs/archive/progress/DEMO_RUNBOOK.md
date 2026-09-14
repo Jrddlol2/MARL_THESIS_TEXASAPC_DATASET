@@ -1,3 +1,6 @@
+> **ARCHIVED 2026-09-14.** Written for the MSA1 simulator; several scripts and numbers here are out of date.
+> Current guides: main `README.md` §10 (how to run) and `docs/reference/B3_Code_Demo_Guide.docx` (panel demo).
+
 # Panel Demo Runbook — MARL Dynamic Bus Scheduling (Group B3)
 
 A step-by-step guide to **demonstrate and defend the implementation live**. For each step: what to open

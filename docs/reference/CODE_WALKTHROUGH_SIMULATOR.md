@@ -22,8 +22,8 @@ demand, per-trip demand, skip action, Daganzo Forward-Headway).
 | `envs/marl_env.py` | 64 | The network can't be used as a controller |
 | `agents/ddqn.py` | 131 | No learning |
 | `scripts/watch.py` | 84 | The live SUMO-GUI demo (a thin wrapper around `simulate(gui=True)`) |
-| `baselines/even_headway.py` | 13 | Nothing — `corridor_sim` has its own rules |
-| `envs/bus_env.py` | 77 | **Nothing. No importers** (PettingZoo skeleton, superseded) |
+| `legacy/even_headway.py` | 13 | Nothing — `corridor_sim` has its own rules |
+| `legacy/bus_env.py` | 77 | **Nothing. No importers** (PettingZoo skeleton, superseded) |
 
 ## What changed on 2026-09-14 (and why)
 
@@ -263,5 +263,5 @@ L61-63 finalize() — drop each bus's last action at episode end
 | Medium | Bunching ~10% above observed in the second half | validation | Open (not tuned) |
 | Medium | `wait_queue` and `wait_hold` penalise opposite behaviours | `reward.py:32–35` | By design — choose in EO2.1 |
 | Medium | `CONTROL_STOPS` are positional indices | `corridor_sim.py:247` | Watch when editing corridor.txt |
-| Low | `bus_env.py` has no importers; `baselines/even_headway.py` duplicates the rule | both | Open |
+| Low | `bus_env.py` has no importers; `even_headway.py` duplicates the rule | both | **Moved to `starter/legacy/` 2026-09-14** |
 | Low | `Q_REF` never tuned | `reward.py:14` | Open |

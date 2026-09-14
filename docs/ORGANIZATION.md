@@ -1,5 +1,5 @@
 # Repository & Workspace Organization
-*Organized 2026-09-01. Source of truth = this repo (`THESIS/MARL/`). Nothing was deleted — obsolete material was relocated to `THESIS/archive/`.*
+*Organized 2026-09-01, updated 2026-09-14. Source of truth = this repo (`THESIS/MARL/`). Nothing was deleted — obsolete material was relocated to `THESIS/archive/`.*
 
 ## Where things live
 
@@ -7,12 +7,15 @@
 | Location | Contents |
 |---|---|
 | root `*.tex`, `thesis_refs.bib`, `Figures/` | LaTeX compile-set — **kept at root** for Overleaf |
-| root `CLAUDE.md`, `TRACKER.md`, `REVISION_QUEUE.md`, `AUDIT_TRAIL*.md`, `RTC_DECISION_LETTER.md`, `PROGRESS.md`, `CHANGE_REPORT_*` | agent-workflow files — **kept at root** (referenced by `CLAUDE.md`) |
-| `docs/planning/` | implementation roadmap, Week-1 kickoff guides |
-| `docs/prompts/` | reusable prompts (reference-audit, roadmap, RTC-verification, organization, cleanup) |
-| `docs/reference/` | `DATA_CLEANING.md` (data provenance) |
+| root `README.md`, `CLAUDE.md` | project guide; agent instructions |
+| `revision/` | proposal-revision workflow files (`TRACKER.md`, `REVISION_QUEUE.md`, `AUDIT_TRAIL*.md`, `RTC_DECISION_LETTER.md`, `PROGRESS.md`, `CHANGE_REPORT_*`, pre-revision PDFs) — moved from the root 2026-09-14 |
+| `docs/progress/` | current write-up (`WEEK2_…`), figure captions, MSA deliverables (.docx) |
+| `docs/planning/` | risk register, manuscript change list, experiment plan, roadmap |
+| `docs/prompts/` | reusable prompts |
+| `docs/reference/` | code walkthroughs, `B3_Code_Demo_Guide.docx`, `DATA_CLEANING.md` |
+| `docs/archive/` | superseded notes, runbooks, figures and plans (see its `README.md`) |
 | `reports/` | audit reports (2026-08-23 set + `Reference_Audit_Report_2026-09-01.md`) |
-| `starter/` | runnable kit: `sim_inputs/`, calibrated `sumo/`, `envs/`, `baselines/`, `scripts/` |
+| `starter/` | simulation half: `envs/`, `agents/`, `scripts/`, `sim_inputs/`, `sumo/`, `results/` (`archive/` = older versions), `legacy/` (old code) |
 | `submissions/` | **frozen as-submitted checkpoints** |
 | `scripts/`, `config/`, `data/audit/`, `RRL/` | existing: data pipeline, config, provenance JSONs, RRL index |
 

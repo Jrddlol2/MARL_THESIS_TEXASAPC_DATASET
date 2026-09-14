@@ -33,12 +33,16 @@ flat `.tex` file in the repo root, pulled in by `main.tex` via `\input{}`.
 ├── appendix.tex         ← Appendix (currently commented out of main.tex — not yet written)
 ├── ai_declaration.tex   ← AI use declaration (currently empty)
 ├── thesis_refs.bib      ← BibTeX references
-├── TRACKER.md           ← YOUR change log (you maintain this)
-├── REVISION_QUEUE.md    ← list of pending tasks (you read this)
-├── RTC_DECISION_LETTER.md  ← verbatim official RTC decision email (source of truth)
-├── AUDIT_TRAIL.md       ← before/after log, real LaTeX (you append to this)
-└── AUDIT_TRAIL_READABLE.md ← same log, plain-English/no-LaTeX version (you append to this too — see AUDIT TRAIL FORMAT below)
+└── revision/            ← the workflow files below live here (moved from the root 2026-09-14)
+    ├── TRACKER.md           ← YOUR change log (you maintain this)
+    ├── REVISION_QUEUE.md    ← list of pending tasks (you read this)
+    ├── RTC_DECISION_LETTER.md  ← verbatim official RTC decision email (source of truth)
+    ├── AUDIT_TRAIL.md       ← before/after log, real LaTeX (you append to this)
+    └── AUDIT_TRAIL_READABLE.md ← same log, plain-English/no-LaTeX version (you append to this too — see AUDIT TRAIL FORMAT below)
 ```
+
+Wherever this file names `TRACKER.md`, `REVISION_QUEUE.md`, `RTC_DECISION_LETTER.md` or the
+`AUDIT_TRAIL` files, they are in `revision/`.
 
 `RTC_DECISION_LETTER.md` is the unedited official comment list from the
 research technical committee. `README.md` (on GitHub) is an elaborated,

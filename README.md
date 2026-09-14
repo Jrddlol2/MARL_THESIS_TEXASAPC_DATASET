@@ -16,11 +16,11 @@ passengers the bus in front would have taken, falls further behind, and soon two
 buses arrive together followed by a long gap. Passengers wait longer even though
 the same number of buses are running.
 
-The usual fix is a **holding rule**: make an early bus wait a few seconds at a
-stop so the spacing evens out. Those rules are simple and fixed.
+The usual fix is a **holding rule**: make an early bus wait a little at a stop so
+the spacing evens out. Those rules are simple and fixed.
 
 **We are testing whether a machine-learning controller can do it better** — one
-that watches the gap ahead, the gap behind, how full the bus is, and how many
+that watches the gap ahead, the gap behind, how full the bus is and how many
 people are waiting, and then decides how long to hold. Each bus is its own agent,
 and they all share one learned policy.
 
@@ -28,30 +28,31 @@ The point of the thesis is the **"non-ideal conditions"** part: does the learned
 controller still hold up when it rains, when a crowd surges, when a bus breaks
 down?
 
-**Case study:** CapMetro Rapid Route 801 in Austin, Texas, direction code 6,
-using six months of real automatic-passenger-counter (APC) data, July–December
-2021.
+**Case study:** CapMetro Rapid Route 801 in Austin, Texas, direction code 6
+(Tech Ridge → Southpark Meadows), using six months of real automatic passenger
+counter (APC) data, July–December 2021.
 
 ---
 
-## 2. Where we are right now
+## 2. Where we are right now (2026-09-14)
 
 | | Status |
 |---|---|
 | Proposal | Defended, revised, submitted 2026-08-29 |
 | Dataset acquired and cleaned | **Done** — 229,421 stop events, checksummed |
 | Weather joined | **Done** — 100% of events matched to NOAA |
-| Corridor built in SUMO | **Done** — 26 stops, real road geometry |
-| Corridor calibrated | **Done** — RMSPE 0.75%, GEH < 5 on 25/25 segments |
-| Baseline controllers (NC / FH / EH) | **Done** — 30 Monte Carlo runs per cell |
-| MARL agent | **Built, trained once, plateaued.** The critical path |
+| Corridor built in SUMO | **Done** — 27 stops, 26 road segments, real road geometry |
+| Corridor calibrated | **Done** — tested on held-out days: RMSPE 3.08%, GEH < 5 on 26/26 segments |
+| Simulator checked against real buses | **Done** — bunching, loads and stop service (§4) |
+| Baseline controllers (NC / FH / EH) | **Done** — 30 paired Monte Carlo runs per scenario |
+| MARL agent | **Built and tested; must be retrained** on the current simulator (§6) |
 | Results / Discussion chapters | **Not written** |
 
 **Milestones**
 
 | | When | Scope |
 |---|---|---|
-| MSA1 | Sep 7–12, 2026 | Dataset + corridor + calibration only |
+| MSA1 | Sep 7–12, 2026 | Dataset + corridor + calibration |
 | MSA2 | Oct 5–10, 2026 | Empirical extraction, disturbances, MARL formulation |
 | MSA3 | Nov 23–28, 2026 | Training and evaluation |
 
@@ -60,36 +61,50 @@ final results run Jan–Apr 2027.
 
 ---
 
-## 3. The mental model — the whole project is one line
+## 3. The whole project in one picture
 
 ```
   THE RAW FILE          3.7 GB, 9,197,694 rows, every CapMetro route
         |
-        |   scripts/pipeline/     keep only 801 direction 6; attach weather
+        |   scripts/pipeline/          keep only 801 direction 6; attach weather
         v
   CLEAN DATA            229,421 stop events, each with a weather reading
         |
-        |   starter/scripts/      average each stop; build the road; calibrate
+        |   starter/scripts/           fit demand, dwell and running times; build the road
         v
-  SIMULATED CORRIDOR    26 stops in SUMO, real geometry, real travel times
+  SIMULATED CORRIDOR    27 stops in SUMO, real geometry, variability fitted from APC
         |
-        |   starter/envs/         drive buses down it; add rain/surges/breakdowns
-        |   starter/agents/       let the agent decide when to hold
+        |   starter/envs/              drive buses down it; add surge, weather, breakdowns
+        |   starter/agents/            let the agent decide when to hold
         v
   RESULTS               how bunched were the buses?  ->  figures  ->  slides
 ```
 
 **`scripts/` is the data half. `starter/` is the simulation half.**
-That one sentence explains most of this repository.
 
 ---
 
 ## 4. What we have found so far
 
-Baseline comparison, 30 paired Monte Carlo runs per cell (2026-09-14). The simulator
-now uses the real 2021 headway (600 s), passenger demand, dwell and running-time
-variability **fitted from the APC data**, buses that pass stops nobody is using, a 120 s
-holding cap (as in the RRL), Daganzo's Forward-Headway rule and a breakdown that removes a bus. Lower headway CV = more evenly spaced buses = better.
+### Is the simulator realistic?
+
+Everything the simulator randomises on an ordinary day (demand, dwell, running
+time, late or early trip starts) is **fitted from the APC data**. It is checked on
+service days it was not fitted on (`starter/results/validation/`):
+
+| Check | Real buses | Simulator (No-Control) |
+|---|---|---|
+| Segment running time, held-out days | — | RMSPE 3.08%, GEH < 5 on 26/26 |
+| Headway CV (bunching), whole corridor | 0.504 | 0.556 (about 10% high, in the second half) |
+| Headway CV at the first stop | 0.352 | 0.357 |
+| Bunching stop by stop | — | r = 0.87 |
+| Share of trips that stop at a quiet stop | 64% | 69% (r = 0.96) |
+| Riders on board along the route | APC `max_load` | about 2 lower, same shape (r = 0.99) |
+
+### Baselines
+
+30 paired runs per scenario, 10-minute headway, holds capped at 120 s (as in the
+RRL), one bus removed in a breakdown. Lower headway CV = more evenly spaced buses.
 
 | Scenario | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
@@ -99,185 +114,183 @@ holding cap (as in the RRL), Daganzo's Forward-Headway rule and a breakdown that
 | + breakdown (one bus removed) | 0.564 | 0.423 (−25%) | **0.370** (−34%) |
 | Stage B — everything at once | 0.876 | 0.804 (−8%) | 0.796 (−9%) |
 
-All reductions are significant (95% CIs exclude zero).
+All reductions are significant (95% CIs exclude zero). A 240 s cap gives −9/−12% in
+Stage B and three breakdowns give −8/−9%, so neither changes the conclusion.
 
-**Is the simulator realistic?** On held-out weekdays real buses have headway CV 0.50;
-the No-Control simulation gives 0.56 on the same definition (first stop 0.35 vs 0.36,
-stop-by-stop r = 0.87). Buses serve quiet stops on 69% of trips vs 64% observed. Calibration on alternate days tests at RMSPE 3.1% on the rest.
+**What this means:** fixed holding rules work well on an ordinary day but lose most
+of their effect under severe, combined disturbance. That gap is what the MARL
+controller has to close.
 
-**What this means for the thesis:** fixed holding rules work well on an ordinary day but
-lose most of their effect under severe, combined disturbance (−29 to −38% → −8 to −9%).
-A 240 s cap (−9 to −12%) or three breakdowns (−8 to −9%) do not change that. The gap is what
-the MARL controller has to close. Details: `docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`.
-
-**Where the MARL agent stands:** trained for 286 episodes. Greedy evaluation went
-`0.244 → 0.255 → 0.235 → 0.234 → 0.251 → 0.251 → 0.228` — i.e. it learned
-something by episode 40 (roughly matching Forward-Headway) and then **flat for
-240 episodes.** That run used the old 300 s headway, so it must be retrained from
-scratch. No checkpoint was saved from it.
-
-The simulator now uses the real 2021 headway of 600 s (see
-`docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`). The calibration results
-were unaffected by that change.
+Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md).
 
 ---
 
-## 5. Folder guide — what every directory is
+## 5. What's next
 
-| Folder | What's in it | Committed? |
+**Before training (these change what the agent learns):**
+
+1. **Event-based discount.** `methods.tex` discounts by elapsed time (e^(−βt), Bradtke & Duff);
+   `agents/ddqn.py` uses a flat γ = 0.99.
+2. **Save checkpoints during training** (every 50 episodes, resumable, best model kept). A run takes
+   about 3 hours; the earlier run saved nothing.
+3. **Write down the pass mark first.** Proposed: greedy evaluation over seeds 0–29 beats
+   Forward-Headway in Stage A (0.396); Even-Headway (0.342) is the stretch goal.
+4. **Breakdown flag.** It is currently 1 for every bus once any bus breaks down; the manuscript says
+   "downstream incident".
+
+**Manuscript text that no longer matches the code:**
+
+- `methods.tex:18, 38` say training runs in a separate lightweight Python simulator. It runs in
+  SUMO (about 13 s per episode).
+- `methods.tex:291` says a chronological calibration/test split. The code alternates service days.
+- `methods.tex:69–83` declare GEH on bus counts and RMSE. The code uses GEH on running times and RMSPE.
+- `results.tex`, `discussion.tex`, `futurework.tex` are template text from another thesis (§7).
+
+Open risks: [`docs/planning/RISK_REGISTER_MSA2_2026-09-13.md`](docs/planning/RISK_REGISTER_MSA2_2026-09-13.md).
+Manuscript to-do list: [`docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`](docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md).
+
+---
+
+## 6. Folder guide
+
+| Folder | What's in it | In Git? |
 |---|---|---|
-| *(repo root)* | The LaTeX manuscript. Kept at root because Overleaf expects it there | yes |
-| `config/` | **One file**, `texas_capmetro_801.json` — every tunable value in the project | yes |
+| *(root)* | The LaTeX manuscript (`main.tex` + chapters, `thesis_refs.bib`), `README.md`, `CLAUDE.md`. Kept at root for Overleaf | yes |
+| `Figures/` | Figures used by the manuscript | yes |
+| `config/` | `texas_capmetro_801.json` — every data-pipeline setting | yes |
 | `scripts/` | **The data half.** Raw download → cleaned data → weather attached | yes |
 | `starter/` | **The simulation half.** Corridor, SUMO, controllers, MARL, results, figures | yes |
-| `data/raw/` | Downloads, including the 3.7 GB APC snapshot | **no** — too big |
-| `data/processed/` | Normalized NOAA weather tables | **no** |
-| `data/audit/` | **The evidence.** Checksums, queries, row counts, feasibility results | yes |
-| `docs/` | Planning, per-milestone progress write-ups, reusable prompts | yes |
+| `data/raw/`, `data/processed/` | The 3.7 GB APC snapshot, the clean subset, NOAA tables | **no** — too big (§9) |
+| `data/audit/` | **The evidence.** Checksums, queries, row counts, coverage results | yes |
+| `docs/progress/` | The current write-up and the MSA deliverables (.docx) | yes |
+| `docs/planning/` | Risk register, manuscript change list, experiment plan, roadmap | yes |
+| `docs/reference/` | Code walkthroughs, the code demo guide, data-cleaning notes | yes |
+| `docs/prompts/` | Reusable prompts | yes |
+| `docs/archive/` | Superseded notes, runbooks and figures, kept for the record | yes |
+| `revision/` | The proposal-revision workflow: RTC letter, revision queue, tracker, audit trail | yes |
 | `reports/` | Reference and dataset audit reports | yes |
-| `Figures/` | Figures used by the manuscript | yes |
-| `RRL/` | `sources.md` maps bib keys to source PDFs (the PDFs live outside the repo) | index only |
-| `submissions/` | **Frozen** as-submitted checkpoints — never edit these | yes |
+| `RRL/` | `sources.md` maps bib keys to source PDFs (the PDFs stay outside the repo) | index only |
+| `submissions/` | **Frozen** as-submitted checkpoints — never edit | yes |
 
 ---
 
-## 6. Code guide — what every file is for
+## 7. Code guide
 
-### The manuscript
+### The manuscript (root)
 
 ```
 main.tex           preamble and \input list — do not restructure
 title.tex          title page
-introduction.tex   Ch 1 — Introduction and Literature Review   (6,874 words) OURS
-problem.tex        Ch 2 — Problem Statement                    (1,694 words) OURS
-methods.tex        Ch 3 — Methods and Research Design         (10,341 words) OURS
+introduction.tex   Ch 1 — Introduction and Literature Review   OURS
+problem.tex        Ch 2 — Problem Statement                    OURS
+methods.tex        Ch 3 — Methods and Research Design          OURS
 thesis_refs.bib    bibliography
 ```
 
-🚨 **`results.tex`, `discussion.tex` and `futurework.tex` are NOT OURS.**
-They are leftover template text from an unrelated neuroscience thesis — a
-calcium-imaging pipeline called *NeuroSEE*, mouse models, Alzheimer's. 3,751
-words, zero mentions of buses, headway or CapMetro. They are commented out of
-`main.tex` so they have never compiled. **Delete and rewrite; do not edit.**
+🚨 **`results.tex`, `discussion.tex` and `futurework.tex` are NOT OURS.** They are
+leftover template text from an unrelated neuroscience thesis. They are commented
+out of `main.tex`. **Delete and rewrite; do not edit.**
 
 ### `scripts/` — the data half
 
-Raw download through cleaned data with weather attached. **This is what MSA1
-presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/README.md).
+More detail in [`scripts/pipeline/README.md`](scripts/pipeline/README.md).
 
 | File | What it does |
 |---|---|
-| `pipeline/common.py` | Shared plumbing: paths, config, checksums, safe file writing, reading the snapshot, and **the six cleaning rules**. Does no processing itself |
-| `pipeline/audit_route_selection.py` | Compares Route 801 against 803 and proves 801 has more usable data. **Produces the cleaning-funnel numbers on the slide** |
-| `pipeline/01_extract_dir6.py` | Extracts the 229,421 clean rows from the snapshot. **← THE STUDY SET** |
+| `pipeline/common.py` | Shared plumbing: paths, config, checksums, reading the snapshot, and **the six cleaning rules** |
+| `pipeline/audit_route_selection.py` | Compares Route 801 against 803; produces the cleaning-funnel numbers |
+| `pipeline/01_extract_dir6.py` | Extracts the 229,421 clean rows. **← THE STUDY SET** |
 | `pipeline/02_prepare_weather.py` | Reads both NOAA files and fixes the local-standard-time offset |
 | `pipeline/03_join_weather.py` | Attaches the nearest weather reading to every stop event |
-| `pipeline/04_gtfs_gate.py` | Writes down why we may not yet call direction 6 "southbound" |
-| `pipeline/run_all.py` | Runs steps 01–05 in order |
-| `texas_capmetro_pipeline.py` | **Archived reference** — the original 900-line version, which downloads from the portal instead of reading local files. Kept in case the extraction ever needs re-verifying against the source |
+| `pipeline/04_gtfs_gate.py` | Records the direction-label evidence |
+| `pipeline/run_all.py` | Runs the steps in order |
+| `texas_capmetro_pipeline.py` | **Archived reference** — the original portal-download version |
 
-### `starter/envs/` — the simulator core
+### `starter/` — the simulation half
 
-| File | What it does |
-|---|---|
-| `corridor_sim.py` | **THE HEART.** Drives buses down the corridor with dwell, demand and disturbances. Every experiment in the project calls this one file |
-| `obs.py` | Builds the 7-number observation a bus "sees" (headways, load, queue, weather flag, breakdown flag) |
-| `reward.py` | The 3 penalties that score the agent, plus action decoding |
-| `marl_env.py` | Glues the neural network into `corridor_sim` as a controller; holds the `Config` with every experiment knob |
-| `bus_env.py` | Older PettingZoo wrapper. **Superseded** by `corridor_sim.py` |
+Everything under `starter/` runs **from the `starter/` folder**.
 
-### `starter/agents/` and `starter/baselines/`
+**Simulator and agent**
 
 | File | What it does |
 |---|---|
-| `agents/ddqn.py` | The neural network — shared Double-DQN, replay buffer, ε-greedy |
-| `baselines/even_headway.py` | The simple fixed rule we compare against |
+| `envs/corridor_sim.py` | **THE HEART.** Runs the corridor in SUMO with any controller. Every experiment calls `simulate()` |
+| `envs/obs.py` | The 7 numbers a bus "sees" (headways, load, queue, weather flag, breakdown flag) |
+| `envs/reward.py` | The 3 penalties that score the agent, plus action decoding |
+| `envs/marl_env.py` | Plugs the network into `corridor_sim` as a controller; `Config` holds every experiment knob |
+| `agents/ddqn.py` | The shared Double-DQN network, replay buffer, ε-greedy |
 
-### `starter/scripts/` — building the corridor
-
-| File | What it does |
-|---|---|
-| `extract_sim_inputs.py` | 229,421 rows → 29 stops × 6 average numbers. **Where the data half meets the simulation half** |
-| `extract_route_shape.py` | Pulls the real road path from the OpenStreetMap route relation |
-| `build_real_net.py` | Builds the SUMO road network from that path |
-| `calibrate_corridor.py` | Tunes edge speeds until simulated travel time matches real travel time. **Produces RMSPE 0.75%** |
-| `verify_real_net.py` | Checks the real-geometry network behaves like the straight-line one |
-
-### `starter/scripts/` — running experiments
+**Building and checking the corridor**
 
 | File | What it does |
 |---|---|
-| `run_baseline.py` | One run, no disturbances |
-| `run_disturbances.py` | One run with demand / surge / traffic / weather / breakdown |
-| `mc.py` | Runs the whole activation matrix 30 times in parallel and averages. **Produces `mc_results.csv`** |
-| `train_marl.py` | Trains the agent |
-| `eval_marl.py` | Evaluates a trained agent on given seeds |
-| `watch.py` | Opens **sumo-gui** so you can watch buses bunch and be held |
-| `watch_gate.py` | Live text view of a training run against the baseline targets |
+| `scripts/extract_sim_inputs.py` | Clean rows → per-stop averages (`sim_inputs/stops.csv`) |
+| `scripts/extract_route_shape.py` | The real road path from OpenStreetMap |
+| `scripts/fit_variability.py` | **Fits demand, dwell, running-time spread and trip-start spread from APC** → `sim_inputs/fitted/`; splits service days into calibration and test days |
+| `scripts/build_real_net.py` | Builds the SUMO network and calibrates it on calibration days → `results/calibration_real.csv` |
+| `scripts/validate_simulator.py` | Bunching, loads and stop service vs real buses → `results/validation/` |
+| `scripts/test_simulator.py` | 13 pass/fail checks of the control rules (FH, EH, skip, stop serving) |
 
-### `starter/scripts/` — figures
+**Running experiments**
+
+| File | What it does |
+|---|---|
+| `scripts/mc.py` | All scenarios × NC/FH/EH × 30 seeds in parallel → `results/mc_results.csv`, `mc_summary.md` |
+| `scripts/train_marl.py` | Trains the agent → `experiments/<name>/` |
+| `scripts/eval_marl.py` | Evaluates a trained agent next to NC/FH/EH on seeds 0–29 |
+| `scripts/watch.py` | Opens **sumo-gui** to watch buses bunch and be held |
+| `scripts/watch_gate.py` | Live text view of a training run |
+
+**Figures** (`results/figures/`)
 
 | File | What it draws |
 |---|---|
-| `_figstyle.py` | Shared publication styling — colours, fonts, sizes. Imported by all the others |
-| `figures.py` | The main paper figures from `calibration.csv` and `mc_results.csv` |
-| `figures_datacleaning.py` | The MSA1 cleaning-funnel and route-selection figures |
-| `figures_weather.py` | The NOAA join figures |
-| `marey.py` | **Time–space (Marey) diagram** — bunching shows as converging lines |
-| `convergence.py` | Training curves: episode return and headway CV |
-| `plot_curve.py` | A single training run's learning curve |
-| `degradation.py` | Headway CV vs weather intensity, per controller |
+| `scripts/_figstyle.py` | Shared styling, imported by all the others |
+| `scripts/figures.py` | Calibration, load and stop-service validation; baseline bar charts |
+| `scripts/marey.py` | Time–space (Marey) diagram — bunching shows as converging lines |
+| `scripts/degradation.py` | Headway CV vs weather strength, per controller |
+| `scripts/convergence.py`, `plot_curve.py` | Training curves |
+| `scripts/figures_datacleaning.py`, `figures_weather.py` | The MSA1 data figures |
 
-### `starter/` — data files
-
-| File | What it is |
-|---|---|
-| `corridor.txt` | **The 26 modelled stops, in order.** The corridor definition |
-| `reduced_corridor.txt` | An older 6-stop corridor used during early development |
-| `sim_inputs/stops.csv` | 29 stops × boardings, alightings, dwell, run time, distance |
-| `sim_inputs/stop_coordinates.csv` | Each stop's mean GPS position and event count |
-| `sim_inputs/route_shape.csv` | The road polyline in projected coordinates |
-| `sim_inputs/route_shape_stops.csv` | Each stop's distance along that polyline |
-| `sumo/` | The generated SUMO networks — `corridor.*` (schematic) and `corridor_real.*` (real geometry) |
-| `results/calibration.csv` | Per-segment observed vs simulated time, GEH, % error |
-| `results/mc_results.csv` | Every Monte Carlo run |
-| `results/mc_summary.md` | **The baseline results table** |
-| `results/figures/` | Generated charts, `.png` and `.pdf` |
-| `experiments/` | Training runs (not in Git). Runs from before 2026-09-14 used the old simulator and are archived under `experiments/_old_simulator/` |
-
-### `config/` and `data/`
+**Data and results**
 
 | Path | What it is |
 |---|---|
-| `config/texas_capmetro_801.json` | **EVERY TUNABLE VALUE.** Routes, direction code, study dates, NOAA stations, the 90-minute join tolerance. Change this file, not the code |
-| `data/audit/texas_capmetro/*.json` | The evidence: queries, row counts, checksums, coverage results |
-| `data/audit/texas_capmetro/*.md` | The same evidence in readable form |
+| `corridor.txt` | **The 27 modelled stops, in order** |
+| `sim_inputs/` | Per-stop averages, stop coordinates, road shape |
+| `sim_inputs/fitted/` | **What the simulator uses:** fitted stop parameters, dwell model, trip-start spread, calibration/test days |
+| `sumo/` | SUMO networks; the simulator uses `corridor_real.net.xml` and `stops_real.add.xml` |
+| `results/calibration_real.csv` | Per-segment running time, observed vs simulated, calibration and test days |
+| `results/validation/` | Simulator vs real buses |
+| `results/mc_summary.md` | **The baseline table** (`_hold240`, `_breakdowns3` = checks) |
+| `results/archive/` | Results from earlier simulator versions |
+| `legacy/` | Old scripts kept for reference, not used by anything current ([`legacy/README.md`](starter/legacy/README.md)) |
+| `experiments/` | Training runs (not in Git) |
 
 ---
 
-## 7. "I want to…" — where to look
+## 8. "I want to…" — where to look
 
 | I want to… | Open / run |
 |---|---|
 | See the cleaning rules | `scripts/pipeline/common.py` → `clean_where()` |
 | See where 229,421 comes from | `data/audit/texas_capmetro/route_selection_audit.json` |
-| Rebuild every evidence file | `python scripts/pipeline/run_all.py` |
-| Set up a new machine | README §8, "Getting the data" |
-| Understand the weather join | `scripts/pipeline/03_join_weather.py` (read the header) |
-| See the calibration result | `starter/results/calibration.csv` |
+| See the calibration result | `starter/results/calibration_real.csv` |
+| See how realistic the simulator is | `starter/results/validation/simulator_validation_summary.json` |
 | See the baseline results | `starter/results/mc_summary.md` |
-| Change how the simulation behaves | `starter/envs/corridor_sim.py`, PART 2 settings (line 153) |
+| Change how the simulation behaves | `starter/envs/corridor_sim.py`, PART 2 settings |
 | Change what the agent sees or is scored on | `starter/envs/obs.py`, `starter/envs/reward.py` |
+| Change training settings | `starter/envs/marl_env.py` → `Config` |
+| Understand the simulator line by line | [`docs/reference/CODE_WALKTHROUGH_SIMULATOR.md`](docs/reference/CODE_WALKTHROUGH_SIMULATOR.md) |
+| Prepare a code demo for the panel | `docs/reference/B3_Code_Demo_Guide.docx` |
 | Watch buses move on screen | `cd starter` then `python scripts/watch.py EH StageB` |
-| Redraw the figures | `python starter/scripts/figures.py` |
-| Know what still has to change | `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md` |
 
 ---
 
-## 8. Getting the data (do this first on a new machine)
+## 9. Getting the data (do this first on a new machine)
 
 The pipeline **never downloads anything** — it reads our archived copies. Those
-files are too big for git, so a fresh clone does not have them. You need three.
+files are too big for Git, so a fresh clone does not have them. You need three.
 
 ### 1. The APC snapshot (3.7 GB)
 
@@ -320,102 +333,85 @@ Full checksums are in `data/audit/texas_capmetro/weather_source_audit.json`.
 
 ### 3. Nothing else
 
-Everything downstream is generated. Run `python scripts/pipeline/run_all.py`
-and the cleaned study set, the normalized weather tables and all the evidence
-files are rebuilt from these three inputs.
-
-**Faster option:** ask a teammate for the files directly rather than
-re-downloading 3.7 GB. Check the hashes either way.
+Everything downstream is generated. **Faster option:** ask a teammate for the
+files rather than re-downloading 3.7 GB. Check the hashes either way.
 
 ---
 
-## 9. How to run things
+## 10. How to run things
+
+**Install:** Python 3.12, SUMO 1.27.1 with `SUMO_HOME` set, then
+`pip install -r starter/requirements.txt` (numpy, pandas, matplotlib, torch).
 
 ```bash
-# the whole data pipeline (asks the Texas portal; reuses local files if present)
-python scripts/pipeline/run_all.py
+# ---- the data half (from the repo root) ----------------------------------------
+python scripts/pipeline/run_all.py                 # ~100 s; rebuilds the clean data and evidence
 
-# same thing offline, from the local 3.7 GB snapshot — no network at all
-python scripts/pipeline/audit_route_selection.py --local
-python scripts/pipeline/01_extract_dir6.py --local
-
-# everything under starter/ runs FROM the starter folder
+# ---- the simulation half (from starter/) -----------------------------------------
 cd starter
+python scripts/fit_variability.py                  # ~2 min  -> sim_inputs/fitted/
+python scripts/build_real_net.py                   # ~15 s   -> SUMO network + calibration_real.csv
+python scripts/test_simulator.py                   # ~2 min  -> 13 PASS lines
+python scripts/validate_simulator.py               #         -> results/validation/
+python scripts/mc.py 30 10                         # ~1.5 h on 10 workers -> the baseline table
+python scripts/figures.py                          # redraw the figures
 
-# build + calibrate the real-geometry corridor
-python scripts/build_real_net.py
+# MARL
+python scripts/train_marl.py --episodes 3 --eval_every 3 --name smoke     # ~2 min plumbing check
+python scripts/train_marl.py --episodes 800 --name gate                   # ~3 h
+python scripts/eval_marl.py --ckpt experiments/gate/checkpoint.pt         # vs NC/FH/EH, seeds 0-29
 
-# baselines, 30 seeds, 10 parallel workers (~25 min)
-python scripts/mc.py 30 10
-
-# watch buses move (needs SUMO installed and SUMO_HOME set)
+# watch buses move
 python scripts/watch.py EH StageB
 ```
 
-The whole pipeline takes about **100 seconds** (42 s + 54 s for steps 1 and 2,
-which read the 3.7 GB file; the rest are 1–2 s each). Re-running is safe —
-every output is rewritten from the same inputs.
-
-**Requirements:** Python 3.12 · `pandas numpy torch pettingzoo gymnasium` ·
-SUMO with `SUMO_HOME` set for anything under `starter/`.
+For quick tests of `mc.py`, always add `--tag NAME` so the committed results are not overwritten.
 
 ---
 
-## 10. Things that will confuse you (they confused us)
+## 11. Things that will confuse you (they confused us)
 
-**1. Three `.tex` chapters are someone else's thesis.** See the warning in §5.
+**1. Three `.tex` chapters are someone else's thesis.** See §7.
 
 **2. There are two folders on the Desktop.** `THESIS/MARL/` is this repo and is
-canonical for all code. `THESIS Claude/` is a workspace holding the report and
-deck generators (`dstyle.py`, `make_msa1*.py`) plus `starter_kit/` — an
-**outdated copy** of `starter/`, missing three figure scripts and stale on five
-more. Ignore `starter_kit/`.
+canonical for all code. `THESIS Claude/` is a workspace holding the report and deck
+generators; the demo guide is built there and copied into `docs/reference/`.
 
-**3. The cleaning rules are implemented three times, on purpose.**
-As a text query the Texas portal runs (`clean_where`), as a Python function for
-the offline path (`passes_clean_rules`), and in pandas inside
-`extract_sim_inputs.py`. All three produce 229,421 rows — that agreement is a
-cross-check, not a bug. The **canonical** one for anything quoted in the
-manuscript is `clean_where()`.
+**3. The cleaning rules are implemented three times, on purpose.** As the query the
+Texas portal runs (`clean_where`), as a Python function for the offline path
+(`passes_clean_rules`), and in pandas inside `extract_sim_inputs.py`. All three give
+229,421 rows — that agreement is a cross-check. The canonical one is `clean_where()`.
 
-**4. "Direction 6" is a vendor software code, not a compass direction.** The APC
-file has no headsigns and no stop names. It is almost certainly southbound
-(Tech Ridge → Southpark Meadows, corroborated by overlaying our stop IDs on the
-current GTFS feed), but the 2021 schedule snapshot needed to state it as fact is
-not publicly archived. See `data/audit/texas_capmetro/GTFS_ACQUISITION_STATUS.md`.
+**4. "Direction 6" is a vendor code, not a compass direction.** Overlaying our stop IDs
+on the current GTFS feed shows it is southbound; the 2021 schedule snapshot is not
+publicly archived. See `data/audit/texas_capmetro/GTFS_ACQUISITION_STATUS.md`.
 
-**5. Two files have "extract" in the name and do unrelated things.**
-`extract_sim_inputs.py` turns rows into per-stop averages.
-`extract_route_shape.py` pulls road geometry from OpenStreetMap.
+**5. APC writes a record only when the doors open.** A stop with no record on a trip
+was passed, not missing data. So demand is counted **per trip**, not per record, and
+running time is only taken between consecutive stops.
 
-**6. `rev_seconds` already contains the stop's dwell time.** It is recorded
-door-open to door-open. Everywhere we need pure running time we compute
-`rev_seconds - dwell_time`, because dwell is modelled separately. Forgetting this
-double-counts.
+**6. `rev_seconds` already contains the stop's dwell time.** It is recorded door-open
+to door-open. Pure running time is `rev_seconds - dwell_time`.
 
-**7. `rev_distance` units are unresolved.** The APC metadata says miles or
-kilometres depend on an external odometer setting. Our corridor geometry comes
-from GPS coordinates instead, so nothing depends on it — but do not use it for
-speed without checking.
+**7. `rev_distance` units are unresolved.** Corridor geometry comes from GPS instead,
+so nothing depends on it — but do not use it for speed without checking.
+
+**8. `sumo/corridor.*` is the old straight-line network.** The simulator uses
+`sumo/corridor_real.*`.
 
 ---
 
-## 11. The rule that matters most
+## 12. The rule that matters most
 
 **Never write a number you cannot trace to a file.**
 
-Every figure in the deck and manuscript comes from `data/audit/texas_capmetro/`
-or `starter/results/`. If you need a number, take it from there or regenerate it.
-Do not retype it off a slide.
-
-This is not paranoia — errors have been caught this way repeatedly: a raw row
-count with two digits transposed, citations that misstated what their source
-papers actually said, a stop dropped for the wrong reason. `CLAUDE.md` has the
-full rules; `reports/` has the audits.
+Every figure in the deck and manuscript comes from `data/audit/texas_capmetro/` or
+`starter/results/`. If you need a number, take it from there or regenerate it. Do not
+retype it off a slide.
 
 ---
 
-## 12. Git
+## 13. Git
 
 Default branch `dataset/texas-capmetro-801`, remote **`jared`**
 (`Jrddlol2/MARL_THESIS_TEXASAPC_DATASET`). There is also an `origin` pointing at

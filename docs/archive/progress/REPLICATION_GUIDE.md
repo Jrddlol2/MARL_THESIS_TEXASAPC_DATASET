@@ -1,3 +1,6 @@
+> **ARCHIVED 2026-09-14.** Written for the MSA1 simulator; several scripts and numbers here are out of date.
+> Current guides: main `README.md` §10 (how to run) and `docs/reference/B3_Code_Demo_Guide.docx` (panel demo).
+
 # Replication Guide — Reproduce the Results From a Clean Clone (Group B3)
 
 Follow this end to end and you will **reproduce every result from scratch** — calibration, baselines,
