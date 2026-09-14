@@ -86,32 +86,37 @@ That one sentence explains most of this repository.
 
 ## 4. What we have found so far
 
-Baseline comparison, 30 paired Monte Carlo runs per cell. Lower headway CV =
-more evenly spaced buses = better.
+Baseline comparison, 30 paired Monte Carlo runs per cell, re-run 2026-09-14 at the
+real 2021 headway (600 s), with 18 buses and passengers who get off at their own
+stops. Lower headway CV = more evenly spaced buses = better.
 
 | Scenario | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
-| Stage A — demand + traffic | 0.331 | **0.237** (−28%) | 0.271 (−18%) |
-| + surge | 0.364 | **0.304** (−17%) | 0.316 (−13%) |
-| + weather | 0.977 | 0.918 (−6%, n.s.) | 0.893 (−9%, n.s.) |
-| + breakdown | 0.442 | **0.365** (−17%) | 0.376 (−15%) |
-| Stage B — everything at once | 0.941 | 0.929 (−1%, n.s.) | 0.929 (−1%, n.s.) |
+| Stage A — demand + traffic | 0.159 | **0.121** (−24%) | 0.123 (−23%) |
+| + surge | 0.166 | **0.132** (−21%) | 0.132 (−20%) |
+| + weather | 0.755 | **0.611** (−19%) | 0.654 (−13%) |
+| + breakdown | 0.219 | **0.169** (−23%) | 0.174 (−20%) |
+| Stage B — everything at once | 0.771 | **0.631** (−18%) | 0.674 (−13%) |
 
-**The finding that motivates the whole thesis:** simple holding rules work under
-mild disturbance and **stop working under severe disturbance** — under weather
-and under everything-at-once, the confidence intervals span zero. That gap is
-what the MARL controller is supposed to fill.
+All reductions are significant (95% CIs exclude zero).
+
+**What this means for the thesis:** simple holding rules still help under severe,
+combined disturbance, but they leave most of the added bunching in place — under
+Stage B the best rule still has CV 0.63, about five times its mild-disturbance
+level — and their benefit shrinks as disturbance grows. That remaining gap is what
+the MARL controller has to close. (The earlier claim that holding "stops working"
+under severe disturbance came from runs at the wrong 300 s headway and does not
+hold: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.)
 
 **Where the MARL agent stands:** trained for 286 episodes. Greedy evaluation went
 `0.244 → 0.255 → 0.235 → 0.234 → 0.251 → 0.251 → 0.228` — i.e. it learned
 something by episode 40 (roughly matching Forward-Headway) and then **flat for
-240 episodes.** Diagnosing that plateau is MSA2's main job. No checkpoint was
-saved from that run.
+240 episodes.** That run used the old 300 s headway, so it must be retrained from
+scratch. No checkpoint was saved from it.
 
-⚠️ **Read `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md` before trusting
-the numbers above.** The simulator was parameterised with a scheduled headway of
-300 s; the real 2021 published headway is 600 s. Everything scaled by that value
-has to be re-run. The calibration results are unaffected.
+The simulator now uses the real 2021 headway of 600 s (see
+`docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`). The calibration results
+were unaffected by that change.
 
 ---
 
@@ -259,9 +264,9 @@ presents.** More detail in [`scripts/pipeline/README.md`](scripts/pipeline/READM
 | Understand the weather join | `scripts/pipeline/03_join_weather.py` (read the header) |
 | See the calibration result | `starter/results/calibration.csv` |
 | See the baseline results | `starter/results/mc_summary.md` |
-| Change how the simulation behaves | `starter/envs/corridor_sim.py` line 34 |
+| Change how the simulation behaves | `starter/envs/corridor_sim.py`, PART 2 settings (line 153) |
 | Change what the agent sees or is scored on | `starter/envs/obs.py`, `starter/envs/reward.py` |
-| Watch buses move on screen | `python starter/scripts/watch.py EH Weather+Breakdown` |
+| Watch buses move on screen | `cd starter` then `python scripts/watch.py EH StageB` |
 | Redraw the figures | `python starter/scripts/figures.py` |
 | Know what still has to change | `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md` |
 
@@ -332,14 +337,17 @@ python scripts/pipeline/run_all.py
 python scripts/pipeline/audit_route_selection.py --local
 python scripts/pipeline/01_extract_dir6.py --local
 
-# calibrate the corridor
-python starter/scripts/calibrate_corridor.py
+# everything under starter/ runs FROM the starter folder
+cd starter
 
-# baselines, 30 seeds, parallel
-python starter/scripts/mc.py 30 4
+# build + calibrate the real-geometry corridor
+python scripts/build_real_net.py
+
+# baselines, 30 seeds, 10 parallel workers (~25 min)
+python scripts/mc.py 30 10
 
 # watch buses move (needs SUMO installed and SUMO_HOME set)
-python starter/scripts/watch.py EH Weather+Breakdown
+python scripts/watch.py EH StageB
 ```
 
 The whole pipeline takes about **100 seconds** (42 s + 54 s for steps 1 and 2,

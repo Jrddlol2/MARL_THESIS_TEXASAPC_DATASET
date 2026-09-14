@@ -118,3 +118,24 @@ State of the simulator when this was written: 27 stops, real road geometry (`env
 3. R3 (fitted variability) → R2 (headway-CV validation) → R7 (held-out days).
 4. R5 (skip) → R6 (training with checkpoints, paired seeds).
 5. R11 rain effect in parallel with 3.
+
+---
+
+## Status update — 2026-09-14 (Week 1)
+
+Details: `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md`.
+
+- **R1 — DONE.** H0 = 600 s at all eight sites; fleet = 18 buses (≈ 9 on the corridor at once from
+  an ~87-min trip, observed peak median 10). N = 30 baselines re-run. **The Stage B conclusion does
+  not hold as stated:** FH −18% [−21, −15], EH −13% [−15, −10] — both significant. Restated: holding
+  still helps under combined disturbance but leaves residual CV 0.63 (≈ 5× Stage A) and its benefit
+  shrinks as disturbance grows.
+- **R4 — DONE.** Riders get off at stops drawn from APC alighting shares. Simulated load vs APC mean
+  `max_load`: correlation 0.981, RMSE 1.47 riders (`starter/results/load_profile_validation.csv`).
+- **R8 — DONE.** Each bus starts with Tech Ridge's riders (6.15 per bus on average).
+- **New, fixed:** results depended on Python's hash seed (loop over a `set`); weather/traffic
+  slowdown read another bus's draw; `D=False` had no effect.
+- **R2 — more urgent:** simulated No-Control Stage A CV is 0.159 vs observed 0.62 (not yet like-for-like).
+- **R6 — next:** retrain from scratch at H0 = 600 (holds up to 240 s), with checkpoints and seeds 0–29.
+- **New open items:** surge (120 riders / 900 s) is now 1.5 headways, relatively harsher; breakdown
+  is a 400-s delay, not a bus removal as the manuscript describes.

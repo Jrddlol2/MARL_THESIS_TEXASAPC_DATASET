@@ -238,3 +238,16 @@ criteria) · the MARL method itself (parameter-shared DDQN under CTDE, 7-vector 
 4. *Then* tune reward coefficients — not before. Tuning against a mis-scaled action space would burn
    the MSA2 window.
 5. Manuscript edits in parallel; they don't depend on the re-runs except for the results numbers.
+
+---
+
+> **DONE 2026-09-14: H0 = 600 s applied at all eight sites** (`corridor_sim.py`, `marl_env.py`
+> Config `H0` and `dt`, `reward.py` defaults and self-test, `obs.py` self-test, `run_baseline.py`,
+> `run_disturbances.py`, `verify_real_net.py`; `watch.py` now calls `corridor_sim` directly).
+> **NBUS reconciled:** trip ≈ 87 min simulated (No-Control, Stage A) / 89.5 min observed → ≈ 9 buses
+> on the corridor at once (observed peak median 10); the simulator dispatches 18 (= 2 × 9) so the
+> middle buses run with a full corridor. **N = 30 baselines regenerated** →
+> `starter/results/mc_summary.md`; old table in `starter/results/archive_H0_300/`.
+> **Open question 2 answered:** the Stage B finding came back *weaker-but-different* — both
+> heuristics now significantly reduce bunching under D+T+S+W+B (FH −18%, EH −13%), but residual CV
+> stays at 0.63–0.67. See `docs/progress/WEEK1_SIMULATOR_FIXES_2026-09-14.md` §4.

@@ -1,406 +1,281 @@
 # Code walkthrough — the simulator (`starter/envs/`, `starter/agents/`)
 
-Line-by-line explanation of the simulation core: the corridor loop every
-experiment drives, the MARL glue, the observation vector and the reward library.
+Block-by-block explanation of the simulation core: the corridor loop every experiment
+drives, the MARL glue, the observation vector and the reward library.
 
 Generated with [`docs/prompts/Code_Walkthrough_Prompt.md`](../prompts/Code_Walkthrough_Prompt.md).
-Line numbers current as of 2026-09-12.
+**Line numbers are current as of 2026-09-14** (Week 1 simulator fixes: H0 = 600 s,
+18 buses, passenger destinations, Tech Ridge riders, fixed bus order).
 
 ## File index
 
 | File | Lines | What breaks if you delete it |
 |---|---|---|
-| `envs/corridor_sim.py` | 195 | **Everything.** Every baseline and every MARL run calls `simulate()` |
+| `envs/corridor_sim.py` | 791 | **Everything.** Every baseline, MARL run and the live viewer call `simulate()` |
 | `envs/reward.py` | 68 | The agent has no score. Also holds `Q_REF`, which `obs.py` imports |
 | `envs/obs.py` | 39 | The agent has no input |
 | `envs/marl_env.py` | 63 | The network can't be used as a controller |
 | `agents/ddqn.py` | 131 | No learning |
-| `baselines/even_headway.py` | 13 | Nothing — `corridor_sim` has its own EH at L54 |
-| `envs/bus_env.py` | 77 | **Nothing. Confirmed zero callers.** |
+| `scripts/watch.py` | 84 | The live SUMO-GUI demo (a thin wrapper around `simulate(gui=True)`) |
+| `scripts/validate_loads.py` | 89 | The load-profile check against APC `max_load` |
+| `baselines/even_headway.py` | 13 | Nothing — `corridor_sim` has its own rules |
+| `envs/bus_env.py` | 77 | **Nothing. No importers** (PettingZoo skeleton, superseded) |
 
-## ⚠️ Read this first
+## What changed on 2026-09-14 (and why)
 
-Three things in this code do not match what the manuscript says. They are
-detailed in the findings, but in short:
-
-1. **The skip action does nothing.** `corridor_sim` discards it (L134).
-2. **`H0 = 300`** (L34) — the real 2021 scheduled headway is 600 s.
-3. **`bus_env.py` is dead** — 77 lines, no callers.
+| Change | Why | Where |
+|---|---|---|
+| `H0` 300 → **600 s** | The 2021 timetable runs every 10 min, weekdays 7 AM–6 PM | L157 |
+| 12 → **18 buses** | ~87-min trip ÷ 10-min headway ≈ 9 buses on the corridor at once (observed peak median 10); twice that lets the middle buses run with a full corridor ahead and behind | L164–165 |
+| Riders get off at **their own stop** | Everyone rode to the last stop, so loads were ~3× too high | L250–336 |
+| Buses start with **Tech Ridge riders** | Stop 5304 has the most boardings (6.15) but is not simulated | L149, L343–359 |
+| Buses handled in **fixed order** b0, b1, … | Looping over a `set()` made results depend on Python's hash seed (same seed gave CV 0.192 / 0.193 / 0.212) | L510 |
+| Weather/traffic slowdown uses **this bus's** draw | It used a variable left over from whichever bus arrived last | L626–628 |
+| `D=False` now **turns off** dwell noise | It had no effect | L549–550 |
+| `gui=True` option | The live viewer now runs this exact code | L461–465 |
 
 ---
 
 # `envs/corridor_sim.py` — the heart
 
-**One loop that any controller drives.** A controller is just a function
-`decide(obs) -> (hold_seconds, skip)`. NC, FH, EH and the MARL policy are all
-different `decide` functions running on an identical environment — which is what
-makes the comparison fair by construction.
+**One loop that any controller drives.** A controller is a function
+`decide(obs) -> (hold_seconds, skip)`. NC, FH, EH and the MARL policy are different
+`decide` functions on an identical environment — the comparison is fair by construction.
 
-## L17–21 — imports and SUMO bootstrap
-
-```
-L18-19 if "SUMO_HOME" in os.environ: sys.path.insert(0, .../tools)
-       WHY   traci and sumolib ship inside the SUMO install, not on pip
-       WATCH without SUMO_HOME set, L20 fails at import time
-```
-
-## L23–33 — load the corridor from disk
+## PART 1 · L76–149 — load the corridor
 
 ```
-L23   STOPS = [...corridor.txt...]              the 26 modelled stops, in order
-L24   EDGES = ["e0", "e1", ...]                 SUMO edge names, one per stop
-L25-26 read stop_coordinates.csv and stops.csv, reindexed to STOPS order
-      WATCH .loc[[int(s) for s in STOPS]] will KeyError if corridor.txt names a
-            stop that is not in the CSVs. This is how a bad corridor edit fails.
-
-L27-30 equirectangular projection, then straight-line distance between stops
-      WHAT  DIST[i] = metres from stop i to stop i+1
-      WHY   the RESULTS run on a schematic corridor carrying these real
-            distances. The real-geometry net exists but is used by watch.py for
-            visual verification only.
-
-L31   SEGV[i] = DIST[i] / run_s[i]              the calibrated segment speed
-L32   BASE = per-stop dwell, floored at 8 s
-L33   DEM  = per-stop mean boardings
+L80   STOPS          the 27 modelled stops from corridor.txt, in driving order
+L91   EDGES          "e0", "e1", ... — road piece i leaves stop i
+L99-101 all_stops (every dir-6 stop) and stop_data (re-ordered to corridor order)
+      WATCH .loc[STOP_IDS] raises KeyError if corridor.txt names a stop missing
+            from the CSVs. This is how a bad corridor edit fails.
+L104-105 TECH_RIDGE 5304, SOUTHPARK_MEADOWS 5873 — the two terminals: not stops in
+      the sim, but their riders are (start on board / get off at the last stop)
+L108-132 NET = "real" (default): SEGMENT_LENGTH = along-road distance from
+      route_shape_stops.csv. "schematic": straight-line distance.
+L134-147 RUN_TIME, SEGMENT_SPEED (= length / observed run time), BASE_DWELL (>= 8 s),
+      DEMAND (mean boardings), ALIGHTINGS (mean alightings)
+L149  START_LOAD = Tech Ridge mean boardings (6.15)
 ```
 
-## L34–35 — **the parameter block**
+## PART 2 · L153–213 — settings
 
 ```
-L34   H0, NBUS, CVD, CAP, BIG, TBREAK, ETA = 300.0, 12, 0.25, 0.4, 600.0, 400.0, 0.8
-      H0      scheduled headway (s)          <-- SHOULD BE 600. See the change list.
-      NBUS    buses launched                 12
-      CVD     dwell noise CV                 0.25 (lognormal)
-      CAP     max hold as a fraction of H0   0.4
-      BIG     placeholder stop duration      600 s, overwritten per stop
-      TBREAK  breakdown immobilisation       400 s
-      ETA     weather intensity CV           0.8
-      WATCH   everything scaled by H0 moves when you fix it: the FH/EH caps, the
-              MARL dT, and TBREAK's severity RELATIVE to headway (1.33xH0 now,
-              0.67xH0 at the correct value).
-
-L35   FIXED_DWELL, BOARD_S, MAX_SERV, CAP_PAX = 6.0, 4.0, 90.0, 60
-      BOARD_S  4 s per boarding passenger — a constant, not fitted
-      CAP_PAX  60 — asserted, not sourced (observed max_load is 77)
+L157  H0 = 600.0                  scheduled headway (2021 timetable)
+L164-165 NUM_BUSES = 2 x 9 = 18   see the table above
+L167  DWELL_NOISE_CV = 0.25       lognormal — ASSUMED, not fitted (risk R3)
+L168  MAX_HOLD_FRACTION = 0.4     max hold 240 s, applies to every controller
+L169  LONG_STOP = 600             placeholder stop length; we release buses ourselves
+L170  BREAKDOWN_SECONDS = 400     now 0.67 x H0 (was 1.33 x H0)
+L171  WEATHER_CV = 0.8            LABELLED SYNTHETIC weather
+L173-176 FIXED_DWELL 6 s, 4 s per boarding, 90 s cap, capacity 60 — asserted, not fitted
+L177  SUMO_SECONDS_PER_PERSON 0.5 SUMO's default boarding time per person
+L181  TIME_TO_REACH[i]            scheduled time to reach stop i (passenger timing only)
+L191  CONTROL_STOPS = [0,1,5,17,20]  bus stops 5280, 5857, 5859, 5867, 4046
+      WHY   from the four §3.2.2 criteria, NOT evenly spaced
+      WATCH positional indices into corridor.txt — inserting a stop shifts them
+L198-213 vtype file written atomically (write-then-rename) so parallel workers
+      never read half a file; width=6 is visual only
 ```
 
-## L36–45 — schedule and control stops
+## PART 3 · L217–246 — baseline controllers
 
 ```
-L37-39 CUM[i] = nominal arrival time at stop i (running time + dwell, cumulative)
-       used only to time the passenger injection windows
-
-L45   CONTROL_STOPS = [0, 1, 5, 17, 20]     bs_ids 5280, 5857, 5859, 5867, 4046
-      WHY   derived from the four §3.2.2 criteria, NOT evenly spaced
-      WATCH these are POSITIONAL indices into corridor.txt. Add or remove a stop
-            and they silently point somewhere else. This is the trap if 6361
-            (Slaughter Station) is restored.
+L219  forward_headway_hold(hf) = 0 if hf >= H0 else min(H0 - hf, 0.4 H0)
+      sees only the gap AHEAD
+L227  even_headway_hold(hf, hb) = clip(0.5 (hb - hf), 0, 0.4 H0)
+      sees both neighbours
+L234-246 no_control / forward_headway / even_headway, and BASELINES = {NC, FH, EH}
 ```
 
-## L53–58 — the baseline controllers
+## PART 4 · L250–386 — passengers
 
 ```
-L53   fh_hold(hf) = 0 if hf >= H0 else min(H0 - hf, 0.4*H0)
-      WHAT  Forward-Headway: hold if you are closer to the leader than scheduled
-      WHY   sees only the gap AHEAD — that is the point of the comparison
+L259-274 ALIGHT_FRACTION per stop
+      fraction = APC alightings / expected riders on board; last stop = 1
+      WHY   then expected alightings per stop equal the APC mean, and the expected
+            load along the corridor follows the APC data (peak ~18.5 vs APC
+            mean max_load 17.1 at stop 5357)
+      WATCH APC means are per recorded stop event (doors opened), not per trip —
+            same basis as DEMAND, so the model is internally consistent (risk R9)
 
-L54   eh_hold(hf, hb) = clip(0.5*(hb - hf), 0, 0.4*H0)
-      WHAT  Even-Headway: split the difference between the two gaps
-      WHY   sees BOTH neighbours, so it should handle a breakdown behind it
+L277  destination_shares(i)   chance of getting off at each later stop
+L288  split_whole_riders()    whole numbers that add up exactly (largest remainder)
+L306  spread_destinations()   mixes destinations evenly over time
+L324  riders_at_stop()        one <person> per rider, arrivals evenly spaced
+      WATCH do NOT switch back to one <personFlow> per destination: SUMO starts
+            every flow's first rider at the flow's begin time, which bunches
+            arrivals (it doubled SUMO's recorded wait and inflated CV 0.11 -> 0.21)
 
-L55-57 each returns (hold, 0) — the second element is skip, always 0
-L58   BASELINES = {"NC":..., "FH":..., "EH":...}
+L339-382 write_scenario_file()
+      L343-359 the 18 buses, each followed by its Tech Ridge riders with
+               depart="triggered" — SUMO puts them inside the bus when it starts
+      WATCH triggered riders need the bus defined in a FILE; traci.vehicle.add()
+            is too late ("Unknown vehicle in triggered departure")
+      L361-368 waiting riders: 18 x mean boardings per stop, spread over the
+               time the buses pass
+      L370-373 S: 120 surge riders over 900 s (now ~1.5 headways — relatively
+               MORE severe than at H0 = 300; not yet aligned to the manuscript's
+               f_d scaling)
 ```
 
-## L61–73 — `_make_persons()` — demand injection
+## PART 5 · L390–726 — `simulate()`
+
+### L430–449 — draw all randomness up front
 
 ```
-L64   K = round(NBUS * DEM[stop])          passengers to inject at this stop
-L66   b, e = CUM[i], CUM[i] + H0*(NBUS-1)  spread arrivals across the service window
-      WHY   injecting everyone at t=0 would make waits meaningless; spreading
-            them over the window keeps steady-state wait near H0/2
-
-L69-72 if S: a 120-passenger surge at stop SURGE_I (= n//3), lasting 900 s
-      WHAT  the "S" disturbance
+L423  random = np.random.default_rng(1000 + seed)
+L432  dwell_noise    (D)   lognormal, one per bus x stop
+L437-439 weather_factor (W) lognormal with MEAN 1, clipped to [0.5, 3]
+L442  traffic_factor (T)   uniform 0.8-1.2
+L445-449 breakdown bus and stop (B)
+      WHY   drawn before the run, in a fixed order, so every controller sees the
+            identical disturbance for a given seed — that is what makes the
+            Monte-Carlo comparison PAIRED
 ```
 
-## L76–185 — `simulate()`
-
-### L80–91 — set up the episode
+### L451–479 — start SUMO
 
 ```
-L81   rng = np.random.default_rng(1000 + seed)
-      WHY   per-seed offset so MC replications are independent but reproducible
-
-L84   DWN = rng.lognormal(0, CVD, size=(NBUS, ns))     dwell noise
-L86   WF  = clip(rng.lognormal(-0.5*s2, sqrt(s2)), 0.5, 3.0)   weather factor
-      WHY   the -0.5*s2 location gives a lognormal with MEAN 1.0, so weather
-            slows buses on average without changing the mean travel time when
-            disabled
-      WATCH this is the LABELLED SYNTHETIC weather. The NOAA join is at the data
-            layer only; this generator is not calibrated to it.
-
-L87   TF  = rng.uniform(0.8, 1.2)                      traffic factor
-L88   bk_idx, bks = which bus breaks down, and where
-L89-90 per-call socket port and temp filenames
-      WHY   mc.py runs these in parallel; fixed names would collide
+L454-457 per-run port and file names (parallel-safe), write the scenario file
+L460-469 command: sumo (or sumo-gui + --start --delay + view settings)
+      --tripinfo-output.write-unfinished  so riders who never got off are counted
+      --seed, --step-length 1, -e 36000
 ```
 
-### L93–96 — start SUMO
+### L496–646 — the main loop (one pass = one simulated second)
 
 ```
-L93   traci.start([... "-n", "sumo/corridor.net.xml", ...])
-      WATCH the SCHEMATIC net. corridor_real.net.xml is for the viewer.
-L96   "-e", "36000"                         10-hour cap on simulated time
+L507  stop when all 18 buses have entered and left
+L510  for bus in BUS_NAMES         <-- FIXED ORDER. Never loop over a set here.
+L517-529 new bus: register all 27 stops with the placeholder duration
+
+L534-607 (1) JUST ARRIVED at stop i   (is_stopped and not was_stopped)
+      L545-550 dwell = min(90, 6 + 4 x waiting), x noise if D
+               WHY  the feedback that CREATES bunching: a late bus finds more
+                    people, dwells longer, falls further behind
+      L554-555 doors_time = 0.5 s x (getting off + boarding) + 1
+               WHY  SUMO needs that long to move riders; without it a rider
+                    could miss their stop. Rarely binds (dwell is >= 6 s).
+      L559     control stop and not the lead bus (bus 0 has no leader)
+      L562     hf = time since the bus ahead arrived HERE
+      L568     hb = estimated from the PREVIOUS stop (the follower hasn't
+               arrived here yet) — the manuscript's "estimated backward headway"
+      L584-587 obs dict (11 keys) -> decide(obs)
+               WATCH `skip` is returned but NOT USED — risk R5, still open
+      L589     hold clipped to [0, 240 s] for every controller
+      L591-596 breakdown adds 400 s once
+      L603     stop_duration = max(6, dwell, doors_time) + hold + breakdown
+
+L609-633 (2) WAITED LONG ENOUGH: record the load leaving, resume, then set the
+      speed for the next road piece: SEGMENT_SPEED / (weather / traffic), floor 2 m/s
+L635-638 (3) JUST DROVE OFF: aim at the next stop
 ```
 
-### L104–152 — the main loop
+### L648–726 — results
 
 ```
-L98   departs = {"b0": 0, "b1": H0, "b2": 2*H0, ...}
-      WHAT  buses launch one headway apart
-      WATCH at H0=300 x 12 buses = 3600 s of departures against a ~5000 s run,
-            so all 12 overlap. At H0=600 only ~8 would. This is the
-            H0/NBUS/run-time consistency problem.
-
-L104  while t < H0*NBUS + 30000 and (vehicles remain or buses still to launch)
-L107  traci.vehicle.add(...)                 launch when t reaches the departure
-L112-114 setBusStop(v, stop, duration=BIG) for all stops
-      WHY   register every stop up front with a long placeholder duration; the
-            real duration is set when the bus actually arrives (L138)
-
-L119  if st and not prev[v] and i < ns:      <-- ARRIVAL EDGE DETECTION
-      WHAT  fires once, on the transition from moving to stopped
-      WHY   isStopped() is true for many consecutive steps; without the
-            `not prev[v]` guard every metric would be counted repeatedly
-
-L120  arr[s].append(t); barr[(bi, i)] = t    record the arrival
-L122  nwait = traci.busstop.getPersonCount(s)
-L124  dserv = min(MAX_SERV, FIXED_DWELL + BOARD_S*nwait) * DWN[bi, i]
-      WHAT  demand-responsive dwell: 6 s + 4 s per waiting passenger, capped at
-            90 s, times this bus-stop's noise draw
-      WHY   this is the feedback that CREATES bunching — a late bus finds more
-            people waiting, dwells longer, falls further behind
+L650-655 headway_cv: per stop, std(gaps) / mean(gaps); averaged over stops 1..26
+         (the origin is excluded — its headways are the launch schedule)
+L657     travel_s: first-stop to last-stop time per bus
+L664-671 wait_s: boardings-weighted (mean gap / 2)(1 + CV^2) — PRIMARY wait,
+         a model (random-arrival formula), not a measurement
+L676-687 wait_direct: SUMO's recorded wait per rider (Tech Ridge riders excluded);
+         rides_unfinished: boarded but never got off (should be 0)
+L696-701 load_leaving: mean riders on board leaving each stop
+L712-724 trace=True: per-bus (arrival time, stop index) for Marey diagrams
 ```
 
-### L126–135 — **the control decision**
+## PART 6 · L730–778 — helpers
 
 ```
-L126  if i in control_stops and bi > 0:
-      WATCH bi > 0 means the LEAD BUS NEVER ACTS. It has no bus in front, so
-            no forward headway. 11 of 12 buses are controllable.
-
-L127  hf = t - barr[(bi-1, i)]  if known else H0
-      WHAT  forward headway = time since the bus ahead reached THIS stop
-L128  hb = barr[(bi, i-1)] - barr[(bi+1, i-1)]  if known else H0
-      WHAT  backward headway ESTIMATED from the PREVIOUS stop
-      WHY   the follower has not reached this stop yet, so its gap here is not
-            observable — it is inferred from one stop back. The manuscript calls
-            this the "estimated backward headway" for this reason.
-
-L131  w = WF[bi, i] if W else 1.0            weather intensity for the obs vector
-L132-133 obs = dict(hf, hb, load, queue, idx, n, H0, cap, bus, w, b)
-      WHAT  11 keys; obs.py turns them into the 7-vector
-L134  hold, _skip = decide(obs)
-      WATCH *** THE SKIP RETURN VALUE IS DISCARDED. *** See findings.
-L135  hold = clip(hold, 0, 0.4*H0)           the cap applies to every controller
+L732  count_riders_getting_off()  riders whose ride ends at this stop
+L744  base_colour()               grey for NC, blue otherwise (GUI)
+L751  write_coloured_stops()      copies the stop file with colours; positions
+                                  unchanged, so a GUI run gives identical numbers
+L765  zoom_to_corridor()          fit the corridor in the window
 ```
 
-### L136–152 — apply and resume
+## Verified behaviour (2026-09-14)
 
-```
-L136  tb = TBREAK if (B and bi == bk_idx and i == bks) else 0
-L137  if tb > 0: bk_triggered = True         so later obs carry the breakdown flag
-L138  target[v] = max(FIXED_DWELL, dserv) + hold + tb
-      WHAT  total time this bus sits: service + control hold + breakdown
-
-L141-143 when (t - arrival) >= target, resume
-L144-150 after resuming, set the segment speed for the upcoming leg
-      L146  if W: f *= WF[bi, i]             weather slows
-      L147  if T: f /= TF[bi, i]             traffic scales both ways
-      L149  setMaxSpeed(max(2.0, SEGV[i] / f))
-      WATCH floor of 2 m/s stops a severe weather draw freezing a bus entirely
-
-L151  if (not st) and prev[v]: idx[v] += 1   departure edge -> advance the index
-```
-
-### L157–185 — the metrics
-
-```
-L157  cvs = [std(diff(sorted(arr[s]))) / mean(diff(...)) for s in STOPS[1:] if >=3 arrivals]
-      WHAT  headway CV per stop, then averaged -> the headline metric
-      WATCH STOPS[1:] excludes the origin, where headways are the launch
-            schedule by construction
-
-L158  tt = [completion - entry]              travel time per bus
-
-L161-165 wait_model = boardings-weighted (E[H]/2)(1+CV^2)
-      WHY   expected wait under random passenger arrivals given the REALIZED bus
-            headways. This is the PRIMARY wait metric.
-      WATCH it is a model, not a measurement. The manuscript's phrasing implies
-            simulated per-passenger wait; this is an analytic formula.
-
-L168-173 wait_direct = SUMO's own per-passenger waitingTime from tripinfo
-      WHY   independent cross-check. Matches wait_model under mild conditions;
-            inflates under heavy weather because far-stop passengers are injected
-            before any bus can reach them.
-
-L174-176 delete the temp files
-L181-184 if trace: per-bus (arrival_time, stop_index) + cumulative distance
-      WHY   this is what marey.py draws the time-space diagram from
-```
+| Check | Result |
+|---|---|
+| Same seed, Python hash seeds 0 / 5 / 7 | Identical results |
+| `gui=True` path vs headless (FH, seed 1, D+T+B) | Identical CV and travel time; 35 amber holds, 1 red breakdown |
+| Riders who boarded but never got off | 0 |
+| SUMO recorded wait vs headway-formula wait (FH, seed 1, D+T) | 300 s vs 306 s |
+| Simulated load leaving each stop vs expected | Within 0.3 riders at every stop |
 
 ## Findings — `corridor_sim.py`
 
 | | |
 |---|---|
-| **The skip action is not implemented** | L134 discards it (`_skip`). The docstring at L12–13 says it "takes effect if the caller enabled skipping (`SKIP_ENABLED`)" — **`SKIP_ENABLED` does not exist anywhere in the repository.** Confirmed by grep. So actions 5–9 of the 10-action space are behaviourally identical to 0–4 inside the simulator. `marl_env` currently masks skip to 0 anyway (`skip_enabled=False` by default), so nothing is silently wrong *today* — but the moment anyone sets `skip_enabled=True`, the agent will emit skips that the simulator ignores, and the resulting "skip does nothing" will look like a reward-tuning problem. **Fix before MSA2 enables skipping.** |
-| `H0 = 300` | L34. Should be 600. See `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md` |
-| `CONTROL_STOPS` are positional | L45. Restoring stop 6361 shifts every index after it |
-| The lead bus never acts | L126 (`bi > 0`). Correct — it has no leader — but it means 11 of 12 buses are controlled, which is worth stating in the manuscript |
-| `__main__` parity targets may be stale | L190 expects "NC~0.335, FH~0.153, EH~0.172" for the all-interior configuration. The committed `mc_summary.md` reports 0.331 / 0.237 / 0.271 at the **five designated** stops. Different configurations, so not necessarily wrong — but **UNVERIFIED**, and worth re-running before quoting either |
+| **Skip still not implemented** (R5) | L587 receives `skip` and ignores it. `marl_env.Config.skip_enabled = False` masks it today. Implement before enabling skip in training |
+| Lead bus never acts | L559 (`bus_number > 0`). Correct, but 17 of 18 buses are controllable |
+| Surge severity grew relative to headway | L370–373: 120 riders over 900 s is now 1.5 headways, not 3. Manuscript defines S as a scaling factor `f_d` — align in MSA 2 |
+| Breakdown is a delay, not a removal | L591–596. Manuscript §3 describes removing a bus for the rest of the day |
+| Dwell and traffic variability assumed | L167, L442 (risk R3) |
 
 ---
 
 # `envs/obs.py` — what a bus sees
 
-39 lines. Turns the 11-key obs dict into the manuscript's 7-vector (Table 3.6),
-normalised so every feature sits near [0, 1].
+Turns the 11-key obs dict into the manuscript's 7-vector (Table 3.6), each near [0, 1]:
+`idx/(n-1)`, `hf/H0`, `hb/H0`, `load/cap`, `queue/Q_REF`, `(w-0.5)/2.5`, `b`.
 
 ```
-L24   idx/(n-1)          where along the corridor
-L25   hf/H0              forward headway; 1.0 means exactly on schedule
-L26   hb/H0              estimated backward headway
-L27   load/cap           occupancy
-L28   queue/Q_REF        waiting passengers, Q_REF = 20 from reward.py
-L29   (w - 0.5)/2.5      weather; the WF clip is [0.5, 3.0], so this maps to [0, 1]
-L30   b                  breakdown flag, already 0/1
+WATCH L25-26 divide by H0. With H0 = 600 the inputs differ from gate1 (H0 = 300),
+      so any earlier weights cannot be reused. Retrain from scratch.
+WATCH L16 imports Q_REF from reward.py (obs depends on the reward module).
 ```
-
-```
-WATCH L25-26 divide by H0. Changing H0 to 600 HALVES these two inputs, so the
-      network sees a different input distribution and the gate1 weights cannot
-      be fine-tuned — retrain from scratch. (No checkpoint was saved anyway.)
-
-WATCH L16 imports Q_REF from reward.py. The observation module depends on the
-      reward module for a normalisation constant. Harmless, but it means the two
-      cannot be swapped independently.
-```
-
-## Findings — `obs.py`
-
-None beyond the `H0` coupling above.
 
 ---
 
 # `envs/reward.py` — how the agent is scored
 
-The manuscript fixes the *structure* — three non-positive penalties — and leaves
-the expressions and weights as the implementation deliverable. So this file is a
-**menu of candidates**, and `Config` picks which.
+A **menu of candidate terms**; `Config` picks which (the EO2.1 deliverable).
 
 ```
-L17-21 decode_action(a, H0, dt)
-       alpha = (a % 5) * 0.1     ->  {0, .1, .2, .3, .4}
-       skip  = a // 5            ->  0 or 1
-       returns (alpha * dt, skip)
-       WATCH at dt=300 the holds are {0,30,60,90,120} s; at dt=600 they become
-             {0,60,120,180,240}. With TBREAK=400 s, the current maximum hold
-             cannot begin to correct a breakdown. This is the leading suspect
-             for the gate1 plateau.
-
-L25-30 THREE candidate irregularity terms
-       irr_dev   squared deviation of hf from H0            (schedule adherence)
-       irr_even  squared hf/hb asymmetry                    (even spacing)
-       irr_both  average of both
-
-L32-35 TWO candidate wait terms
-       wait_queue  waiting riders x the headway they endured   (at-stop)
-       wait_hold   holding delay x onboard load                (in-vehicle)
-       WATCH these penalise OPPOSITE things. wait_queue rewards holding to even
-             out gaps; wait_hold punishes holding. Which you pick materially
-             changes what the agent learns.
-
-L37-40 TWO candidate skip terms
-       skip_stranded  skip x queue/Q_REF     (demand-aware)
-       skip_flat      flat penalty per skip
-       WATCH both are currently unreachable — see the corridor_sim finding
-
-L47-57 compose(prev, cur, a_prev, cfg) = -(w1*irr + w2*wait + w3*skip)
-       WHY   the reward for an action is computed at the bus's NEXT decision,
-             using the state that action produced. That is the semi-MDP
-             assembly — the action's consequence is not observable until the
-             bus reaches the next control stop.
+L17   decode_action(a, H0=600, dt=600) -> (alpha x dt, skip)
+      holds are now {0, 60, 120, 180, 240} s (were {0, 30, 60, 90, 120})
+L25-30 irregularity: irr_dev / irr_even / irr_both
+L32-35 wait: wait_queue (rewards holding to even gaps) vs wait_hold (punishes
+      holding) — they pull in OPPOSITE directions
+L37-40 skip: skip_stranded / skip_flat — unreachable until R5 is fixed
+L47   compose() = -(w1 irr + w2 wait + w3 skip), computed at the bus's NEXT
+      decision (semi-MDP)
 ```
 
-## Findings — `reward.py`
-
-- `Q_REF = 20.0` (L14) is labelled "tunable scale constant" and has never been
-  tuned. It scales both the queue observation and the wait penalty.
-- The candidate menu is the EO2.1 deliverable and nothing is committed — that is
-  by design, not an omission.
+Finding: `Q_REF = 20.0` (L14) has never been tuned.
 
 ---
 
 # `envs/marl_env.py` — the glue
 
 ```
-L20-36 @dataclass Config — every experiment knob in one place
-       L26   H0: 300.0; dt: 300.0        <-- both need to become 600
-       L33   control_stops = (0,1,5,17,20)
-       L29   eps_decay = 30_000          in TRANSITIONS, not episodes
-
-L46-59 MarlController.__call__(obs) — this IS the decide() function
-       L49-55 if this bus has acted before, compute the reward for that action
-              now (state `obs` is what it produced), push the transition, learn
-       L56    choose a new action (greedy when not training)
-       L57    remember (obs_vec, action, obs_dict) for this bus
-       L59    return hold, and skip only if skip_enabled
-       WHY    parameter sharing: one agent instance serves every bus, keyed by
-              obs["bus"]
-
-L61-63 finalize() — clear the per-bus memory at episode end
-       WHY    the last action of an episode has no next state to bootstrap from,
-              so it must be dropped rather than paired with the next episode's
-              first observation
-       WATCH  forget to call this between episodes and you corrupt the buffer
-              with cross-episode transitions
+L26   H0 = 600.0, dt = 600.0, skip_enabled = False
+L33   control_stops = (0, 1, 5, 17, 20)
+L46-59 MarlController.__call__(obs) IS the decide() function: reward the bus's
+      previous action from this state, store the transition, learn, act
+L61-63 finalize() — drop each bus's last action at episode end
+      WATCH forget it between episodes and transitions leak across episodes
 ```
-
-## Findings — `marl_env.py`
-
-- `Config.skip_enabled` defaults to `False`, which is currently the *only* thing
-  preventing the discarded-skip bug from mattering.
-
----
-
-# `envs/bus_env.py` — dead
-
-77 lines. A PettingZoo AEC environment skeleton, superseded by
-`corridor_sim.simulate()`. **Grep confirms zero importers.** Delete it, or move
-it to an `archive/` folder with a note — leaving it invites someone to build on
-the wrong base.
-
----
-
-# `baselines/even_headway.py` — redundant
-
-13 lines implementing Even-Headway. `corridor_sim.py:54` has its own `eh_hold`,
-and that is the one the experiments use. This file is imported by nothing.
-Two implementations of the same rule is exactly the drift risk we removed from
-the cleaning rules — consolidate or delete.
 
 ---
 
 # Consolidated findings
 
-| Severity | Finding | Where |
-|---|---|---|
-| **High** | Skip action discarded; `SKIP_ENABLED` never existed | `corridor_sim.py:134`, docstring L13 |
-| **High** | `H0 = 300`, should be 600 | `corridor_sim.py:34`, `marl_env.py:26` |
-| Medium | `wait_queue` and `wait_hold` penalise opposite behaviours | `reward.py:32–35` |
-| Medium | `CONTROL_STOPS` are positional indices | `corridor_sim.py:45` |
-| Low | `bus_env.py` — 77 lines, zero callers | `envs/bus_env.py` |
-| Low | `baselines/even_headway.py` duplicates `corridor_sim.py:54` | both |
-| Low | `Q_REF` never tuned; couples obs to reward | `reward.py:14`, `obs.py:16` |
-| UNVERIFIED | `__main__` parity targets vs the committed MC table | `corridor_sim.py:190` |
+| Severity | Finding | Where | Status |
+|---|---|---|---|
+| **High** | Skip action discarded | `corridor_sim.py:587` | Open (R5) |
+| High | Results depended on Python hash seed | `corridor_sim.py:510` | **Fixed 2026-09-14** |
+| High | `H0 = 300`, should be 600 | `corridor_sim.py:157` + 7 other sites | **Fixed 2026-09-14** |
+| High | All riders rode to the last stop | `corridor_sim.py:250–386` | **Fixed 2026-09-14** |
+| Medium | Weather/traffic draw taken from the wrong bus | `corridor_sim.py:626–628` | **Fixed 2026-09-14** |
+| Medium | `D=False` had no effect | `corridor_sim.py:549` | **Fixed 2026-09-14** |
+| Medium | Surge relatively harsher at H0 = 600; breakdown is a delay not a removal | `corridor_sim.py:370`, `:591` | Open (align to manuscript) |
+| Medium | `wait_queue` and `wait_hold` penalise opposite behaviours | `reward.py:32–35` | By design — choose in EO2.1 |
+| Medium | `CONTROL_STOPS` are positional indices | `corridor_sim.py:191` | Watch when editing corridor.txt |
+| Low | `bus_env.py` has no importers; `baselines/even_headway.py` duplicates the rule | both | Open |
+| Low | `Q_REF` never tuned | `reward.py:14` | Open |
