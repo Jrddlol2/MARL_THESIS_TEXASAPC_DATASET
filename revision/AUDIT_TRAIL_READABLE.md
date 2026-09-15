@@ -630,7 +630,7 @@ now resolve from the Git checkout, so members no longer need an external
 Overleaf-only `Figures` folder to compile the manuscript.
 
 ## 2026-09-16 — Implementation alignment — [methods.tex, Sections 3.1–3.5; problem.tex, Rationale and Limitations]
-**Commit:** `PENDING`
+**Commit:** `d713a7d`
 
 ### Where training runs
 

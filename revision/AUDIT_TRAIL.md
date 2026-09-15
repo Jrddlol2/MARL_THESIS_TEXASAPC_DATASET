@@ -785,7 +785,7 @@ active `\includegraphics` target now exist locally. The pre-import recovery
 checkpoint is `20260823-220220_before_original_assets_import_dfca22e`.
 
 ## 2026-09-16 — Implementation alignment — [methods.tex, Sections 3.1–3.5; problem.tex, Rationale and Limitations]
-**Commit:** `PENDING`
+**Commit:** `d713a7d`
 
 Training layer: the manuscript described a second, lighter Python simulator; every experiment in fact
 runs the one calibrated SUMO corridor.
