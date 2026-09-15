@@ -13,11 +13,15 @@ THE PROBLEM
     (no stop names, no compass field). To name them we would need the 2021
     GTFS timetable files, and we do not have them.
 
-THE RULE
-    Until a checksum-verified 2021 GTFS file is found, we must:
-        * call it "direction 6" only,
-        * not call it northbound/southbound using TODAY's timetable,
-        * not claim 2021 stop names, route shapes or scheduled headways.
+THE ANSWER (2026-09-12)
+    The 2021 file is NOT publicly archived. Six retrieval routes were tried and
+    all failed, so the question is closed as "unavailable", not "pending".
+    Two things it was blocking now come from other sources, and each must be
+    described as what it is:
+        * direction 6 = southbound, corroborated by overlaying our stop IDs on
+          TODAY's feed (28 of 29 match in order, median offset 8.5 m),
+        * the scheduled headway comes from the archived 2021 timetable PDF.
+    2021 stop names are still not claimed.
 
     All the text comes from the "gtfs" block of config/texas_capmetro_801.json.
     When the situation changes, edit the config, not this script.
@@ -59,32 +63,39 @@ def write_gtfs_gate(config):
     first_day = gtfs["required_service_window"][0]
     last_day = gtfs["required_service_window"][1]
 
+    substitutes_text = "\n".join(
+        f"- **{name.replace('_', ' ')}:** {text}" for name, text in gtfs.get("substitutes", {}).items())
+
     content = f"""# Historical GTFS acquisition gate
 
-Status: **open - a 2021-compatible snapshot has not yet been checksum-verified.**
+Status: **closed {gtfs.get('resolved', '')} - a 2021-compatible snapshot is not publicly archived.**
 
 Required service window: `{first_day}` through
 `{last_day}`.
 
 The current official feed is publicly available at
 `{gtfs['current_official_feed']}`, but it is not valid evidence for a 2021 route
-mapping. Candidate historical sources are {gtfs['candidate_archive']}.
+mapping. Candidate historical sources were {gtfs['candidate_archive']}.
 
 ## Retrieval attempts
 
 {attempts_text}
 
-Until the gate closes, the manuscript and code must:
+## Conclusion
 
-- refer to APC direction `6` by code only;
-- avoid assigning northbound/southbound labels from the current schedule;
-- avoid claiming historical stop names, route shapes, or scheduled headways; and
-- keep schedule-derived parameters as `%TODO-DATA`.
+{gtfs.get('conclusion', '')}
+
+## What the blocked parameters use instead
+
+{substitutes_text}
+
+## The standing rule
+
+{gtfs['gate']}
 
 This is a source-availability limitation, not a failed weather/APC feasibility
 check. The APC records themselves contain stop IDs and stop-event coordinates,
-so segment-level empirical work can proceed while authoritative 2021 schedule
-semantics remain gated.
+so segment-level empirical work proceeds on those records.
 """
     common.write_text(common.AUDIT_DIR / "GTFS_ACQUISITION_STATUS.md", content)
 

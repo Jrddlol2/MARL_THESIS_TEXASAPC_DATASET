@@ -1,14 +1,19 @@
 {
   "study": {
     "case_study": "CapMetro Rapid Route 801, Austin, Texas",
-    "candidate_routes": ["801", "803"],
+    "candidate_routes": [
+      "801",
+      "803"
+    ],
     "primary_route_id": "801",
     "primary_direction_code": "6",
-    "primary_direction_label": null,
-    "direction_label_status": "provisional_code_only_pending_2021_gtfs",
+    "primary_direction_label": "southbound",
+    "direction_label_status": "corroborated_from_current_gtfs_overlay_2026; 2021 snapshot not publicly archived",
     "observation_start": "2021-07-01",
     "observation_end": "2021-12-31",
-    "timezone": "America/Chicago"
+    "timezone": "America/Chicago",
+    "scheduled_headway_s": 600,
+    "scheduled_headway_source": "archived Route 801 timetable, capture 2021-07-20 (data/raw/capmetro/schedule_2021/801_20210720110345.pdf)"
   },
   "apc": {
     "dataset_name": "APC Raw July 2021 - December 2021",
@@ -21,7 +26,10 @@
       "import_error": "0",
       "import_trip_error": "0",
       "exclude_bs_id": "0",
-      "allowed_direction_codes": ["4", "6"]
+      "allowed_direction_codes": [
+        "4",
+        "6"
+      ]
     },
     "timestamp_assumption": "APC compact timestamps are Austin wall-clock times; this remains an explicit assumption until CapMetro metadata confirms the time basis.",
     "raw_output": "data/raw/capmetro/route_801_direction_6_clean.csv"
@@ -46,17 +54,29 @@
       "longitude": -97.67989,
       "url": "https://www.ncei.noaa.gov/oa/local-climatological-data/v2/access/2021/LCD_USW00013904_2021.csv"
     },
-    "primary_exposure": ["precipitation", "present_weather_rain_code"],
-    "secondary_exposure": ["visibility"],
-    "control_covariates": ["temperature", "relative_humidity", "wind_speed"],
+    "primary_exposure": [
+      "precipitation",
+      "present_weather_rain_code"
+    ],
+    "secondary_exposure": [
+      "visibility"
+    ],
+    "control_covariates": [
+      "temperature",
+      "relative_humidity",
+      "wind_speed"
+    ],
     "nearest_join_tolerance_minutes": 90
   },
   "gtfs": {
-    "required_service_window": ["2021-07-01", "2021-12-31"],
-    "status": "historical_archive_not_yet_verified",
+    "required_service_window": [
+      "2021-07-01",
+      "2021-12-31"
+    ],
+    "status": "2021_snapshot_not_publicly_archived",
     "current_official_feed": "https://data.austintexas.gov/download/r4v4-vz24/application/zip",
     "current_feed_is_not_valid_for_2021_mapping": true,
-    "candidate_archive": "Transitland Feed Archive or Mobility Database history",
+    "candidate_archive": "Transitland Feed Archive and Mobility Database history (both exhausted)",
     "retrieval_attempts": [
       {
         "source": "Transitland Feed Archive API",
@@ -69,8 +89,35 @@
       {
         "source": "Texas Open Data CapMetro GTFS asset r4v4-vz24",
         "result": "Current official asset and revision sequence 38 verified. Specific revision and source endpoints returned HTTP 401, so no historical blob was obtained anonymously."
+      },
+      {
+        "source": "Internet Archive, Texas Open Data asset r4v4-vz24",
+        "result": "One capture (December 2024) and it returns HTTP 302 only; no 2021 blob."
+      },
+      {
+        "source": "Internet Archive, data.austintexas.gov mirror",
+        "result": "Four captures (2024-2025), all HTTP 302; no 2021 blob."
+      },
+      {
+        "source": "transitfeeds.com / OpenMobilityData",
+        "result": "Live site is behind Cloudflare; the Internet Archive holds only its 2013-10 to 2014-12 CapMetro versions."
+      },
+      {
+        "source": "Transitland v1 API",
+        "result": "Retired; no anonymous historical endpoint remains."
+      },
+      {
+        "source": "Mobility Database full catalog",
+        "result": "CapMetro is mdb-150 and its archive URL resolves to mdb-latest, i.e. the current feed only."
       }
     ],
-    "gate": "Do not assign compass direction names, stop names, route shapes, or scheduled headways until a 2021-compatible GTFS snapshot is checksum-verified."
+    "gate": "Do not present 2021 stop names or any schedule semantics beyond the archived timetable as 2021 records. The direction label and route shape are corroborated from present-day sources and must be described that way.",
+    "resolved": "2026-09-12",
+    "conclusion": "A 2021-compatible GTFS snapshot is not publicly archived. The gate is closed as unavailable rather than pending, and the two parameters it blocked are sourced elsewhere.",
+    "substitutes": {
+      "direction_label": "Direction code 6 = southbound, corroborated by overlaying the 29 study stop IDs on the current published feed: 28 match the southbound pattern in identical order, median offset 8.5 m, and the three feed-only stops postdate 2021. Reported as corroboration from the current feed, not as a 2021 record.",
+      "scheduled_headway": "600 s on weekdays 07:00-18:00, from the archived Route 801 timetable captured 2021-07-20 (data/raw/capmetro/schedule_2021/801_20210720110345.pdf, SHA-256 8dfd88258b3b8f8288e5c23498b77bb69dabb6534c10facab1617c8f18307c5f); the same headways appear in the Nov-2020, Apr-2021, Nov-2021 and Aug-2022 captures.",
+      "route_shape": "Taken from the OpenStreetMap route relation; the current feed's shape distance for 5280 to 5872 (27,918 m) agrees with the modelled arc length (27,599 m) to 1.2%."
+    }
   }
 }

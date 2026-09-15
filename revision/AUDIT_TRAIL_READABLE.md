@@ -629,6 +629,137 @@ Every active PDF figure was rendered and inspected. All active image references
 now resolve from the Git checkout, so members no longer need an external
 Overleaf-only `Figures` folder to compile the manuscript.
 
+## 2026-09-16 — Implementation alignment — [methods.tex, Sections 3.1–3.5; problem.tex, Rationale and Limitations]
+**Commit:** `PENDING`
+
+### Where training runs
+
+**BEFORE**
+
+SUMO is the calibration layer. A custom Python environment built on the PettingZoo Agent Environment
+Cycle API is the training and Monte Carlo evaluation layer, where the agents interact with a lightweight
+bus dynamics model set up from the calibrated distributions. SUMO is used for corridor calibration
+rather than for the full learning budget; all training and evaluation runs execute in the lighter
+event-driven environment.
+
+**AFTER**
+
+SUMO is the calibration layer. **Training and Monte Carlo evaluation then run in that same calibrated
+SUMO corridor, driven through the TraCI control interface by a Python layer that follows the Agent
+Environment Cycle pattern (Terry et al., 2021): buses reach control stops at different moments, so
+exactly one agent is queried at a time, at the instant its bus arrives. Keeping SUMO in the training
+loop costs about 17 seconds of wall-clock time per simulated service day on one core, which is
+affordable for the declared episode budget, and it removes any need to argue that a second, lighter
+dynamics model reproduces the calibrated one.**
+
+### Calibration statistics
+
+**BEFORE**
+
+Segment travel-time calibration via RMSE. Count calibration alone does not guarantee realistic
+movement. RMSE evaluates how closely simulated segment travel times match held-out observations, with
+the root mean squared error of the difference in seconds. The GEH statistic measures the discrepancy
+between simulated and observed hourly bus volumes on individual corridor segments, where the simulated
+and observed quantities are hourly bus counts.
+
+**AFTER**
+
+Segment travel-time calibration via **RMSPE**. **The binding calibration criterion is the root mean
+squared percentage error, which weights every segment by its own magnitude and is therefore comparable
+across the short downtown segments and the long suburban ones.** The GEH statistic **is a
+relative-difference measure that tolerates larger absolute errors on larger quantities. It is defined
+on hourly traffic volumes; here it is applied to per-segment running times as a closeness statistic,
+with RMSPE as the binding criterion, because bus volume in the simulator is set by the dispatch
+schedule and would be matched trivially**, so the simulated and observed quantities in the formula are
+**running times, not bus counts**.
+
+### Calibration and validation split
+
+**BEFORE**
+
+Stage 4: chronological calibration/validation split. Earlier service days tune SUMO and the empirical
+parameter files; later held-out days assess stop-event counts and segment travel-time RMSE. No held-out
+record is used to choose calibration parameters.
+
+**AFTER**
+
+Stage 4: **interleaved** calibration/validation split. **Weekday service days are ordered by date and
+assigned alternately to the calibration set and the held-out set. A purely chronological split was
+rejected on inspection of the data: recorded weekday boardings in the busiest month exceed those in the
+quietest by about 30 per cent, so an early/late split would test the model on systematically busier days
+than it was fitted on and confound model error with a seasonal ridership shift. Alternating days gives
+both sets the same seasonal and day-of-week composition while keeping every held-out day unseen:** the
+empirical parameter files and the edge-speed calibration use calibration days only, and no held-out
+record is used to choose any parameter.
+
+### Parameter table
+
+| Parameter | Before | After |
+|---|---|---|
+| Total distinct stop IDs, direction 6 | 29 | 29 observed as a union over trips; **27 modelled** (the northern terminal 5304 enters as the load already on board, the southern terminal 5873 ends the trip) |
+| Fleet size | to be finalized | **18 trips dispatched per simulated service window, about 9 buses on the corridor at once** (observed concurrent weekday buses: median 10, p90 12) |
+| Control stop count | to be finalized | **5 — stops 5280, 5857, 5859, 5867 and 4046** |
+| Scheduled headway | to be finalized | **600 s on weekdays 07:00–18:00**, cited to the archived 2021 timetable |
+| Event-based discount | to be finalized | **set so that one scheduled headway of elapsed time discounts by 0.99**, i.e. about 1.7 × 10⁻⁵ per second; swept in EO2.1 |
+
+### Training condition and stabilizers
+
+**BEFORE**
+
+The policy is trained with demand and traffic always active while surge, weather and breakdown are
+domain-randomized over their declared ranges. Training under disturbance is paired with the
+stabilizers: the double estimator, reward clipping, and slow target-network updates.
+
+**AFTER**
+
+The policy is trained with demand and traffic always active while surge, weather and breakdown are
+domain-randomized over their declared ranges: **in each episode surge, weather and breakdown are
+independently active with probability 0.5, and whenever weather is active its synthetic intensity is
+drawn uniformly between 0 and 1.3, where 0 leaves only the observed ordinary-rain multiplier.**
+Training under disturbance is paired with the stabilizers: the double estimator, reward clipping
+**(rewards are clipped at −5, a bound taken from the observed reward distribution under the most severe
+weather intensity, where 95 per cent of rewards exceed −4.4)**, and slow target-network updates
+**(the target network is moved 0.5 per cent of the way toward the online network after every update)**.
+
+### Direction label and the GTFS limitation (problem.tex)
+
+**BEFORE**
+
+The one-direction study subset uses direction code 6 and contains 229,421 clean stop events, 184
+service-day codes, and 29 distinct stop IDs. The direction is not assigned a compass label because a
+checksum-verified 2021 GTFS snapshot has not yet been acquired. Historical stop names, route shapes,
+scheduled headways, and capacity values therefore remain gated rather than being borrowed from the
+current schedule. Among the limitations: capacity and 2021 schedule semantics require separate
+authoritative sources, and direction code 6 remains unlabeled until a compatible historical GTFS
+snapshot is checksum-verified.
+
+**AFTER**
+
+The one-direction study subset uses direction code 6 and contains 229,421 clean stop events, 184
+service-day codes, and 29 distinct stop IDs. **Direction code 6 runs southbound, from the northern Tech
+Ridge terminal to the southern Southpark Meadows terminal. The label is corroborated rather than taken
+from a 2021 file: 28 of the 29 stop IDs match the southbound stop pattern of the current published feed
+in identical order, with a median positional offset of 8.5 m, and the three feed-only stops were built
+after 2021. A checksum-verified 2021 GTFS snapshot is not publicly archived, so historical stop names
+and capacity values remain gated; the scheduled headway is instead taken from the archived 2021
+timetable.**
+
+**Within Route 801, direction code 6 was selected over code 4 under the same coverage criterion applied
+to the route comparison: it yields more clean stop events (229,421 against 226,233), more boardings
+(420,201 against 390,108, a 7.7 per cent difference), and marginally more trip-day pairs, across an
+identical 29-stop set. The two directions are otherwise closely matched, so the choice maximizes sample
+size rather than selecting a structurally different corridor. Direction code 4 remains available as a
+replication subset. The choice is not a claim about commute direction: weekday boardings are close to
+flat across the day, with 27.0 per cent between 06:00 and 10:00 and 24.8 per cent between 15:00 and
+19:00.**
+
+Among the limitations: **vehicle capacity requires a separate authoritative source, while the scheduled
+headway is taken from the archived 2021 timetable; and a 2021 GTFS snapshot is not publicly archived —
+six retrieval routes were exhausted, so the direction label, stop names and route shape are corroborated
+from the current published feed and reported as such rather than as 2021 records.**
+
+**Why:** the implementation decisions recorded in the GTFS findings change list (2026-09-12) and the
+2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
 ---
 
 *Nothing follows.*

@@ -7,7 +7,7 @@ pipeline parses numeric and timestamp fields explicitly.
 | Official field | Verified meaning | Intended use | Gate or limitation |
 |---|---|---|---|
 | `route_id`, `current_route_id` | Static route and route active for the event | Keep records where both equal `801` | Prevents route-transition/error records from entering the case subset |
-| `direction_code_id` | Software key for route direction/path | Select code `6` for the primary one-direction experiment | Code is not labeled north/south without 2021 GTFS/direction-code metadata |
+| `direction_code_id` | Software key for route direction/path | Select code `6` for the primary one-direction experiment | Code 6 = southbound, corroborated by overlaying the 29 study stop IDs on the current published feed (28 match in order, median offset 8.5 m); no 2021 GTFS snapshot is publicly archived |
 | `transit_date_time` | Service day; early-morning events may belong to the prior day | Day grouping and chronological split | Not the event timestamp |
 | `apc_date_time` | Vehicle logger system timestamp | Event ordering and NOAA nearest-time join | Austin wall-clock interpretation is explicit but not confirmed by a timezone field |
 | `act_trip_start_time`, `ext_trip_id`, `vehicle_id` | Actual start, customer trip key, and vehicle key | Construct trip-day identities and chronological sequences | No single field is assumed globally unique |

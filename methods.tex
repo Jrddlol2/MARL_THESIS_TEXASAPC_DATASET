@@ -15,7 +15,7 @@ Throughout, disturbances play two distinct roles that must not be conflated. Dur
 
 \subsection{Simulation Environment}
 
-The study uses a two-stage simulation architecture. \textbf{SUMO} (Simulation of Urban Mobility)~\cite{Lopez2018SUMO} serves as the \textbf{calibration layer}, providing a microscopic representation of Route 801 from which empirical parameters are extracted. A \textbf{custom Python environment built on the PettingZoo Agent Environment Cycle (AEC) API}~\cite{Terry2021PettingZoo} serves as the \textbf{training and Monte Carlo evaluation layer}, where MARL agents interact with a lightweight bus dynamics model parameterized by the calibrated distributions. SUMO is used for corridor calibration rather than for the full learning budget; all training and evaluation runs execute in the lighter event-driven environment.
+The study uses a two-stage simulation architecture. \textbf{SUMO} (Simulation of Urban Mobility)~\cite{Lopez2018SUMO} serves as the \textbf{calibration layer}, providing a microscopic representation of Route 801 from which empirical parameters are extracted. Training and Monte Carlo evaluation then run in that same calibrated SUMO corridor, driven through the TraCI control interface by a Python layer that follows the \textbf{Agent Environment Cycle (AEC)} pattern~\cite{Terry2021PettingZoo}: buses reach control stops at different moments, so exactly one agent is queried at a time, at the instant its bus arrives. Keeping SUMO in the training loop costs about 17\,s of wall-clock time per simulated service day on one core, which is affordable for the declared episode budget, and it removes any need to argue that a second, lighter dynamics model reproduces the calibrated one.
 
 PettingZoo's AEC API is chosen over three alternatives. First, the single-agent Gymnasium interface~\cite{Towers2024Gymnasium} cannot natively represent multiple agents acting on independent events. Fitting multi-agent control into a single-agent API requires either treating the entire fleet as one composite agent, which breaks parameter sharing, or coordinating agents manually outside the API, which removes the benefit of using a standard interface. Second, PettingZoo's parallel API assumes all agents step simultaneously~\cite{Terry2021PettingZoo}, which does not match asynchronous bus control where only the bus arriving at a control stop has a decision to make. Third, a fully custom implementation was considered but rejected because it would sacrifice compatibility with established algorithm libraries and complicate reproducibility. 
 
@@ -31,11 +31,11 @@ AEC handles the asynchronous case by cycling through one agent at a time rather 
 SUMO is used for the calibration layer because it integrates with Python through the Traffic Control Interface (TraCI) and supports the count- and travel-time validation protocols described later in this section. The network geometry and schedule-dependent semantics are not borrowed from a current feed: a 2021-compatible GTFS snapshot is required before those inputs are finalized \cite{CapMetroGTFS}.
 
 
-A pure-Python alternative without SUMO calibration was also considered but rejected: it would lack the empirically grounded per-segment travel-time distributions that the GEH-and-RMSE-calibrated SUMO model provides. The chosen approach uses each tool where it is strongest: SUMO for calibrated microscopic realism during the one-time calibration phase, and Python for fast event-driven Monte Carlo during training and evaluation. This keeps the experiment tractable on accessible hardware, including a single cloud-notebook GPU runtime. Rodriguez et al.~\cite{Rodriguez2023Cooperative} and Wang and Sun~\cite{Wangsun} adopt the same two-layer approach, using event-based custom simulators with calibration parameters supplied from empirical data.
+A pure-Python alternative without SUMO calibration was also considered but rejected: it would lack the empirically grounded per-segment travel-time distributions that the calibrated SUMO model provides. Retaining SUMO for training as well keeps one environment for calibration, baselines, training, and evaluation; the measured cost of a simulated service day makes that affordable on accessible hardware, and the learner itself is small enough to train on CPU. Rodriguez et al.~\cite{Rodriguez2023Cooperative} and Wang and Sun~\cite{Wangsun} adopt the same two-layer approach, using event-based custom simulators with calibration parameters supplied from empirical data.
 
 
 
-As shown in Figure~\ref{fig:pipeline}, the pipeline proceeds in two phases. First, SUMO is calibrated against empirical bus data, and the resulting per-segment travel time, demand, and dwell time distributions are saved. Second, the Python environment loads these distributions and runs a lightweight event-based bus simulator for MARL training and evaluation. Because the Python environment draws from distributions extracted from the calibrated SUMO model, its statistical behavior matches SUMO at the level of per-segment travel time, demand, and dwell time. It does not reproduce SUMO's microscopic vehicle-to-vehicle interactions, but those interactions affect the reward function only through their aggregate effect on inter-stop bus travel time, which the calibrated distributions already capture. Rodriguez et al.~\cite{Rodriguez2023Cooperative} make the same argument: they trained in an event-based mesoscopic simulator parameterized by empirical corridor data.
+As shown in Figure~\ref{fig:pipeline}, the pipeline proceeds in two phases. First, the per-segment travel time, demand, and dwell time distributions are estimated from the APC records and the corridor network is calibrated to them. Second, every experiment---the three baselines, training, and Monte Carlo evaluation---runs that one calibrated corridor, so all controllers face an identical environment by construction and no cross-simulator equivalence argument is required. Rodriguez et al.~\cite{Rodriguez2023Cooperative} and Wang and Sun~\cite{Wangsun} instead train in event-based mesoscopic simulators parameterized by empirical corridor data; that is the cheaper design, and it remains the fallback if the episode budget grows beyond what the microscopic loop can deliver.
 
 \subsection{Control-Stop Selection}
 \label{subsec:control-stop-selection}
@@ -53,34 +53,34 @@ These criteria are data-driven: they specify \textit{how} stops are selected fro
 
 \subsection{Environment Model Validation}
 
-Before MARL training begins, the SUMO layer is verified against held-out CapMetro observations. GEH is applied to hourly stop-event or departure counts where the observed and simulated quantities are defined identically. RMSE is applied primarily to per-segment running time, computed as \texttt{rev\_seconds} minus the current-stop \texttt{dwell\_time}: because \texttt{rev\_seconds} is recorded open-to-open it already includes that stop's dwell, which is modelled separately, so the two are never double-counted. Average speed may be added only after the unit of \texttt{rev\_distance} is confirmed from authoritative odometer metadata. Event coordinates support location-quality checks but are not described as continuous trajectories.
+Before MARL training begins, the SUMO layer is verified against held-out CapMetro observations. GEH and RMSPE are both applied to per-segment running time, computed as \texttt{rev\_seconds} minus the current-stop \texttt{dwell\_time}: because \texttt{rev\_seconds} is recorded open-to-open it already includes that stop's dwell, which is modelled separately, so the two are never double-counted. Average speed may be added only after the unit of \texttt{rev\_distance} is confirmed from authoritative odometer metadata. Event coordinates support location-quality checks but are not described as continuous trajectories.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{Figures/meth_fig_eo1_1_calibration (2).pdf}
     \caption[Illustrative SUMO calibration output]{Illustrative format of the
-    SUMO calibration output. (a) GEH statistic for identically defined observed
-    and simulated hourly stop-event counts. (b) Simulated segment travel time
-    against held-out empirical \texttt{rev\_seconds} observations in the RMSE
+    SUMO calibration output. (a) GEH statistic for observed and simulated
+    per-segment running times. (b) Simulated segment running time against
+    held-out empirical \texttt{rev\_seconds} observations in the RMSPE
     step. Values shown are illustrative only. Authors' illustration.}
     \label{fig:calibration-illustrative}
 \end{figure}
 
-\subsubsection{Bus Volume Validation via GEH Statistic}
+\subsubsection{Segment Closeness via the GEH Statistic}
 
-The GEH statistic, introduced for traffic-modelling acceptance testing in the UK Design Manual for Roads and Bridges \cite{DMRBV12}, measures the discrepancy between simulated and observed hourly bus volumes on individual corridor segments, illustrated in panel (a) of Figure~\ref{fig:calibration-illustrative}:
+The GEH statistic, introduced for traffic-modelling acceptance testing in the UK Design Manual for Roads and Bridges \cite{DMRBV12}, is a relative-difference measure that tolerates larger absolute errors on larger quantities. It is defined on hourly traffic volumes; here it is applied to per-segment running times as a closeness statistic, with RMSPE as the binding criterion, because bus volume in the simulator is set by the dispatch schedule and would be matched trivially. This use is stated explicitly rather than implied, and is illustrated in panel (a) of Figure~\ref{fig:calibration-illustrative}:
 
 \begin{equation} GEH = \sqrt{\frac{2(M - C)^2}{M + C}} \label{eq:geh} \end{equation}
 
-where $M$ is the hourly bus volume from the simulation and $C$ is the observed hourly bus count from empirical operational data. The environment is accepted when $GEH < 5$ for more than 85\% of corridor segments, following the FHWA Traffic Analysis Toolbox calibration criterion~\cite{FHWA2019TAT} as applied in recent SUMO calibration work by Patil et al.~\cite{Patil2025Conformal}.
+where $M$ is the simulated per-segment running time and $C$ is its observed counterpart. The environment is accepted when $GEH < 5$ for more than 85\% of corridor segments, following the FHWA Traffic Analysis Toolbox calibration criterion~\cite{FHWA2019TAT} as applied in recent SUMO calibration work by Patil et al.~\cite{Patil2025Conformal}.
 
-\subsubsection{Segment Travel-Time Calibration via RMSE}
+\subsubsection{Segment Travel-Time Calibration via RMSPE}
 
-Count calibration alone does not guarantee realistic movement. RMSE evaluates how closely simulated segment travel times match held-out empirical \texttt{rev\_seconds} observations, illustrated in panel (b) of Figure~\ref{fig:calibration-illustrative}:
+The binding calibration criterion is the root mean squared percentage error, which weights every segment by its own magnitude and is therefore comparable across the short downtown segments and the long suburban ones, illustrated in panel (b) of Figure~\ref{fig:calibration-illustrative}:
 
-\begin{equation} RMSE = \sqrt{\frac{\sum_{i=1}^{n}(x_{obs} - x_{model})^2}{n}} \label{eq:rmse} \end{equation}
+\begin{equation} RMSPE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(\frac{x_{obs} - x_{model}}{x_{obs}}\right)^{2}} \label{eq:rmspe} \end{equation}
 
-where $x_{obs}$ is an observed segment travel time and $x_{model}$ is its simulated counterpart. Parameters such as desired speed and segment friction are tuned on the chronological calibration split, then evaluated once on the held-out split. A speed-based secondary RMSE is permitted only after distance units are verified. Until then, the travel-time measure is the reproducible calibration target.
+where $x_{obs}$ is an observed segment running time and $x_{model}$ is its simulated counterpart. Edge speeds are tuned on the calibration service days only, then evaluated once on the held-out service days. A speed-based secondary error measure is permitted only after distance units are verified. Until then, the travel-time measure is the reproducible calibration target.
 
 \subsubsection{Real-Time Data Incorporation}
 
@@ -90,7 +90,7 @@ In a real-world deployment, forward and backward headways would come from AVL, o
 
 The study uses five disturbance labels: baseline stochastic demand (D), demand surge (S), ordinary empirical travel-time variation (T), weather stress (W), and breakdown (B). D and T remain active in every training and evaluation run. This prevents the baseline from becoming deterministic and prevents W from replacing ordinary empirical travel-time variation.
 
-\textbf{Training condition.} The policy is trained with D+T always active while S, W, and B are domain-randomized over their declared ranges. Weather exposure includes observed ordinary-rain strata where empirical support is adequate and labeled synthetic lognormal stress outside that support.
+\textbf{Training condition.} The policy is trained with D+T always active while S, W, and B are domain-randomized over their declared ranges: in each episode surge, weather, and breakdown are independently active with probability $0.5$, and whenever weather is active its synthetic intensity is drawn as $\eta \sim \mathrm{Uniform}(0, 1.3)$, where $\eta = 0$ leaves only the observed ordinary-rain multiplier. Weather exposure therefore includes observed ordinary-rain strata where empirical support is adequate and labeled synthetic lognormal stress outside that support, and the evaluation intensities all lie inside the training range.
 
 \textbf{Stage A baseline evaluation.} The frozen policy and all baseline controllers are evaluated under D+T, with S, W, and B disabled. This is an observed-data-calibrated stochastic baseline, not a claim of perfect or ``ideal'' real-world operation.
 
@@ -138,16 +138,16 @@ X
 \midrule
 
 Simulation horizon & --- & Single observed Route 801 service window (to be finalized (data pending): select start/end after historical schedule and timestamp-basis validation) & Section~\ref{sec:research-design} \\
-Total distinct stop IDs (direction code 6) & $M$ & 29 & Reproduced CapMetro APC audit \\
-Fleet size (active buses) & $N$ & to be finalized (data pending): derive from concurrent Route 801 vehicle activity and verified schedule & CapMetro APC + historical GTFS \\
-Control stop count & --- & to be finalized (design): select from 29 observed stop IDs using Section~\ref{subsec:control-stop-selection} criteria after calibration/validation & Section~\ref{subsec:control-stop-selection} \\
-Scheduled headway & $H_0$ & to be finalized (data pending): 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
+Total distinct stop IDs (direction code 6) & $M$ & 29 observed as a union over trips; 27 modelled (the northern terminal 5304 enters as the boarding load already on board, and the southern terminal 5873 ends the trip) & Reproduced CapMetro APC audit \\
+Fleet size (active buses) & $N$ & 18 trips dispatched per simulated service window, giving about 9 buses on the corridor at once (observed concurrent weekday buses: median 10, p90 12) & CapMetro APC + archived timetable \\
+Control stop count & --- & 5 (stops 5280, 5857, 5859, 5867, 4046), selected with the Section~\ref{subsec:control-stop-selection} criteria & Section~\ref{subsec:control-stop-selection} \\
+Scheduled headway & $H_0$ & 600\,s (weekday 07:00--18:00) & Archived Route 801 timetable~\cite{CapMetro2021Timetable801} \\
 Bus passenger capacity & --- & to be finalized (data pending): verified vehicle/fleet specification & CapMetro fleet specification \\
 Maximum holding duration & $\Delta T$ & 300\,s, so the largest hold is $0.4\,\Delta T = 120$\,s, the absolute cap used in the reviewed holding studies~\cite{Rodriguez2023Cooperative,Tang2024Curriculum}; $\Delta T = H_0 = 600$\,s (240\,s cap) is a sensitivity case & Section~\ref{subsec:marl-arch} (Action Space) \\
 Holding action bins & $\Omega$ & $\{0.0, 0.1, 0.2, 0.3, 0.4\}$ & Section~\ref{subsec:marl-arch} (Action Space) \\
 Action space size per agent & $|A_i|$ & 10 (5 hold $\times$ 2 skip) & Section~\ref{subsec:marl-arch} (Action Space) \\
 Monte Carlo runs per cell & $N_{\text{runs}}$ & $\geq 30$ & Section~\ref{sec:research-design} \\
-Discount / event-based discount & $\gamma$, $\beta$ & to be finalized (design): tuned during implementation & Section~\ref{subsec:marl-arch} \\
+Discount / event-based discount & $\gamma$, $\beta$ & $\beta$ set so that one scheduled headway of elapsed time discounts by $0.99$ ($\beta = -\ln 0.99 / H_0 \approx 1.7\times10^{-5}$\,s$^{-1}$); swept in EO2.1 & Section~\ref{subsec:marl-arch} \\
 
 \midrule
 \multicolumn{4}{l}{\textit{Swept / variable parameters}} \\
@@ -205,7 +205,7 @@ Table~\ref{tab:field-mapping-texas} summarizes how each verified CapMetro and NO
 \texttt{bs\_id}, direction code & Stop/segment sequence & 29 stop IDs for code 6; names and compass label require historical metadata \\
 \texttt{ons}, \texttt{offs}, \texttt{max\_load} & Boarding, alighting, and load profiles & Demand/load calibration; not passenger arrival time or capacity \\
 \texttt{dwell\_time} & Door-open to door-close seconds & Dwell distribution; controller holding is simulated separately \\
-\texttt{rev\_seconds}, \texttt{rev\_distance} & Per-segment running time (\texttt{rev\_seconds} is open-to-open, so the current-stop dwell is netted out) and possible average speed & Travel-time RMSE is primary; distance unit remains unresolved \\
+\texttt{rev\_seconds}, \texttt{rev\_distance} & Per-segment running time (\texttt{rev\_seconds} is open-to-open, so the current-stop dwell is netted out) and possible average speed & Travel-time RMSPE is primary; distance unit remains unresolved \\
 \texttt{veh\_lat}, \texttt{veh\_long}, \texttt{quality\_indicator} & Stop-event coordinates and GPS quality & Event-level QA; not a continuous trajectory \\
 NOAA precipitation and present-weather code & Observed ordinary-rain flag & Primary weather exposure after time alignment \\
 NOAA visibility, temperature, humidity, wind & Weather covariates & Controls/sensitivity variables, not primary exposure by default \\
@@ -246,7 +246,7 @@ Table~\ref{tab:field-mapping} maps each required raw field to the parameter deri
 
 GPS-tracked vehicle location &
 Per-segment inter-stop travel time distribution ($\mu$, $\sigma$) &
-SUMO speed calibration (RMSE, Section~\ref{subsec:stochastic-vars}); anchors the traffic-speed generator ($\sigma_s$) and the weather generator's baseline mean ($\mu$) \\
+SUMO speed calibration (RMSPE, Section~\ref{subsec:stochastic-vars}); anchors the traffic-speed generator ($\sigma_s$) and the weather generator's baseline mean ($\mu$) \\
 
 Boarding events &
 Per-(stop, time-of-day) baseline demand rate &
@@ -288,7 +288,7 @@ Pre-processing proceeds in three stages.
 
 \textit{Stage 3: weather alignment and controlled estimation.} Each APC event is assigned the nearest Camp Mabry observation within 90 minutes and a Bergstrom sensitivity match. Primary exposure uses precipitation and present-weather rain codes; visibility is secondary, and temperature, humidity, and wind are candidate controls. Any ordinary-rain multiplier is estimated within segment, time-of-day, and day-type strata. The unadjusted pooled wet/dry difference is not used as a causal multiplier.
 
-\textit{Stage 4: chronological calibration/validation split.} Earlier service days tune SUMO and the empirical parameter files; later held-out days assess stop-event counts and segment travel-time RMSE. No held-out record is used to choose calibration parameters.
+\textit{Stage 4: interleaved calibration/validation split.} Weekday service days are ordered by date and assigned alternately to the calibration set and the held-out set. A purely chronological split was rejected on inspection of the data: recorded weekday boardings in the busiest month exceed those in the quietest by about 30\%, so an early/late split would test the model on systematically busier days than it was fitted on and confound model error with a seasonal ridership shift. Alternating days gives both sets the same seasonal and day-of-week composition while keeping every held-out day unseen: the empirical parameter files and the edge-speed calibration use calibration days only, and no held-out record is used to choose any parameter.
 
 The MARL agents are not trained on these raw datasets directly. They are trained on synthetic state vectors $s_{i,t}$ produced by the Python environment at each control event. Each $s_{i,t}$ is assembled at runtime by querying the analytical bus model and is consumed once by the policy network before being discarded. There is no persistent training dataset of state-action transitions on disk other than the standard replay buffer used by the learning algorithm.
 
@@ -657,7 +657,7 @@ The protocol is split into a training phase and an execution (evaluation) phase:
 \end{figure}
  
 
-Because heavy-tailed returns can destabilize value-based learning if injected without safeguards \cite{Henderson2018Matters,Agarwal2021Precipice}, training under disturbance is paired with the stabilizers discussed in Section~\ref{sec:challenges}: DDQN's double estimator, reward clipping, and slow target-network updates. If training under the full disturbance set proves unstable at the highest intensities despite these measures, a curriculum that ramps disturbance intensity over the course of training~\cite{Tang2024Curriculum} is retained as a fallback.
+Because heavy-tailed returns can destabilize value-based learning if injected without safeguards \cite{Henderson2018Matters,Agarwal2021Precipice}, training under disturbance is paired with the stabilizers discussed in Section~\ref{sec:challenges}: DDQN's double estimator, reward clipping (per-transition rewards are clipped at $-5$, a bound chosen from the observed reward distribution under the most severe weather intensity, where 95\% of rewards exceed $-4.4$), and slow target-network updates (Polyak averaging with $\tau = 0.005$ after every gradient step). If training under the full disturbance set proves unstable at the highest intensities despite these measures, a curriculum that ramps disturbance intensity over the course of training~\cite{Tang2024Curriculum} is retained as a fallback.
 
 
 \subsection{Baseline Controllers for Comparison}

@@ -615,5 +615,26 @@ calibration, training, or results gates. Routine processing should continue to
 use query-defined subsets so the full 9.2-million-row source remains immutable.
 
 ---
+### Implementation alignment — manuscript matches the built simulator
+**Date:** 2026-09-16
+**File edited:** methods.tex, problem.tex, thesis_refs.bib, config/texas_capmetro_801.json,
+scripts/pipeline/04_gtfs_gate.py, data/audit/texas_capmetro/APC_FIELD_USE_MAP.md
+**Section:** Methods 3.1–3.5; Problem Statement (Rationale, Limitations)
+**Lines changed:** methods.tex ~18–291 (16 edits), problem.tex 9 and 66
+**What was added/changed:**
+> The manuscript now states what the implementation does. Training and evaluation are described as
+> running in the calibrated SUMO corridor rather than in a separate lightweight Python simulator; the
+> calibration statistic is RMSPE, with GEH stated explicitly as a closeness statistic on running times;
+> the calibration/validation split is the interleaved one actually used, with the ridership reason for
+> rejecting a chronological split; and five parameter-table rows (stop count, fleet size, control stops,
+> scheduled headway, event-based discount) are filled in from the data and the archived timetable,
+> which is now a bibliography entry with its capture date and checksum.
+> The GTFS gate is closed as "not publicly archived" rather than pending: direction code 6 is labelled
+> southbound as corroboration from the current feed, the headway comes from the timetable PDF, and both
+> are described as such in the manuscript, the config, the gate script and the audit page.
+**Conformity table entry:**
+| — | Manuscript must describe the implemented method | Simulation architecture, calibration statistics, data split, parameter values, training randomization and stabilizers rewritten to match the built simulator; GTFS gate closed with sourced substitutes | Methods 3.1–3.5; Problem Statement | — |
+**Commit message:** `docs(manuscript): align methods and problem statement with the implementation`
+---
 
 *Nothing follows.*

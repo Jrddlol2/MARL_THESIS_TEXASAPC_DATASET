@@ -784,6 +784,85 @@ All active PDF figures were rendered and inspected. The two logos and every
 active `\includegraphics` target now exist locally. The pre-import recovery
 checkpoint is `20260823-220220_before_original_assets_import_dfca22e`.
 
+## 2026-09-16 — Implementation alignment — [methods.tex, Sections 3.1–3.5; problem.tex, Rationale and Limitations]
+**Commit:** `PENDING`
+
+Training layer: the manuscript described a second, lighter Python simulator; every experiment in fact
+runs the one calibrated SUMO corridor.
+
+```diff
+  The study uses a two-stage simulation architecture. \textbf{SUMO} ... serves as the \textbf{calibration layer} ...
+- A \textbf{custom Python environment built on the PettingZoo Agent Environment Cycle (AEC) API}~\cite{Terry2021PettingZoo} serves as the \textbf{training and Monte Carlo evaluation layer}, where MARL agents interact with a lightweight bus dynamics model parameterized by the calibrated distributions. SUMO is used for corridor calibration rather than for the full learning budget; all training and evaluation runs execute in the lighter event-driven environment.
++ Training and Monte Carlo evaluation then run in that same calibrated SUMO corridor, driven through the TraCI control interface by a Python layer that follows the \textbf{Agent Environment Cycle (AEC)} pattern~\cite{Terry2021PettingZoo}: buses reach control stops at different moments, so exactly one agent is queried at a time, at the instant its bus arrives. Keeping SUMO in the training loop costs about 17\,s of wall-clock time per simulated service day on one core, which is affordable for the declared episode budget, and it removes any need to argue that a second, lighter dynamics model reproduces the calibrated one.
+```
+
+Calibration statistics: RMSE was declared, RMSPE is what the calibration uses and reports; GEH was
+defined on hourly bus volumes, which the dispatch schedule matches trivially.
+
+```diff
+- \subsubsection{Segment Travel-Time Calibration via RMSE}
++ \subsubsection{Segment Travel-Time Calibration via RMSPE}
+- Count calibration alone does not guarantee realistic movement. RMSE evaluates how closely simulated segment travel times match held-out empirical \texttt{rev\_seconds} observations
++ The binding calibration criterion is the root mean squared percentage error, which weights every segment by its own magnitude and is therefore comparable across the short downtown segments and the long suburban ones
+- \begin{equation} RMSE = \sqrt{\frac{\sum_{i=1}^{n}(x_{obs} - x_{model})^2}{n}} \label{eq:rmse} \end{equation}
++ \begin{equation} RMSPE = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(\frac{x_{obs} - x_{model}}{x_{obs}}\right)^{2}} \label{eq:rmspe} \end{equation}
+- \subsubsection{Bus Volume Validation via GEH Statistic}
++ \subsubsection{Segment Closeness via the GEH Statistic}
+- measures the discrepancy between simulated and observed hourly bus volumes on individual corridor segments
++ is a relative-difference measure that tolerates larger absolute errors on larger quantities. It is defined on hourly traffic volumes; here it is applied to per-segment running times as a closeness statistic, with RMSPE as the binding criterion, because bus volume in the simulator is set by the dispatch schedule and would be matched trivially
+- where $M$ is the hourly bus volume from the simulation and $C$ is the observed hourly bus count from empirical operational data.
++ where $M$ is the simulated per-segment running time and $C$ is its observed counterpart.
+```
+
+Calibration/validation split: the text specified a chronological split; the implementation alternates
+service days, because recorded weekday boardings differ by about 30\% between the quietest and busiest
+month of the study window.
+
+```diff
+- \textit{Stage 4: chronological calibration/validation split.} Earlier service days tune SUMO and the empirical parameter files; later held-out days assess stop-event counts and segment travel-time RMSE. No held-out record is used to choose calibration parameters.
++ \textit{Stage 4: interleaved calibration/validation split.} Weekday service days are ordered by date and assigned alternately to the calibration set and the held-out set. A purely chronological split was rejected on inspection of the data: recorded weekday boardings in the busiest month exceed those in the quietest by about 30\%, so an early/late split would test the model on systematically busier days than it was fitted on and confound model error with a seasonal ridership shift. Alternating days gives both sets the same seasonal and day-of-week composition while keeping every held-out day unseen: the empirical parameter files and the edge-speed calibration use calibration days only, and no held-out record is used to choose any parameter.
+```
+
+Parameter table: five rows that were "to be finalized" are now determined by the data and the
+archived timetable.
+
+```diff
+- Total distinct stop IDs (direction code 6) & $M$ & 29 & Reproduced CapMetro APC audit \\
++ Total distinct stop IDs (direction code 6) & $M$ & 29 observed as a union over trips; 27 modelled (the northern terminal 5304 enters as the boarding load already on board, and the southern terminal 5873 ends the trip) & Reproduced CapMetro APC audit \\
+- Fleet size (active buses) & $N$ & to be finalized (data pending): derive from concurrent Route 801 vehicle activity and verified schedule & CapMetro APC + historical GTFS \\
++ Fleet size (active buses) & $N$ & 18 trips dispatched per simulated service window, giving about 9 buses on the corridor at once (observed concurrent weekday buses: median 10, p90 12) & CapMetro APC + archived timetable \\
+- Control stop count & --- & to be finalized (design): select from 29 observed stop IDs using Section~\ref{subsec:control-stop-selection} criteria after calibration/validation & Section~\ref{subsec:control-stop-selection} \\
++ Control stop count & --- & 5 (stops 5280, 5857, 5859, 5867, 4046), selected with the Section~\ref{subsec:control-stop-selection} criteria & Section~\ref{subsec:control-stop-selection} \\
+- Scheduled headway & $H_0$ & to be finalized (data pending): 2021-compatible GTFS or schedule record & Historical CapMetro schedule \\
++ Scheduled headway & $H_0$ & 600\,s (weekday 07:00--18:00) & Archived Route 801 timetable~\cite{CapMetro2021Timetable801} \\
+- Discount / event-based discount & $\gamma$, $\beta$ & to be finalized (design): tuned during implementation & Section~\ref{subsec:marl-arch} \\
++ Discount / event-based discount & $\gamma$, $\beta$ & $\beta$ set so that one scheduled headway of elapsed time discounts by $0.99$ ($\beta = -\ln 0.99 / H_0 \approx 1.7\times10^{-5}$\,s$^{-1}$); swept in EO2.1 & Section~\ref{subsec:marl-arch} \\
+```
+
+Training condition and stabilizers: the declared randomization ranges and the two stabilizer settings
+are now stated numerically.
+
+```diff
+- \textbf{Training condition.} The policy is trained with D+T always active while S, W, and B are domain-randomized over their declared ranges.
++ \textbf{Training condition.} The policy is trained with D+T always active while S, W, and B are domain-randomized over their declared ranges: in each episode surge, weather, and breakdown are independently active with probability $0.5$, and whenever weather is active its synthetic intensity is drawn as $\eta \sim \mathrm{Uniform}(0, 1.3)$, where $\eta = 0$ leaves only the observed ordinary-rain multiplier.
+- ... DDQN's double estimator, reward clipping, and slow target-network updates.
++ ... DDQN's double estimator, reward clipping (per-transition rewards are clipped at $-5$, a bound chosen from the observed reward distribution under the most severe weather intensity, where 95\% of rewards exceed $-4.4$), and slow target-network updates (Polyak averaging with $\tau = 0.005$ after every gradient step).
+```
+
+Direction label and its limitation, in `problem.tex`: the 2021 GTFS snapshot is not publicly archived,
+so the gate is closed as unavailable and the two parameters it blocked are sourced and labelled.
+
+```diff
+- The one-direction study subset uses direction code 6 and contains 229{,}421 clean stop events, 184 service-day codes, and 29 distinct stop IDs. The direction is not assigned a compass label because a checksum-verified 2021 GTFS snapshot has not yet been acquired. Historical stop names, route shapes, scheduled headways, and capacity values therefore remain gated rather than being borrowed from the current schedule.
++ The one-direction study subset uses direction code 6 and contains 229{,}421 clean stop events, 184 service-day codes, and 29 distinct stop IDs. Direction code 6 runs southbound, from the northern Tech Ridge terminal to the southern Southpark Meadows terminal. The label is corroborated rather than taken from a 2021 file: 28 of the 29 stop IDs match the southbound stop pattern of the current published feed in identical order, with a median positional offset of 8.5\,m, and the three feed-only stops were built after 2021. A checksum-verified 2021 GTFS snapshot is not publicly archived (Section~\ref{sec:rationale}, Limitations), so historical stop names and capacity values remain gated; the scheduled headway is instead taken from the archived 2021 timetable.
++
++ Within Route 801, direction code 6 was selected over code 4 under the same coverage criterion applied to the route comparison: it yields more clean stop events (229{,}421 against 226{,}233), more boardings (420{,}201 against 390{,}108, a 7.7\% difference), and marginally more trip-day pairs, across an identical 29-stop set. The two directions are otherwise closely matched, so the choice maximizes sample size rather than selecting a structurally different corridor. Direction code 4 remains available as a replication subset. The choice is not a claim about commute direction: weekday boardings are close to flat across the day, with 27.0\% between 06:00 and 10:00 and 24.8\% between 15:00 and 19:00.
+- (d) Capacity and 2021 schedule semantics require separate authoritative sources. (e) Direction code 6 remains unlabeled until a compatible historical GTFS snapshot is checksum-verified.
++ (d) Vehicle capacity requires a separate authoritative source; the scheduled headway is taken from the archived 2021 timetable~\cite{CapMetro2021Timetable801}. (e) A 2021 GTFS snapshot is not publicly archived: six retrieval routes were exhausted, so the direction label, stop names, and route shape are corroborated from the current published feed and reported as such rather than as 2021 records.
+```
+
+**Why:** the implementation decisions recorded in `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`
+and the 2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
 ---
 
 *Nothing follows.*
