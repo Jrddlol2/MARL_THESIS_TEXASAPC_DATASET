@@ -801,7 +801,7 @@ both fixed before the training run so they cannot be chosen after seeing the res
 are final for the conditions reported; only the MARL section is outstanding.
 
 ## 2026-09-16 — Future Work chapter drafted — [futurework.tex]
-**Commit:** `PENDING`
+**Commit:** `aee5521`
 
 **BEFORE**
 

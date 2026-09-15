@@ -897,7 +897,7 @@ acceptance criteria and the statistical procedure, both fixed before the MARL ru
 are final for the conditions reported; only the MARL section is outstanding.
 
 ## 2026-09-16 — Future Work chapter drafted — [futurework.tex]
-**Commit:** `PENDING`
+**Commit:** `aee5521`
 
 `futurework.tex` held template text from the same unrelated neuroscience thesis and had never been
 compiled. It was replaced by five items, each tied to a limitation recorded in this study.
