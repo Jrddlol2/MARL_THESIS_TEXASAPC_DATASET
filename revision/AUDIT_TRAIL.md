@@ -895,6 +895,29 @@ acceptance criteria and the statistical procedure, both fixed before the MARL ru
 
 **Why:** the chapter had to stop containing another thesis's text, and the measured baseline results
 are final for the conditions reported; only the MARL section is outstanding.
+
+## 2026-09-16 — Future Work chapter drafted — [futurework.tex]
+**Commit:** `PENDING`
+
+`futurework.tex` held template text from the same unrelated neuroscience thesis and had never been
+compiled. It was replaced by five items, each tied to a limitation recorded in this study.
+
+```diff
+- \chapter{Future Work}
+- In the future, the author aims to integrate within the current 	extit{NeuroSEE} pipeline a novel information theoretic and machine learning-based algorithm for reducing the dimensionality of the large-scale multivariate signals extracted
+- In mouse models of AD, amyloid or tau protein-related pathologies result in changes in cortical circuitry, which are particularly evident in the hippocampus.
+- All of the above-mentioned works will be performed as the author progresses towards the PhD phase of the Centre for Doctoral Training in Neurotechnology for Life and Health programme.
++ \chapter{Future Work}
++ The limitations recorded in Chapters~ef{ch:results} and 3 point to five lines of work that would strengthen the result or extend its reach.
++ 	extbf{Operator control as a modelled behaviour.} ... the APC schedule field is populated on only 18\% of records.
++ 	extbf{Stop skipping as an evaluated action.} ... The reported results hold the skip action inactive so that the comparison against the two holding rules is like for like.
++ 	extbf{Weather beyond the observed support.} ... would make the degradation curve a measurement rather than an extrapolation.
++ 	extbf{Both directions, and other corridors.} ... 226{,}233 clean stop events ... as a replication subset without any new data acquisition.
++ 	extbf{Toward deployment.} ... a shadow evaluation in which the trained policy issues recommendations that are logged and compared with operator decisions, without controlling any vehicle.
+```
+
+**Why:** the chapter contained another thesis's text, and each replacement item is anchored to a
+limitation this study actually measured.
 ---
 
 *Nothing follows.*

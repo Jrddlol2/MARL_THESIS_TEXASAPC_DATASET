@@ -799,6 +799,31 @@ both fixed before the training run so they cannot be chosen after seeing the res
 
 **Why:** the chapter had to stop containing another thesis's text, and the measured baseline results
 are final for the conditions reported; only the MARL section is outstanding.
+
+## 2026-09-16 — Future Work chapter drafted — [futurework.tex]
+**Commit:** `PENDING`
+
+**BEFORE**
+
+The chapter described integrating an information-theoretic dimensionality-reduction algorithm into the
+NeuroSEE pipeline, improving place-field analysis, and investigating how Alzheimer's disease affects
+neural cortical circuits in mouse models, closing with the author's plans for a neurotechnology PhD
+programme.
+
+**AFTER**
+
+**The limitations recorded in the results and methods chapters point to five lines of work: modelling
+operator timepoint holding, which is the most plausible explanation for the residual bunching the
+environment shows and which the APC schedule field cannot confirm; evaluating the stop-skip action,
+which the environment implements with its safeguards but which the reported results hold inactive so
+the comparison stays like for like; grounding severe weather empirically, since the measured ordinary-rain
+effect is 1.35% and not significant so the severe cases rest on a labelled synthetic stress; repeating
+the study on the opposite direction, which has 226,233 clean stop events and needs no new data, and on
+other corridors; and moving toward deployment through a shadow evaluation in which the trained policy's
+recommendations are logged and compared with operator decisions without controlling any vehicle.**
+
+**Why:** the chapter contained another thesis's text, and each replacement item is anchored to a
+limitation this study actually measured.
 ---
 
 *Nothing follows.*

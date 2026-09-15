@@ -652,6 +652,21 @@ scripts/pipeline/04_gtfs_gate.py, data/audit/texas_capmetro/APC_FIELD_USE_MAP.md
 **Conformity table entry:**
 | — | Results chapter must present this study's findings | Template text from an unrelated thesis removed; results chapter drafted from the measured calibration, validation and baseline outputs | Chapter 4 | — |
 **Commit message:** `docs(manuscript): draft the results chapter from measured outputs`
+
+---
+### Future Work chapter — first draft
+**Date:** 2026-09-16
+**File edited:** futurework.tex
+**Section:** Future Work
+**Lines changed:** whole file (311 template words replaced by a 5-item draft)
+**What was added/changed:**
+> Template text from the unrelated neuroscience thesis was replaced with five items, each tied to a
+> limitation this study recorded: operator timepoint holding, evaluating the stop-skip action,
+> grounding severe weather empirically, replicating on direction 4 and other corridors, and a shadow
+> deployment study. The chapter stays commented out of main.tex with the rest of the back matter.
+**Conformity table entry:**
+| — | Future Work must belong to this study | Template text removed; five items drafted from the study's own measured limitations | Future Work | — |
+**Commit message:** `docs(manuscript): draft the future work chapter`
 ---
 
 *Nothing follows.*

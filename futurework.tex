@@ -1,11 +1,40 @@
 \chapter{Future Work}
+\label{ch:futurework}
 
-\hspace{\parindent} In the future, the author aims to integrate within the current \textit{NeuroSEE} pipeline a novel information theoretic and machine learning-based algorithm for reducing the dimensionality of the large-scale multivariate signals extracted, as well as an algorithm that is capable of estimating information flow graphs that reflect disease progression. 
+% DRAFT, 2026-09-16. Replaces template text from an unrelated thesis. Each item below is tied to a
+% specific limitation recorded in Chapter 4 or in the project's risk register, so it should be revised
+% alongside the final results rather than kept as generic future work.
 
-For the place field analysis, the author aims to further improve the algorithm by using information theoretic approaches in accurately estimating the spatial information content, e.g. using Gaussian Process-based method. It would also be helpful if other information theoretic analysis are integrated within the pipeline, e.g. spike inference and spike entropy calculation, in order to quantify information encoding and transmission.
+\hspace{\parindent} The limitations recorded in Chapters~\ref{ch:results} and 3 point to five lines of
+work that would strengthen the result or extend its reach.
 
-On a more general note, the author aims to use the proposed \textit{NeuroSEE} pipeline in investigating how the spatiotemporal dynamics of neural cortical circuits involved in memory encoding and recall are affected by Alzheimer's disease as it progresses. More specifically, it would be important to characterise the differences between different mouse models of AD in terms of their effects on information flow in hippocampal-cortical circuits, so as to generalise our understanding on the effect of the different manifestations of AD on memory circuit dynamics. 
+\textbf{Operator control as a modelled behaviour.} The uncontrolled environment reproduces observed
+bunching at the start of the corridor but accumulates about 10\% more of it over the second half.
+Scheduled timepoint holding by real operators is the most plausible explanation, and it cannot be tested
+here because the APC schedule field is populated on only 18\% of records. A dataset with reliable
+scheduled departure times, or an operator interview protocol, would allow timepoint behaviour to be
+modelled explicitly and the residual gap to be closed or attributed.
 
-In mouse models of AD, amyloid or tau protein-related pathologies result in changes in cortical circuitry, which are particularly evident in the hippocampus. What is not known is how these changes relate to the function of this circuitry in memory encoding and recall processes, or how therapies which have been found to restore behavioural performance in mouse models affect this circuitry. Hence, it is good to examine the effects of therapeutic interventions, including pharmacological agents and neuromodulatory therapies, on the information processing properties in different mouse models. 
+\textbf{Stop skipping as an evaluated action.} The action space includes stop skipping, and the
+environment implements it with the manuscript's safeguards: never at the origin, never at the final
+stop, and never at a stop the preceding bus has already skipped. Carrying riders past their stop is
+counted. The reported results hold the skip action inactive so that the comparison against the two
+holding rules is like for like. Evaluating the full action space, with an explicit penalty weight for
+carried-past riders, is the natural next experiment.
 
-All of the above-mentioned works will be performed as the author progresses towards the PhD phase of the Centre for Doctoral Training in Neurotechnology for Life and Health programme. 
+\textbf{Weather beyond the observed support.} The estimated effect of ordinary rain on running time is
+1.35\% and is not statistically significant, so the severe-weather results rest on a labelled synthetic
+lognormal stress. Incident-level records, such as roadway closures or flooding reports aligned to the
+corridor, would let the severe cases be grounded empirically rather than declared synthetic, and would
+make the degradation curve a measurement rather than an extrapolation.
+
+\textbf{Both directions, and other corridors.} The study models direction code 6 of Route 801. The
+opposite direction is available under the same cleaning rules (226{,}233 clean stop events) and can be
+used as a replication subset without any new data acquisition. Repeating the calibration and evaluation
+on a second corridor would test how far the fitted parameters and the control conclusions transfer.
+
+\textbf{Toward deployment.} All results are simulated, and no sim-to-real transfer is claimed. A
+deployment study would need real-time headway and load feeds, a decision latency budget at each control
+stop, and a safety review of holding instructions issued to drivers. The natural intermediate step is a
+shadow evaluation in which the trained policy issues recommendations that are logged and compared with
+operator decisions, without controlling any vehicle.
