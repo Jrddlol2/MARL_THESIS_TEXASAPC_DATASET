@@ -8,10 +8,20 @@ import _figstyle as S
 S.apply()
 import matplotlib.pyplot as plt
 
-NAME = sys.argv[1] if len(sys.argv) > 1 else "gate1"
+NAME = sys.argv[1] if len(sys.argv) > 1 else "dr1"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = os.path.join(ROOT, "experiments", NAME, "metrics.csv")
-NC, FH = 0.331, 0.237
+
+
+def stage_a(controller):
+    """Stage A mean headway CV of a baseline, from the committed Monte Carlo results."""
+    import pandas as pd
+    d = pd.read_csv(os.path.join(ROOT, "results", "mc_results.csv"))
+    v = d[(d.scenario == "Stage A (D+T)") & (d.controller == controller)]["headway_cv"]
+    return float(v.mean())
+
+
+NC, EH = stage_a("NC"), stage_a("EH")
 
 ep, ret, tcv = [], [], []
 for r in csv.DictReader(open(P)):
@@ -33,8 +43,8 @@ a1.grid(alpha=0.3); a1.legend()
 
 a2.plot(ep, tcv, color=S.CONTEXT, lw=0.8)
 a2.plot(rx, roll(tcv), color=S.PRIMARY, lw=1.8, label="15-episode mean")
-a2.axhline(NC, ls="--", color=S.NC_C, lw=1.2, label=f"No-Control {NC:.3f}")
-a2.axhline(FH, ls="--", color=S.FH_C, lw=1.2, label=f"Forward-Headway {FH:.3f}")
+a2.axhline(NC, ls="--", color=S.NC_C, lw=1.2, label=f"No-Control, Stage A {NC:.3f}")
+a2.axhline(EH, ls="--", color=S.EH_C, lw=1.2, label=f"Even-Headway, Stage A {EH:.3f}")
 a2.set_xlabel("training episode"); a2.set_ylabel("headway CV (bunching)")
 a2.grid(alpha=0.3); a2.legend(fontsize=7); a2.set_ylim(0, max(0.7, tcv.max() * 1.05))
 
