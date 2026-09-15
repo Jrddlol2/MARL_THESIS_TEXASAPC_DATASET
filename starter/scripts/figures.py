@@ -131,12 +131,42 @@ def weather_sweep_fig(plt):
         .to_csv("results/stageB_weather_sweep.csv", index=False)
 
 
+def marl_fig(plt, tag="dr1"):
+    """The four controllers over the manuscript's evaluation matrix, from results/marl_eval_<tag>.csv
+    (written by scripts/eval_marl.py). Headway CV and passenger wait, 95% bootstrap CI."""
+    path = f"results/marl_eval_{tag}.csv"
+    if not os.path.exists(path): return
+    d = pd.read_csv(path)
+    order = [c for c in ["A", "S", "W", "B", "B_obs", "B_0.3", "B_0.6", "B_1.0", "B_1.3"] if c in set(d.cell)]
+    labels = {"A": "Stage A", "S": "+ surge", "W": "+ weather\n(obs. rain)", "B": "+ breakdown",
+              "B_obs": "Stage B\n(obs. rain)", "B_0.3": "Stage B\n$\\eta$ 0.3", "B_0.6": "Stage B\n$\\eta$ 0.6",
+              "B_1.0": "Stage B\n$\\eta$ 1.0", "B_1.3": "Stage B\n$\\eta$ 1.3"}
+    controllers = [("NC", S.NC_C), ("FH", S.FH_C), ("EH", S.EH_C), ("MARL", S.PURPLE)]
+    x = np.arange(len(order)); wpx = 0.8 / len(controllers)
+    for col, ylabel, fname in [("headway_cv", "Headway CV (bunching)", f"marl_{tag}_headway_cv"),
+                               ("wait_s", "Mean passenger wait (s)", f"marl_{tag}_wait")]:
+        fig, ax = plt.subplots(figsize=S.WIDE)
+        for k, (c, color) in enumerate(controllers):
+            off = (k - (len(controllers) - 1) / 2) * wpx
+            m, lo, hi = [], [], []
+            for cell in order:
+                v = d[(d.cell == cell) & (d.controller == c)][col].values
+                pm, plo, phi = boot(v); m.append(pm); lo.append(pm - plo); hi.append(phi - pm)
+            ax.bar(x + off, m, wpx, yerr=[lo, hi], capsize=2, color=color, label=c,
+                   edgecolor="white", linewidth=0.4, error_kw=dict(lw=0.8, ecolor="#444"))
+        ax.set_xticks(x); ax.set_xticklabels([labels[c] for c in order], fontsize=7)
+        ax.set_ylabel(ylabel); ax.grid(axis="y")
+        ax.legend(title="Controller", ncol=4, loc="upper left")
+        S.save(fig, fname)
+
+
 def main():
     S.apply()
     import matplotlib.pyplot as plt
     calibration_fig(plt)
     validation_figs(plt)
     weather_sweep_fig(plt)
+    marl_fig(plt)
     if os.path.exists("results/mc_results.csv"):
         df = pd.read_csv("results/mc_results.csv")
         scenario_fig(plt, df, "headway_cv", "Headway CV (bunching)", "mc_headway_cv")
