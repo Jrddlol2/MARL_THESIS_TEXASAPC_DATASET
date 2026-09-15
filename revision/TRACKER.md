@@ -635,6 +635,23 @@ scripts/pipeline/04_gtfs_gate.py, data/audit/texas_capmetro/APC_FIELD_USE_MAP.md
 **Conformity table entry:**
 | — | Manuscript must describe the implemented method | Simulation architecture, calibration statistics, data split, parameter values, training randomization and stabilizers rewritten to match the built simulator; GTFS gate closed with sourced substitutes | Methods 3.1–3.5; Problem Statement | — |
 **Commit message:** `docs(manuscript): align methods and problem statement with the implementation`
+
+---
+### Results chapter — first draft from measured outputs
+**Date:** 2026-09-16
+**File edited:** results.tex
+**Section:** Chapter 4
+**Lines changed:** whole file (2,334 template words replaced by a 1,442-word draft)
+**What was added/changed:**
+> The leftover NeuroSEE template text was replaced with this study's results: environment validation
+> (EO 1.1), disturbance generators (EO 1.2), reference controller performance (EO 3.1), and performance
+> under non-ideal conditions (EO 3.2), in six tables that each name the result file they come from.
+> Section 4.5 (MARL performance) is a commented placeholder holding the acceptance criteria and the
+> statistical procedure, which were fixed before the training run. The chapter stays commented out of
+> main.tex until that section is filled in.
+**Conformity table entry:**
+| — | Results chapter must present this study's findings | Template text from an unrelated thesis removed; results chapter drafted from the measured calibration, validation and baseline outputs | Chapter 4 | — |
+**Commit message:** `docs(manuscript): draft the results chapter from measured outputs`
 ---
 
 *Nothing follows.*

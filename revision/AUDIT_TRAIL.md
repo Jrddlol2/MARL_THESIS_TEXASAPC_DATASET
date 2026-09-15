@@ -863,6 +863,38 @@ so the gate is closed as unavailable and the two parameters it blocked are sourc
 
 **Why:** the implementation decisions recorded in `docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`
 and the 2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
+
+## 2026-09-16 — Results chapter drafted — [results.tex, Chapter 4]
+**Commit:** `PENDING`
+
+`results.tex` held 2{,}334 words of template text from an unrelated neuroscience thesis (the
+\textit{NeuroSEE} calcium-imaging pipeline) and had never been compiled. It was replaced by a first
+draft of this study's results, built only from measured outputs in `starter/results/`.
+
+```diff
+- \chapter{Results}
+- \hspace{\parindent} In this chapter, the author presents the results and detailed discussion of the performance evaluation for individual modules of the proposed \textit{NeuroSEE} pipeline.
+- \section{Motion Artefact Correction}
+- \subsection{\textit{NeuroSEE} can accurately correct movement artefacts in \textit{in vivo} imaging datasets from awake, head-fixed moving animals}
++ \chapter{Results and Discussion}
++ This chapter reports what the constructed environment reproduces, how the three reference controllers behave in it, and how that behaviour degrades as disturbances are activated. Unless stated otherwise, every cell is $N = 30$ paired Monte Carlo replications: a seed fixes one realization of demand, dwell, running time, dispatch deviation, surge, weather, and breakdown, and every controller faces that same realization, so differences between controllers are attributable to control alone.
++ \section{Environment Construction and Validation (EO 1.1)}
++ \section{Disturbance Generators (EO 1.2)}
++ \section{Reference Controller Performance (EO 3.1)}
++ \section{Performance Under Non-Ideal Conditions (EO 3.2)}
++ \section{MARL Controller Performance}
+```
+
+Six tables were added, each naming the result file it comes from: corridor calibration (0.90\% RMSPE on
+calibration days, 3.08\% held out, 6.83\% under the chronological check, $GEH<5$ on 26/26 throughout);
+environment validation against held-out observations (headway CV 0.556 against 0.504, first stop 0.357
+against 0.352, stop-service share 0.69 against 0.64, load profile $r = 0.99$); the disturbance settings;
+Stage A (No Control 0.556, Forward Headway 0.396, Even Headway 0.342); the four activation-matrix
+conditions; and the Stage B weather sweep. Section 4.5 is a commented placeholder recording the
+acceptance criteria and the statistical procedure, both fixed before the MARL run.
+
+**Why:** the chapter had to stop containing another thesis's text, and the measured baseline results
+are final for the conditions reported; only the MARL section is outstanding.
 ---
 
 *Nothing follows.*

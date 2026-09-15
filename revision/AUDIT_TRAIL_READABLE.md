@@ -760,6 +760,45 @@ from the current published feed and reported as such rather than as 2021 records
 
 **Why:** the implementation decisions recorded in the GTFS findings change list (2026-09-12) and the
 2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
+
+## 2026-09-16 — Results chapter drafted — [results.tex, Chapter 4]
+**Commit:** `PENDING`
+
+**BEFORE**
+
+The chapter opened: "In this chapter, the author presents the results and detailed discussion of the
+performance evaluation for individual modules of the proposed NeuroSEE pipeline." Its sections were
+Motion Artefact Correction, with subsections about correcting movement artefacts in imaging datasets
+from awake, head-fixed mice. It was 2,334 words of an unrelated neuroscience thesis and had never been
+compiled, since it was commented out of the main file.
+
+**AFTER**
+
+The chapter now opens: **"This chapter reports what the constructed environment reproduces, how the
+three reference controllers behave in it, and how that behaviour degrades as disturbances are
+activated. Unless stated otherwise, every cell is 30 paired Monte Carlo replications: a seed fixes one
+realization of demand, dwell, running time, dispatch deviation, surge, weather, and breakdown, and
+every controller faces that same realization, so differences between controllers are attributable to
+control alone."** Its sections are **Environment Construction and Validation (EO 1.1), Disturbance
+Generators (EO 1.2), Reference Controller Performance (EO 3.1), Performance Under Non-Ideal Conditions
+(EO 3.2), and MARL Controller Performance.**
+
+**What the six new tables report**
+
+| Table | Contents |
+|---|---|
+| Corridor calibration | 0.90% error on calibration days, 3.08% on held-out days, 6.83% under the date-order check; every segment passes GEH < 5 |
+| Environment validation | Bunching 0.556 simulated against 0.504 observed, first stop 0.357 against 0.352, stop service 0.69 against 0.64, load profile correlation 0.99 |
+| Disturbance settings | What each disturbance class is set to, and which values are measured rather than synthetic |
+| Stage A | No Control 0.556, Forward Headway 0.396, Even Headway 0.342, with waiting and travel times |
+| Activation matrix | The four single-disturbance conditions and Stage B with observed rain |
+| Stage B weather sweep | How the holding advantage falls away as synthetic weather stress rises |
+
+The MARL section is a placeholder that records the acceptance criteria and the statistical procedure,
+both fixed before the training run so they cannot be chosen after seeing the result.
+
+**Why:** the chapter had to stop containing another thesis's text, and the measured baseline results
+are final for the conditions reported; only the MARL section is outstanding.
 ---
 
 *Nothing follows.*

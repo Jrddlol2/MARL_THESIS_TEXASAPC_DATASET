@@ -1,110 +1,198 @@
-\chapter{Results}
-\hspace{\parindent} In this chapter, the author presents the results and detailed discussion of the performance evaluation for individual modules of the proposed \textit{NeuroSEE} pipeline. A more summarised discussion of these results can be found in the succeeding chapter.
+\chapter{Results and Discussion}
+\label{ch:results}
 
-\section{Motion Artefact Correction}
-\hspace{\parindent} The main purpose of correcting movement artefacts is to aid the detection and segmentation of cells, which, in turn, can facilitate the accurate extraction of neural activity information for downstream analysis. Motion artefacts are usually induced when the mouse is turning or switching directions. Without prior correction, the succeeding stages in the pipeline may not work as accurately as expected. This, however, must be made as fast and computationally efficient as possible, especially when large high-dimensional datasets are being processed and analysed. 
+% DRAFT, 2026-09-16. Sections 4.1-4.4 report measured results and are complete for the reference
+% controllers; Section 4.5 is a placeholder until the MARL training run and its evaluation finish.
+% Every number is reproducible from starter/results/ (the source file is named beside each table).
+% This chapter stays commented out of main.tex until Section 4.5 is filled in.
 
-For the purpose of comparison, the author attempted to implement a Hidden Markov Model-based line-by-line correction using the method presented in \cite{dombeck2007imaging}. However, this method was shown to be inapplicable to large high-resolution datasets, as it is very computationally expensive and takes a large amount of time to finish correcting tens of thousands of image frames. Aside from this issue, it also poses a problem caused inherently by raster scanning. After correction, it was found that some frames contain "blank" lines that may represent the lines that were not sampled on that particular frame during the instance of animal movement, i.e. the animal moved in such a way that the laser scan hopped over that region. Since the pixels are acquired serially during raster scanning, there may be no actual data recorded from those lines. Hence, there may be no other way to reconstruct them, thereby producing such blank lines. This, however, may be addressed by performing translational registration using frame-wise phase correlation prior to performing the line-by-line correction. However, it will make the process much more complex and will require more computational power and processing time, making the method inefficient for large scale datasets. 
+This chapter reports what the constructed environment reproduces, how the three reference controllers
+behave in it, and how that behaviour degrades as disturbances are activated. Unless stated otherwise,
+every cell is $N = 30$ paired Monte Carlo replications: a seed fixes one realization of demand, dwell,
+running time, dispatch deviation, surge, weather, and breakdown, and every controller faces that same
+realization, so differences between controllers are attributable to control alone. Intervals are
+bootstrap 95\% confidence intervals from 5{,}000 resamples.
 
-Thus, the author has successfully shown that using a subpixel image registration, while taking advantage of both the structural marking (red) and functional imaging (green) channels, can lead to a fast and accurate motion artefact correction, making it suitable for larger datasets. 
+\section{Environment Construction and Validation (EO 1.1)}
+\label{sec:results-eo11}
 
-\subsection{\textit{NeuroSEE} can accurately correct movement artefacts in \textit{in vivo} imaging datasets from awake, head-fixed moving animals}
-\hspace{\parindent} To evaluate whether the proposed \textit{NeuroSEE} pipeline can correct movement artefacts, the author tested it on \textit{in vivo} two-photon calcium imaging data which were recorded while imaging an awake, head-fixed moving mice. 
+The corridor is the 27 modelled stops of Route 801 direction code 6, built on the real road geometry
+taken from the OpenStreetMap route relation. Segment running times, dwell parameters, per-trip demand,
+and dispatch deviation are estimated from the 229{,}421 clean APC stop events, using calibration
+service days only.
 
-The proposed method operates by splitting each frame into overlapping patches. The author initially sets the patch size to $128 \times 128$ pixel with an additional 32 pixels of overlap in each direction. Each of the patches were registered against a template. The initial template was computed by taking the median of $n=200$ frames in the structural marking (red) channel. After registering the patches, each path is further split into smaller overlapping patches. The patch sizes were modified experimentally to identify the size that gives the best performance. It has been shown that larger initial patches (either $128 \times 128$ or $96 \times 96$) are a good choice, especially when the SNR of the dataset is not high enough. 
+\subsection{Segment running time}
 
-The performance of this method can be shown in Figure ~\ref{fig:Res1}. Panels A and B show the mean images of the red channel before and after correction, respectively. Uncorrected data gives a blurred mean image, while a properly motion-corrected data results to a crisp, noiseless mean image that indicates stability. To evaluate the improvement in the stability of the imaging data after correction, the author computed the correlation of each of the image frames with respect to the mean image. It can be shown in Figure ~\ref{fig:Res1}C that there is a significant increase in (\ac{cwm}) between the motion-corrected and raw data. Intuitively, this increase in \ac{cwm} coefficient indicates an improvement in stability. Figure ~\ref{fig:Res1}D and ~\ref{fig:Res1}E provide a more detailed frame-by-frame correlation with the mean. As shown in ~\ref{fig:Res1}D, all of the frames in the motion-corrected data had an increase in \ac{cwm}. Each sample point in this plot shows the correlation between each frame and their corresponding mean image. Points lying above the red line indicate an increase in \ac{cwm}.
+Edge speeds were tuned on the calibration days and then evaluated once on the held-out days.
 
-\begin{figure*}[!t]
-	\centering
-	\includegraphics[width=5.7in]{figures/figs/Res1.png}
-	\caption{Performance of \textit{NeuroSEE} in correcting motion artefacts}
-	\label{fig:Res1}
-	\captionsetup{singlelinecheck=off,font=small}
-	% EDIT THIS:
-	\caption*{\textit{NeuroSEE} stabilises image sequences that were corrupted by motion artefacts: (A) Mean image of the structural marking (red) channel of the raw data; (B) A sharper and stabilised mean image of the structural marking (red) channel of the motion-corrected data; (C) Correlation coefficients of the raw and motion-corrected frames with respect to their corresponding means; (D-E) Frame-by-frame correlation-with-mean of the raw and motion-corrected data}
-\end{figure*}
-
-\subsection{\textit{NeuroSEE}'s movement correction leads to better source extraction}
-\hspace{\parindent} Most of the existing methods for source extraction assume stable image sequences, i.e. each cell retains its position throughout all the frames in the video. To examine the effect of motion artefact correction to cell detection and segmentation, the author applied the proposed hybrid detection algorithm to raw and motion-corrected data. It has been shown that raw datasets can lead to cells not being detected and segmented because the displacement of the position of cells across frames may lead to a blurred mean and correlation images, which can then result to improper evolution of level set functions. The quality of the extracted calcium traces significantly increase after motion artefact correction. 
-
-Figure ~\ref{fig:Res3}A shows the mean image of the red channel with overlaid contours nine representative cells. Their respective extracted ratiometric calcium traces are shown in Figure ~\ref{fig:Res3}B. It can be shown that \textit{NeuroSEE} can accurately detect and segment different types of cells and extract their corresponding calcium transients with sufficient signal-to-noise ratio. 
-
-\section{Cell Detection and Segmentation}
-\hspace{\parindent} The goal of proposing the \textit{NeuroSEE} pipeline is to standardise the analysis to a wide variety of cell models and imaging data types. To address this, the pipeline must not heavily rely on cellular morphology nor in stereotypical temporal activity. Hence, the author integrated morphology- and activity-based approaches to create a more flexible and versatile analysis pipeline.
-
-The performance of the proposed algorithm was optimised by experimentally tuning its parameters. Alpha, $\alpha$, parameter is sensitive to the degree of correlation of the detected cells. The higher the value of $\alpha$, i.e. approaching 1, the more conservative (or more selective) the system is in selecting a candidate ROI. This means that only those with high correlation across time will be nominated as candidate ROIs. On the other hand, if $\alpha$ is set to a lower value, i.e. approaching 0, more cells will be detected from the correlation image. Based on the experiments, it was found that a value of $\alpha$ in the range of 0.3 - 0.6 gives better initialisation results, as lower $\alpha$ values overestimate the number of ROIs, which can then be automatically pruned during the evolution of the level set functions. 
-
-Lambda, $\lambda$, parameter, on the other hand, highly depends on the cell’s temporal activity. The higher the value of $\lambda$ the more weight the data-based term has in the cost function, resulting to a more defined active contour. Based on the experiments, it was found that a value of $\lambda$ in the range of 10 - 60 gives better final cell boundary estimates.
-
-During testing, \textit{NeuroSEE} detected a total of 321 ROIs from the manually-labelled imaging dataset of the Neurofinder Challenge (Figure ~\ref{fig:Res2}C). Automatic initialisation using the morphology-based approach produced 120 ROIs (Figure ~\ref{fig:Res2}A), while activity-based approach produced produced 248 ROIs (Figure ~\ref{fig:Res2}B), summing to 368 initial ROI estimates with 47 automatically pruned or merged during the level set segmentation. Figure ~\ref{fig:Res2}D shows the manually labelled cells. 
-
-\subsection{\textit{NeuroSEE} outperforms existing approaches}
-\hspace{\parindent} The performance of \textit{NeuroSEE}'s ROI segmentation module was compared with other existing approaches, such as ABLE \cite{reynolds2017able}, Suite2p \cite{pachitariu2016suite2p}, and CNMF \cite{pnevmatikakis2016simultaneous}. As shown in Figure ~\ref{fig:Res2}E and Table ~\ref{table:Table1}, \textit{NeuroSEE} achieved the highest success rate, precision, and recall values among all these methods. These were computed by comparing their results to the manual labels provided in the Neurofinder Challenge dataset. It has been shown clearly that \textit{NeuroSEE} outperforms the other approaches, as it can detect even the non-circular/non-elliptical cells, as well as the temporarily inactive cells. Hence, \textit{NeuroSEE} is robust to cell shape and to temporal cellular inactivity. 
-
-
-\subsection{\textit{NeuroSEE} eliminates neuropil contamination}
-\hspace{\parindent} \textit{NeuroSEE} is capable of eliminating neuropil contamination prior to the extraction of the calcium traces. Figure ~\ref{fig:Res3}C shows a representative cell (cell 1 in Figure ~\ref{fig:Res3}A and B). The neuropil region, i.e. the region outside the active contour bounded by the yellow dashed line, is divided into four subregions. The signals coming from these subregions are weighted. This is considered as the neuropil signal (right-middle; red). This signal is subtracted from the measured signal of the ROI (right-top; magenta). The resulting signal (right-bottom; blue) is the decontaminated signal. It can be observed that the decontamination of the extracted calcium traces gives a higher signal-to-noise ratio. 
-
-\begin{sidewaysfigure*}
-	\centering
-	\includegraphics[width=7in]{figures/figs/Res2.png}
-	\caption{Performance of \textit{NeuroSEE} in detecting and segmenting cells}
-	\label{fig:Res2}
-	\captionsetup{singlelinecheck=off,font=small}
-	% EDIT THIS:
-	\caption*{\textit{NeuroSEE} gives the best performance among the other three existing cell detection and segmentation algorithms: (A) Detected cells during morphology-based initialisation; (B) Detected cells during activity-based initialisation; (C) Detected cells after performing the proposed hybrid cell detection and segmentation method; (D) Manually-labelled cells from the Neurofinder Challenge dataset; (E) Comparison of the performance metrics for different algorithms}  
-\end{sidewaysfigure*}
-
-\begin{figure*}[!t]
-	\centering
-	\includegraphics[width=6in]{figures/figs/Res3.png}
-	\caption{Performance of \textit{NeuroSEE} in extracting neural activity information}
-	\label{fig:Res3}
-	\captionsetup{singlelinecheck=off,font=small}
-	% EDIT THIS:
-	\caption*{\textit{NeuroSEE} accurately extracts calcium transients: (A) Summary image of a two-photon video showing representative cells that are detected by the proposed algorithm; (B) Ratiometric calcium traces extracted from the nine cells indicated in the left image; (C) A $100 \times 100$ pixel patch showing one cell and its neuropil subregions. The right panel shows the composite signal prior to neuropil decontamination (top; magenta), the neuropil signal (middle; red), and the decontaminated signal (bottom; blue).}
-\end{figure*}
-
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
-\begin{tabular}{ |p{2.5cm}||p{3.5cm}|p{3cm}|p{3cm}| }
- 	\hline
-	 \multicolumn{4}{|c|}{Performance Evaluation} \\
- 	\hline
- 	Method &Success Rate (\%) &Precision (\%)&Recall(\%)\\
-	 \hline
- 	NeuroSEE   & 75.4 & 72.6 & 78.4\\
- 	ABLE   & 67.5 & 67.5 & 67.5\\
- 	CNMF   & 63.4 & 60.7 & 66.5\\
- 	Suite2p   & 63.7 & 56.5 & 73.1\\
-	\hline
+\caption[Corridor calibration]{Corridor calibration against APC running times, 26 segments.}
+\label{tab:calibration}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Service days} & \textbf{RMSPE} & \textbf{$GEH < 5$} & \textbf{Max GEH} \\
+\midrule
+Calibration (65 days, alternating)     & 0.90\% & 26/26 & 0.25 \\
+Held out (64 days, alternating)        & 3.08\% & 26/26 & 0.90 \\
+Held out (chronological split, check)  & 6.83\% & 26/26 & 3.59 \\
+\bottomrule
 \end{tabular}
-\caption{Algorithm success rate on manually labelled dataset}
-\label{table:Table1}
 \end{table}
 
+The environment satisfies the acceptance criterion of Section~\ref{sec:research-design} on days it
+never saw. The third row is a robustness check rather than the study's split: when service days are
+divided chronologically instead of alternately, the held-out error doubles while every segment still
+satisfies $GEH < 5$. Recorded weekday boardings rise about 31\% from July to October while the median
+segment running time moves by less than 5\%, so that figure reflects a seasonal shift in the held-out
+period rather than a worse model.
 
+\subsection{Headway variability, load, and stop service}
 
+Travel-time calibration alone does not establish that the environment reproduces \emph{bunching}, which
+is the quantity this study reports on. Three further checks compare the uncontrolled environment with
+the held-out days, each measured identically on both sides.
 
-\section{Place Field Analysis}
-\hspace{\parindent} To further evaluate whether the proposed \textit{NeuroSEE} pipeline is capable of extracting accurate neural activity information from the detected cells, the author performed 2D histogram-based place field analysis. This type of histogram binning-based technique is highly dependent on the amount of firings during the recording. Hence, it is necessary that the animal under test is active during the imaging sessions, and that it traverses through almost each of the regions in the environment so as to get a good map-like representation of space.  
+\begin{table}[htbp]
+\centering
+\caption[Environment validation]{Uncontrolled environment against held-out observations.}
+\label{tab:validation}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Quantity} & \textbf{Observed} & \textbf{Simulated (No Control)} \\
+\midrule
+Headway CV, corridor mean              & 0.504 & 0.556 \\
+Headway CV, first stop                 & 0.352 & 0.357 \\
+Headway CV, stop-by-stop correlation   & \multicolumn{2}{c}{$r = 0.87$} \\
+Share of trips serving a stop          & 0.64  & 0.69 \\
+Stop-service correlation               & \multicolumn{2}{c}{$r = 0.96$} \\
+Riders on board, profile correlation   & \multicolumn{2}{c}{$r = 0.99$} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-In order to perform place field analysis, it is required to simultaneously track the path of the mouse as it explores the circular chamber during the two-photon imaging sessions. This is done using a magnetic tracker whose sampling rate is 100 Hz. Since the frame scanning rate and the sampling rate of the tracker are not the same, the first thing to do before performing place field mapping is to make sure that their time stamps are synchronised. This is done by the \textit{Processor} module at the \textit{Behavioural Tracking} stage of the \textit{\ac{neurosee}} pipeline. When the \ac{2p} spike onset time series and the tracking time series are in sync, the occupancy, rate and place maps can now be constructed. The estimation of place fields can be used to quantify information encoding and transmission. 
+Dispatch variability is anchored to the observed first-stop headway CV, which the environment
+reproduces to within 0.005. Bunching then accumulates about 10\% faster than observed over the second
+half of the corridor. Real operators hold buses at timepoints, which would damp exactly that
+accumulation; the APC schedule field is populated on only 18\% of records, so this explanation cannot
+be tested with the available data and the residual is reported as a limitation rather than tuned away.
+Simulated loads sit about two riders below the mean APC \texttt{max\_load} because APC records a stop
+only when its doors open, which over-samples busier trips; the shape along the corridor matches.
 
-The sizes of the occupancy, rate and place maps were experimentally modified during the analysis. It was found that a $100 \times 100$ bin map size gives sufficient results. Each bin in the occupancy and rate maps gives the frequency of space occupancy and cell firing, respectively. Dividing the rate map by the occupancy map produces the place map, which suggests the selectivity of firing of individual place cells with respect to a particular region in space. 
+\section{Disturbance Generators (EO 1.2)}
+\label{sec:results-eo12}
 
-\subsection{\textit{NeuroSEE} shows promising performance in monitoring the dynamics of hippocampal place cells}
-\hspace{\parindent} Based on the place maps obtained after performing place field analysis, it has been shown that \textit{NeuroSEE} can be used to monitor the changes in the spiking activity of hippocampal place cells across several imaging sessions. The place maps show promising results in demonstrating the spatial selectivity of a population of cells in the hippocampus. The estimation of place fields can be used in quantifying information encoding and transmission. Hence, this tool can be used in investigating how the spatiotemporal dynamics of neural cortical circuits involve in memory encoding and recall are affected by Alzheimer's disease as it progresses. Place field analysis can be performed across several imaging days to quantify and analyse the possible changes in dynamics of a population of place cells. 
+The environment exposes each disturbance class as an adjustable parameter, and every value below is
+either estimated from the data or declared synthetic.
 
-To further improve the results, it is suggested to record more imaging data for each imaging session. The longer the time of recording, i.e. the longer the mouse explores the environment, the more pronounced the place maps would be. It is also suggested to use a more accurate and precise estimation of the spatial information content by using information theoretic-based approaches, such as Gaussian Process-based method. This may provide a more data-efficient estimation than 2D spike binning-based approach. 
+\begin{table}[htbp]
+\centering
+\caption[Disturbance settings]{Disturbance generators and their evaluation settings.}
+\label{tab:disturbance-settings}
+\begin{tabular}{llp{7.2cm}}
+\toprule
+\textbf{Class} & \textbf{Parameter} & \textbf{Setting} \\
+\midrule
+D & dispersion 3.8   & Negative-binomial demand; variance-to-mean ratio estimated from the APC counts \\
+T & fitted spreads   & Running-time and dispatch spreads estimated from neighbouring-bus pairs \\
+S & $\sigma_d = 1$   & Demand multiplier $f_d \sim N(1, \sigma_d^2)$ clipped to $[1, 10]$ \\
+W & rain $\times \eta$ & Observed ordinary-rain multiplier 1.0135 (not significant), times a labelled synthetic lognormal stress of coefficient of variation $\eta \in \{0, 0.3, 0.6, 1.0, 1.3\}$ \\
+B & $n_B = 1$        & One bus removed from service at a random stop; its riders alight and wait for the next bus \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{figure*}[!t]
-	\centering
-	\includegraphics[width=5.7in]{figures/figs/Res4.png}
-	\caption{Performance of \textit{NeuroSEE} in place field analysis}
-	\label{fig:Res4}
-	\captionsetup{singlelinecheck=off,font=small}
-	% EDIT THIS:
-	\caption*{(A) Behavioural track: Gray lines represent the trajectories of the mouse in the circular chamber and the different coloured dots represent the points in the chamber where different respective cells fired action potentials; (B) Occupancy map: Indicates the frequency of the mouse in occupying a certain region in space. The space is divided into spatial bins.; (C) Spiking activities of representative cells: The signal on top is the extracted ratiometric calcium trace and the signal below is the non-negative derivative of the calcium trace which represents the spike onsets.; (D-E) Original and smoothened place maps}
-\end{figure*}
+The ordinary-rain effect is small and statistically indistinguishable from zero: running times on
+rain-exposed records are 1.35\% longer within segment, time-of-day, and day-type strata, with a 95\%
+interval of $[-0.8\%, +2.5\%]$ across 170 strata. That is reported as the observed weather condition,
+and anything stronger is labelled synthetic throughout.
+
+\section{Reference Controller Performance (EO 3.1)}
+\label{sec:results-eo31}
+
+\begin{table}[htbp]
+\centering
+\caption[Stage A results]{Stage A (D+T), $N = 30$ paired seeds. Source: \texttt{results/mc\_summary.md}.}
+\label{tab:stage-a}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Controller} & \textbf{Headway CV} & \textbf{Wait (s)} & \textbf{Travel (s)} \\
+\midrule
+No Control      & 0.556 [0.518, 0.590] & 387 [375, 400] & 4391 \\
+Forward Headway & 0.396 [0.372, 0.420] & 350 [342, 358] & 4533 \\
+Even Headway    & \textbf{0.342} [0.322, 0.363] & \textbf{339} [333, 346] & 4543 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both holding rules reduce bunching significantly on an ordinary day: Forward Headway by 29\%
+[22, 35] and Even Headway by 38\% [33, 44]. Mean passenger waiting falls by 10\% and 12\%
+respectively, while in-vehicle travel time rises by about 3\%, which is the holding time itself. Even
+Headway is the stronger reference throughout, as the literature reports: it observes both neighbouring
+gaps, whereas Forward Headway is the deliberately gentle rule of Daganzo with gain $\alpha = 0.2$.
+
+\section{Performance Under Non-Ideal Conditions (EO 3.2)}
+\label{sec:results-eo32}
+
+\begin{table}[htbp]
+\centering
+\caption[Single-disturbance ablations]{Headway CV by activation-matrix condition, $N = 30$ paired
+seeds. The change is measured against No Control in the same condition.}
+\label{tab:ablations}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Condition} & \textbf{NC} & \textbf{FH} & \textbf{EH} \\
+\midrule
+Stage A (D+T)                     & 0.556 & 0.396 ($-29\%$) & 0.342 ($-38\%$) \\
+S ablation (D+T+S)                & 0.596 & 0.427 ($-28\%$) & 0.371 ($-38\%$) \\
+W ablation (D+T+W, observed rain) & 0.559 & 0.400 ($-28\%$) & 0.346 ($-38\%$) \\
+B ablation (D+T+B)                & 0.564 & 0.423 ($-25\%$) & 0.370 ($-34\%$) \\
+Stage B (all, observed rain)      & 0.609 & 0.458 ($-25\%$) & 0.404 ($-34\%$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under observed conditions the reference controllers are robust. A demand surge raises bunching for
+every controller but leaves the holding advantage unchanged; a breakdown costs each rule about four
+percentage points of its advantage; and observed ordinary rain is nearly indistinguishable from
+Stage A, as the estimated rain effect implies. With all three active, Even Headway still cuts bunching
+by about a third.
+
+\begin{table}[htbp]
+\centering
+\caption[Stage B weather sweep]{Stage B (D+T+S+W+B) as the labelled synthetic weather stress $\eta$
+increases. Source: \texttt{results/stageB\_weather\_sweep.csv}.}
+\label{tab:stage-b-sweep}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Weather} & \textbf{NC} & \textbf{FH} & \textbf{EH} & \textbf{EH wait (s)} \\
+\midrule
+Observed rain only & 0.609 & 0.458 ($-25\%$) & 0.404 ($-34\%$) & 361 \\
+$\eta = 0.3$       & 0.685 & 0.574 ($-16\%$) & 0.534 ($-22\%$) & 399 \\
+$\eta = 0.6$       & 0.820 & 0.742 ($-9\%$)  & 0.725 ($-12\%$) & 472 \\
+$\eta = 1.0$       & 0.904 & 0.836 ($-8\%$)  & 0.832 ($-8\%$)  & 524 \\
+$\eta = 1.3$       & 0.929 & 0.862 ($-7\%$)  & 0.864 ($-7\%$)  & 541 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Degradation is driven almost entirely by weather stress. As $\eta$ increases, the advantage of holding
+shrinks monotonically, and beyond $\eta = 1.0$ the two rules are statistically indistinguishable from
+each other: local holding cannot restore spacing once the disturbance to running time is of the same
+order as the headway itself. That is the regime in which an adaptive controller has something to gain,
+and it lies outside the observed weather support, so it is reported as a labelled synthetic
+extrapolation and never as a rainfall category.
+
+\section{MARL Controller Performance}
+\label{sec:results-marl}
+
+% PENDING: the domain-randomized training run (D+T always active; S, W and B randomized per episode)
+% and the evaluation of its frozen policy over the nine-cell matrix. The acceptance criteria and the
+% statistical procedure were fixed before that run and are stated in Section 3.5 and in
+% scripts/eval_marl.py:
+%   Stage A (i)  mean wait not significantly worse than Even Headway
+%   Stage A (ii) headway CV significantly below No Control
+%   Stage B      mean wait below the best baseline in every Stage B cell
+%   plus the project's own training gate: Stage A headway CV below Even Headway (0.342)
+% Tests: paired Wilcoxon signed-rank by seed, Holm-corrected across the three baseline comparisons,
+% alpha = 0.05, seeds 0-29 for every controller.
