@@ -826,7 +826,7 @@ recommendations are logged and compared with operator decisions without controll
 limitation this study actually measured.
 
 ## 2026-09-16 — Deferred parameter rows resolved — [methods.tex, Section 3.2 parameter table and data gates]
-**Commit:** `PENDING`
+**Commit:** `419e7a0`
 
 **BEFORE**
 

@@ -920,7 +920,7 @@ compiled. It was replaced by five items, each tied to a limitation recorded in t
 limitation this study actually measured.
 
 ## 2026-09-16 — Deferred parameter rows resolved — [methods.tex, Section 3.2 parameter table and data gates]
-**Commit:** `PENDING`
+**Commit:** `419e7a0`
 
 Three rows marked "to be finalized" are now determined; only vehicle capacity and the reward weights
 (which await the EO 2.1 sweep) still carry the marker.
