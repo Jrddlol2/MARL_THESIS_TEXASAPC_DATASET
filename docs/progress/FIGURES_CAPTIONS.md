@@ -39,9 +39,40 @@ July--December 2021 window (184 service days).
 
 ## Results and MARL figures
 
-**calibration_validation** — Corridor calibration. Simulated (SUMO) versus observed (APC) segment
-running times for the 25 corridor segments; points lie on the identity line (dashed). Calibration meets
-GEH $<5$ on all segments at a travel-time RMSPE of $0.75\%$.
+**calibration_validation** — Corridor calibration. Simulated (SUMO) against observed (APC) segment
+running times for the 26 corridor segments; points lie on the identity line (dashed). Filled markers are
+the 65 calibration service days, open markers the 64 held-out days. Calibration meets $GEH < 5$ on every
+segment in both sets, at a running-time RMSPE of $0.90\%$ on calibration days and $3.08\%$ on held-out
+days.
+
+**headway_cv_validation** — Headway coefficient of variation by stop, uncontrolled simulation against
+the held-out service days, both measured on schedule-consecutive gaps. The first stop matches to within
+0.005 (0.357 against 0.352) and the stop-by-stop correlation is $r = 0.87$; the simulation accumulates
+about 10\% more bunching than observed over the second half of the corridor.
+
+**load_profile_validation** — Riders on board as each bus leaves each stop, uncontrolled simulation
+against the mean APC \texttt{max\_load}. The profile matches in shape ($r = 0.99$) and sits about two
+riders low, because APC records a stop only when its doors open and therefore over-samples busier trips.
+
+**stop_service_validation** — Share of trips that stop at each stop, uncontrolled simulation against the
+held-out days. Stops marked with an asterisk are served on every trip by construction (the first stop,
+the last stop, and the five control stops). Across the remaining stops the correlation is $r = 0.96$
+(0.69 simulated against 0.64 observed).
+
+**stageB_weather_sweep** — Stage B (D+T+S+W+B) as weather severity increases: headway CV (left) and mean
+passenger waiting time (right) for NC / FH / EH, with 95\% bootstrap intervals over $N=30$ matched
+seeds. The leftmost point uses the observed ordinary-rain multiplier only; the remaining points add the
+labelled synthetic lognormal stress at $\eta \in \{0.3, 0.6, 1.0, 1.3\}$. The holding advantage falls
+from $-34\%$ to $-7\%$ and the two rules become indistinguishable beyond $\eta = 1.0$.
+
+**dr1_curve** — Learning curve of the domain-randomized training run: per-episode training CV (grey,
+exploring under randomly drawn disturbances) and the greedy policy evaluated every 50 episodes on
+Stage A, Stage B with observed rain, and Stage B at $\eta = 0.6$ (seeds 90{,}000+). Dashed lines mark
+Even-Headway in the matching condition; the right axis shows the exploration rate $\varepsilon$.
+
+**marl_dr1_headway_cv**, **marl_dr1_wait** — The four controllers over the manuscript's evaluation
+matrix: headway CV and mean passenger waiting time with 95\% bootstrap intervals, $N=30$ matched seeds
+per cell, all controllers on the same seeds.
 
 **mc_headway_cv** — Headway coefficient of variation (bunching) by scenario for No-Control (NC),
 Forward-Headway (FH), and Even-Headway (EH), over $N=30$ matched-seed replications; error bars are
