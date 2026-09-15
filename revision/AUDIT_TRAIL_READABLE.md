@@ -762,7 +762,7 @@ from the current published feed and reported as such rather than as 2021 records
 2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
 
 ## 2026-09-16 — Results chapter drafted — [results.tex, Chapter 4]
-**Commit:** `PENDING`
+**Commit:** `b2b5d96`
 
 **BEFORE**
 

@@ -865,7 +865,7 @@ so the gate is closed as unavailable and the two parameters it blocked are sourc
 and the 2026-09-14/16 simulator work, so the manuscript states what the code and data actually do.
 
 ## 2026-09-16 — Results chapter drafted — [results.tex, Chapter 4]
-**Commit:** `PENDING`
+**Commit:** `b2b5d96`
 
 `results.tex` held 2{,}334 words of template text from an unrelated neuroscience thesis (the
 \textit{NeuroSEE} calcium-imaging pipeline) and had never been compiled. It was replaced by a first
