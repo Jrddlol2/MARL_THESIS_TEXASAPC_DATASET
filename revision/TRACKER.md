@@ -667,6 +667,20 @@ scripts/pipeline/04_gtfs_gate.py, data/audit/texas_capmetro/APC_FIELD_USE_MAP.md
 **Conformity table entry:**
 | — | Future Work must belong to this study | Template text removed; five items drafted from the study's own measured limitations | Future Work | — |
 **Commit message:** `docs(manuscript): draft the future work chapter`
+
+---
+### Parameter table — deferred rows resolved
+**Date:** 2026-09-16
+**File edited:** methods.tex
+**Section:** 3.2 (parameter table and data gates)
+**Lines changed:** 140, 167, 188
+**What was added/changed:**
+> Simulation horizon, baseline coefficient of variation and the historical-schedule gate item were
+> filled in from the archived timetable and the fitted APC parameters. Only vehicle capacity and the
+> reward weights still read "to be finalized", the latter because the EO 2.1 sweep has not run.
+**Conformity table entry:**
+| — | Parameter values must be stated once determined | Simulation horizon, baseline CV and the schedule gate resolved; capacity and reward weights remain open with stated reasons | Methods 3.2 | — |
+**Commit message:** `docs(manuscript): resolve deferred parameter rows`
 ---
 
 *Nothing follows.*

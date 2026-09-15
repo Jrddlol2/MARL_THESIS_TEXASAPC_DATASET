@@ -824,6 +824,33 @@ recommendations are logged and compared with operator decisions without controll
 
 **Why:** the chapter contained another thesis's text, and each replacement item is anchored to a
 limitation this study actually measured.
+
+## 2026-09-16 — Deferred parameter rows resolved — [methods.tex, Section 3.2 parameter table and data gates]
+**Commit:** `PENDING`
+
+**BEFORE**
+
+The parameter table deferred three entries. The simulation horizon was "a single observed Route 801
+service window, to be finalized after historical schedule and timestamp validation". The baseline
+coefficient of variation was "sigma over mu per segment, to be finalized". The data-gate list said a
+2021 GTFS snapshot is required for direction labels, stop names, route shape and scheduled headway, and
+that until those gates close, direction 6 remains code-only and the schedule and capacity parameters
+remain to be finalized.
+
+**AFTER**
+
+The simulation horizon is **one weekday service window, 07:00 to 18:00, the band the archived timetable
+runs at a 10-minute headway, with 18 trips dispatched into it per episode.** The baseline coefficient of
+variation is **the per-segment running-time spread fitted from neighbouring-bus pairs: a log-scale sigma
+of 0.21 on average across the 26 segments, ranging from 0.10 to 0.35.** The data-gate item now reads:
+**no 2021 snapshot is publicly archived, six retrieval routes were exhausted, and the gate is closed as
+unavailable rather than pending. The scheduled headway comes from the archived 2021 timetable and the
+direction label is corroboration from the current feed, which matches 28 of the 29 study stop IDs in
+order at a median offset of 8.5 m. Historical stop names are not claimed, and vehicle capacity remains
+to be finalized.**
+
+**Why:** the values exist now, measured from the APC records and the archived timetable, so the
+proposal-stage placeholders should not survive into the implementation chapter.
 ---
 
 *Nothing follows.*

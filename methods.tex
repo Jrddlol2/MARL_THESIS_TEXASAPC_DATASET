@@ -137,7 +137,7 @@ X
 \multicolumn{4}{l}{\textit{Fixed simulation parameters}} \\
 \midrule
 
-Simulation horizon & --- & Single observed Route 801 service window (to be finalized (data pending): select start/end after historical schedule and timestamp-basis validation) & Section~\ref{sec:research-design} \\
+Simulation horizon & --- & One weekday service window, 07:00--18:00, the band the archived timetable runs at a 10-minute headway; 18 trips are dispatched into it per episode & Section~\ref{sec:research-design}, archived timetable~\cite{CapMetro2021Timetable801} \\
 Total distinct stop IDs (direction code 6) & $M$ & 29 observed as a union over trips; 27 modelled (the northern terminal 5304 enters as the boarding load already on board, and the southern terminal 5873 ends the trip) & Reproduced CapMetro APC audit \\
 Fleet size (active buses) & $N$ & 18 trips dispatched per simulated service window, giving about 9 buses on the corridor at once (observed concurrent weekday buses: median 10, p90 12) & CapMetro APC + archived timetable \\
 Control stop count & --- & 5 (stops 5280, 5857, 5859, 5867, 4046), selected with the Section~\ref{subsec:control-stop-selection} criteria & Section~\ref{subsec:control-stop-selection} \\
@@ -164,7 +164,7 @@ Breakdowns per episode & $n_B$ & 1 (sensitivity case: 3), following the single- 
 
 Baseline inter-stop travel time & $\mu$ & Per-segment, time-of-day, and day-type bin, to be computed & CapMetro \texttt{rev\_seconds} \\
 Baseline travel-time std.\ dev.\ & $\sigma$ & Per-segment, time-of-day, and day-type bin, to be computed & CapMetro \texttt{rev\_seconds} \\
-Baseline coefficient of variation & $CV_0$ & $\sigma/\mu$ per segment, to be finalized (data pending) & Computed from dataset \\
+Baseline coefficient of variation & $CV_0$ & Per-segment running-time spread fitted from neighbouring-bus pairs: log-scale $\sigma$ of 0.21 on average across the 26 segments (range 0.10--0.35) & Computed from the APC records \\
 Lognormal shape parameter & $\sigma_{ln}$ & $\sqrt{\ln(\eta^2+1)}$ (Eq.~\ref{eq:sigma_ln}) & Method of moments \\
 Lognormal unit-mean factor location & $\mu_{ln}$ & $-\sigma_{ln}^2/2$ (Eq.~\ref{eq:mu_ln}) & Method of moments \\
 
@@ -185,7 +185,7 @@ The MARL framework is trained and evaluated on a single stream of input data pre
 
 \item \textbf{NOAA LCDv2 weather.} Camp Mabry (USW00013958) is the primary station and Austin-Bergstrom (USW00013904) is the sensitivity station \cite{NOAALCDv2}. NOAA timestamps are local standard time with no daylight-saving adjustment. They are interpreted as UTC$-06{:}00$, converted to \texttt{America/Chicago}, and joined to APC event time by nearest observation within 90 minutes. Both stations matched all 229{,}421 primary events in the feasibility audit; 11{,}804 events matched a Camp Mabry rain flag.
 
-\item \textbf{Historical schedule and fleet metadata.} A 2021-compatible GTFS snapshot is required for authoritative direction labels, stop names, route shape, and scheduled headway; a verified fleet source is required for capacity. The current GTFS asset \cite{CapMetroGTFS} is not substituted for a historical snapshot. Until those gates close, direction 6 remains code-only and schedule/capacity parameters remain to be finalized (data pending).
+\item \textbf{Historical schedule and fleet metadata.} A 2021-compatible GTFS snapshot would be the authoritative source for direction labels, stop names, route shape, and scheduled headway, and a verified fleet source for capacity. No such snapshot is publicly archived: six retrieval routes were exhausted and the gate is therefore closed as unavailable rather than pending. Two parameters it blocked are sourced elsewhere and labelled accordingly---the scheduled headway from the archived 2021 timetable~\cite{CapMetro2021Timetable801}, and the direction label as corroboration from the current feed~\cite{CapMetroGTFS}, which matches 28 of the 29 study stop IDs in order at a median offset of 8.5\,m. Historical stop names are not claimed, and vehicle capacity remains to be finalized (data pending).
 \end{enumerate}
 
 Table~\ref{tab:field-mapping-texas} summarizes how each verified CapMetro and NOAA field maps to the quantity derived from it and the role, and limitation, that quantity carries in the model.

@@ -918,6 +918,24 @@ compiled. It was replaced by five items, each tied to a limitation recorded in t
 
 **Why:** the chapter contained another thesis's text, and each replacement item is anchored to a
 limitation this study actually measured.
+
+## 2026-09-16 — Deferred parameter rows resolved — [methods.tex, Section 3.2 parameter table and data gates]
+**Commit:** `PENDING`
+
+Three rows marked "to be finalized" are now determined; only vehicle capacity and the reward weights
+(which await the EO 2.1 sweep) still carry the marker.
+
+```diff
+- Simulation horizon & --- & Single observed Route 801 service window (to be finalized (data pending): select start/end after historical schedule and timestamp-basis validation) & Section~ef{sec:research-design} \
++ Simulation horizon & --- & One weekday service window, 07:00--18:00, the band the archived timetable runs at a 10-minute headway; 18 trips are dispatched into it per episode & Section~ef{sec:research-design}, archived timetable~\cite{CapMetro2021Timetable801} \
+- Baseline coefficient of variation & $CV_0$ & $\sigma/\mu$ per segment, to be finalized (data pending) & Computed from dataset \
++ Baseline coefficient of variation & $CV_0$ & Per-segment running-time spread fitted from neighbouring-bus pairs: log-scale $\sigma$ of 0.21 on average across the 26 segments (range 0.10--0.35) & Computed from the APC records \
+- \item 	extbf{Historical schedule and fleet metadata.} A 2021-compatible GTFS snapshot is required for authoritative direction labels, stop names, route shape, and scheduled headway; a verified fleet source is required for capacity. The current GTFS asset \cite{CapMetroGTFS} is not substituted for a historical snapshot. Until those gates close, direction 6 remains code-only and schedule/capacity parameters remain to be finalized (data pending).
++ \item 	extbf{Historical schedule and fleet metadata.} ... No such snapshot is publicly archived: six retrieval routes were exhausted and the gate is therefore closed as unavailable rather than pending. Two parameters it blocked are sourced elsewhere and labelled accordingly---the scheduled headway from the archived 2021 timetable~\cite{CapMetro2021Timetable801}, and the direction label as corroboration from the current feed~\cite{CapMetroGTFS}, which matches 28 of the 29 study stop IDs in order at a median offset of 8.5\,m. Historical stop names are not claimed, and vehicle capacity remains to be finalized (data pending).
+```
+
+**Why:** the values exist now, measured from the APC records and the archived timetable, so the
+proposal-stage placeholders should not survive into the implementation chapter.
 ---
 
 *Nothing follows.*
