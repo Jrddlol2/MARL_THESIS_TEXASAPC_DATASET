@@ -56,14 +56,22 @@ OUTPUT   sim_inputs/fitted/stop_params.csv        per period x stop
          results/validation/observed_headway_cv.csv
 
 RUN      python scripts/fit_variability.py          (from starter/, ~2 min)
+         python scripts/fit_variability.py --split chronological   (robustness check:
+             early days calibrate, later days test; the study uses alternating days)
 =============================================================================
 """
 
 import json
 import os
+import sys
 
 import numpy as np
 import pandas as pd
+
+# How weekday service days are split into calibration and test days.
+#   python scripts/fit_variability.py                          alternating days (the study's split)
+#   python scripts/fit_variability.py --split chronological    early days calibrate, later days test
+SPLIT = "chronological" if "--split" in sys.argv and "chronological" in sys.argv else "alternating"
 
 APC_FILE = "../data/raw/capmetro/route_801_direction_6_clean.csv"
 WEATHER_FILE = "../data/processed/texas_capmetro/weather_camp_mabry_2021_jul_dec.csv"
@@ -147,15 +155,21 @@ def add_rain(events):
     return events
 
 
-def split_days(events):
-    """Weekday service days in date order: 1st, 3rd, 5th ... = calibration; 2nd, 4th ... = test."""
+def split_days(events, how=SPLIT):
+    """Weekday service days into calibration and test days.
+
+    "alternating" (what the study uses): 1st, 3rd, 5th ... = calibration; 2nd, 4th ... = test, so both
+    sets hold the same months and weekdays. "chronological": the first half of the days calibrate and
+    the later half test -- kept as a robustness check, since ridership drifts over the six months.
+    """
     weekdays = sorted(events.loc[events["day_type"] == "weekday", "day"].unique())
     rows = []
     for k in range(len(weekdays)):
-        if k % 2 == 0:
-            rows.append((weekdays[k], "calibration"))
+        if how == "chronological":
+            calibration = k < len(weekdays) / 2
         else:
-            rows.append((weekdays[k], "test"))
+            calibration = k % 2 == 0
+        rows.append((weekdays[k], "calibration" if calibration else "test"))
     return pd.DataFrame(rows, columns=["day", "split"])
 
 

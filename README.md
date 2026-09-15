@@ -95,6 +95,7 @@ service days it was not fitted on (`starter/results/validation/`):
 | Check | Real buses | Simulator (No-Control) |
 |---|---|---|
 | Segment running time, held-out days | — | RMSPE 3.08%, GEH < 5 on 26/26 |
+| Same, with a date-order split instead | — | RMSPE 6.83%, GEH < 5 on 26/26 ([why](starter/results/validation/SPLIT_ROBUSTNESS.md)) |
 | Headway CV (bunching), whole corridor | 0.504 | 0.556 (about 10% high, in the second half) |
 | Headway CV at the first stop | 0.352 | 0.357 |
 | Bunching stop by stop | — | r = 0.87 |
