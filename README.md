@@ -34,7 +34,7 @@ counter (APC) data, July–December 2021.
 
 ---
 
-## 2. Where we are right now (2026-09-14)
+## 2. Where we are right now (2026-09-16)
 
 | | Status |
 |---|---|
@@ -45,8 +45,9 @@ counter (APC) data, July–December 2021.
 | Corridor calibrated | **Done** — tested on held-out days: RMSPE 3.08%, GEH < 5 on 26/26 segments |
 | Simulator checked against real buses | **Done** — bunching, loads and stop service (§4) |
 | Baseline controllers (NC / FH / EH) | **Done** — 30 paired Monte Carlo runs per scenario |
-| MARL agent | **Built and tested; must be retrained** on the current simulator (§5) |
-| Results / Discussion chapters | **Not written** |
+| MARL agent | **Training now** — 800 episodes with randomized disturbances, `starter/experiments/dr1/` (§5) |
+| Results chapter | **Drafted** from measured outputs; the MARL section waits on the run |
+| Discussion / Future Work chapters | **Not written** (still template text from another thesis) |
 
 **Milestones**
 
@@ -216,9 +217,12 @@ methods.tex        Ch 3 — Methods and Research Design          OURS
 thesis_refs.bib    bibliography
 ```
 
-🚨 **`results.tex`, `discussion.tex` and `futurework.tex` are NOT OURS.** They are
-leftover template text from an unrelated neuroscience thesis. They are commented
-out of `main.tex`. **Delete and rewrite; do not edit.**
+`results.tex` is now ours: a draft built only from `starter/results/`, with the MARL
+section left as a commented placeholder. It stays commented out of `main.tex` until that
+section is filled in.
+
+🚨 **`discussion.tex` and `futurework.tex` are still NOT OURS.** They are leftover
+template text from an unrelated neuroscience thesis. **Delete and rewrite; do not edit.**
 
 ### `scripts/` — the data half
 
