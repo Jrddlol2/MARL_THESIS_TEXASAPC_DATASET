@@ -34,6 +34,13 @@ class Config:
     eps_start: float = 1.0; eps_end: float = 0.05; eps_decay: int = 30_000
     buffer: int = 100_000; batch: int = 64; target_every: int = 500; warmup: int = 1_000
     net: tuple = (128, 128)
+    # training disturbances (methods.tex): D+T always on; S, W, B domain-randomized each episode.
+    # Each is on with its probability; when W is on, eta ~ Uniform(0, eta_max) (0 = observed rain only).
+    randomize: bool = True
+    p_surge: float = 0.5; p_weather: float = 0.5; p_breakdown: float = 0.5; eta_max: float = 1.3
+    # stabilizers (methods.tex): reward clipped to [-reward_clip, 0] for learning; slow target updates
+    # clip 5: random-policy rewards reach -11 under eta 1.3, but 95% are above -4.4 (checked 2026-09-16)
+    reward_clip: float = 5.0; tau: float = 0.005
     # env / training
     control_stops: tuple = (0, 1, 5, 17, 20)
     episodes: int = 2_000
@@ -56,7 +63,8 @@ class MarlController:
             r = compose(pobs, obs, pa, self.cfg)
             self.ret += r; self.n += 1
             if self.training:
-                self.agent.push(pov, pa, r, ov, False, discount=self.discount(pobs, obs))
+                r_learn = max(r, -self.cfg.reward_clip)
+                self.agent.push(pov, pa, r_learn, ov, False, discount=self.discount(pobs, obs))
                 self.agent.learn()
         a = self.agent.act(ov, greedy=not self.training)
         self.prev[bi] = (ov, a, obs)

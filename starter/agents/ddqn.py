@@ -7,6 +7,9 @@ Double-DQN: the online net selects the next action, the target net evaluates it.
 
     y = r + g (1-done) · Q(o2, argmaxₐ Q(o2,a; θ); θ⁻)
 
+Target net: copied every `target_every` steps, or, with tau > 0, moved a fraction tau toward the online
+net after every update (slow target updates, methods.tex stabilizers).
+
 g is the discount stored with each transition. Bus decisions are events at random times, so the
 trainer passes g = e^(−β·Δt), with Δt the seconds between the bus's two decisions (Bradtke & Duff
 1995; methods.tex §3, event-based discount). If no discount is passed, g = the fixed `gamma`.
@@ -83,10 +86,11 @@ class DDQNAgent:
     def __init__(self, obs_dim=OBS_DIM, n_actions=N_ACTIONS, lr=1e-3, gamma=0.99,
                  buffer=100_000, batch=64, target_every=500, warmup=1_000,
                  eps_start=1.0, eps_end=0.05, eps_decay=30_000, hidden=(128, 128),
-                 device="cpu", seed=0):
+                 device="cpu", seed=0, tau=0.0):
         torch.manual_seed(seed); np.random.seed(seed); random.seed(seed)
         self.n_actions, self.gamma, self.batch = n_actions, gamma, batch
         self.target_every, self.warmup = target_every, warmup
+        self.tau = tau                               # > 0: slow (Polyak) target updates every step
         self.eps_start, self.eps_end, self.eps_decay = eps_start, eps_end, eps_decay
         self.device = torch.device(device)
         self.q  = QNet(obs_dim, n_actions, hidden).to(self.device)
@@ -125,7 +129,11 @@ class DDQNAgent:
         self.opt.zero_grad(); loss.backward()
         nn.utils.clip_grad_norm_(self.q.parameters(), 10.0)
         self.opt.step()
-        if self.steps % self.target_every == 0:
+        if self.tau > 0:
+            with torch.no_grad():
+                for target, online in zip(self.qt.parameters(), self.q.parameters()):
+                    target.mul_(1.0 - self.tau).add_(online, alpha=self.tau)
+        elif self.steps % self.target_every == 0:
             self.qt.load_state_dict(self.q.state_dict())
         return float(loss.item())
 
@@ -178,7 +186,7 @@ if __name__ == "__main__":
     # stored discount must give a smaller value.
     values = []
     for g in (0.9, 0.5):
-        test = DDQNAgent(obs_dim=1, n_actions=1, warmup=64, target_every=50, seed=1)
+        test = DDQNAgent(obs_dim=1, n_actions=1, warmup=64, target_every=50, seed=1, tau=0.02)
         for _ in range(3000):
             test.push([0.0], 0, 1.0, [0.0], False, discount=g); test.learn()
         values.append(float(test.q(torch.zeros(1, 1)).item()))
