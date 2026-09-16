@@ -25,6 +25,7 @@ Files in experiments/<name>/
 Run from starter/:
     python scripts/train_marl.py --episodes 4 --eval_every 2 --save_every 2 --name smoke   # plumbing check
     python scripts/train_marl.py --episodes 800 --name dr1                                 # the real run
+    python scripts/train_marl.py --episodes 800 --irr even --name dr2_even                 # a reward variant
     python scripts/train_marl.py --episodes 800 --name dr1 --resume                        # continue it
 Then: python scripts/eval_marl.py --ckpt experiments/dr1/checkpoint_best.pt
 """
@@ -151,11 +152,16 @@ if __name__ == "__main__":
     ap.add_argument("--save_every", type=int, default=50, help="write training_state.pt every N episodes")
     ap.add_argument("--eps_decay", type=int, default=30_000, help="exploration decay in steps (lower = exploit sooner)")
     ap.add_argument("--discount", choices=["event", "fixed"], default="event")
+    ap.add_argument("--irr", choices=["dev", "even", "both"], default="dev",
+                    help="irregularity term: dev = gap ahead vs the timetable, even = gap ahead vs gap behind, both")
+    ap.add_argument("--wait", choices=["queue", "hold"], default="queue",
+                    help="waiting term: queue = riders waiting at the stop, hold = in-vehicle delay from holding")
+    ap.add_argument("--weights", default="1.0,0.5,1.0", help="w1,w2,w3 for the three reward terms")
     ap.add_argument("--stage-a-only", action="store_true", help="train on D+T only (no randomized S, W, B)")
     ap.add_argument("--jobs", type=int, default=9, help="parallel workers for evaluation")
     ap.add_argument("--resume", action="store_true", help="continue from experiments/<name>/training_state.pt")
     ap.add_argument("--name", default="dr1")
     a = ap.parse_args()
     train(Config(episodes=a.episodes, eps_decay=a.eps_decay, discount=a.discount, randomize=not a.stage_a_only,
-                 name=a.name),
+                 irr=a.irr, wait=a.wait, w=tuple(float(x) for x in a.weights.split(",")), name=a.name),
           eval_every=a.eval_every, save_every=a.save_every, resume=a.resume, jobs=a.jobs)
