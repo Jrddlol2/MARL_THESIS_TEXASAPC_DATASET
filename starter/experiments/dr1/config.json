@@ -1,0 +1,53 @@
+{
+  "config": {
+    "irr": "dev",
+    "wait": "queue",
+    "skip": "stranded",
+    "w": [
+      1.0,
+      0.5,
+      1.0
+    ],
+    "H0": 600.0,
+    "dt": 300.0,
+    "skip_enabled": false,
+    "lr": 0.001,
+    "gamma": 0.99,
+    "discount": "event",
+    "beta": 1.6750559755835752e-05,
+    "eps_start": 1.0,
+    "eps_end": 0.05,
+    "eps_decay": 30000,
+    "buffer": 100000,
+    "batch": 64,
+    "target_every": 500,
+    "warmup": 1000,
+    "net": [
+      128,
+      128
+    ],
+    "randomize": true,
+    "p_surge": 0.5,
+    "p_weather": 0.5,
+    "p_breakdown": 0.5,
+    "eta_max": 1.3,
+    "reward_clip": 5.0,
+    "tau": 0.005,
+    "control_stops": [
+      0,
+      1,
+      5,
+      17,
+      20
+    ],
+    "episodes": 800,
+    "seed": 0,
+    "name": "dr1"
+  },
+  "validation": [
+    "A",
+    "B_obs",
+    "B_0.6"
+  ],
+  "eval_seeds": 3
+}
