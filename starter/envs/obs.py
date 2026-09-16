@@ -1,39 +1,62 @@
-"""Observation featurizer — corridor_sim's obs dict -> the manuscript 7-vector (Table 3.6), normalized.
+"""
+=============================================================================
+ WHAT A BUS SEES:  TURN THE SITUATION INTO 7 NUMBERS
+=============================================================================
 
-Features (all ~[0,1] so the shared network sees a consistent scale):
-    0 stop index      idx/(n-1)          spatial location along the corridor
-    1 forward headway hf/H0              gap to leader (1.0 = on schedule)
-    2 backward headway hb/H0             estimated gap to follower
-    3 onboard load    load/cap           occupancy
-    4 waiting queue   queue/Q_REF        passengers waiting at the stop
-    5 weather flag    (w-0.5)/2.5        realized speed-factor intensity (neutral 1.0 -> 0.2)
-    6 breakdown flag  b                  downstream incident present (0/1)
+WHAT IT DOES
+    The simulator hands over a bus's situation as labelled readings -- 480
+    seconds since the bus ahead, 22 people on board, and so on. A neural
+    network cannot use those directly: it behaves badly when one input is 480
+    and the next is 6. So this file rescales all of them to roughly 0 to 1.
 
-`featurize(obs)` returns a float32 array of length OBS_DIM. Variants (e.g. + neighboring-trip info)
-are added here behind a config flag; the default is the manuscript vector.
+    These are the seven inputs the manuscript lists in Table 3.6:
+
+        0  where the bus is        stop number out of 27          0 = first stop
+        1  gap ahead               seconds / 600                  1.0 = on schedule
+        2  gap behind              seconds / 600                  1.0 = on schedule
+        3  how full it is          riders / 60 seats
+        4  queue at the stop       people waiting / 20
+        5  weather right now       1.0 in clear weather -> 0.2
+        6  breakdown ahead         0 = no, 1 = a bus ahead has broken down
+
+    Nothing here is learned or tuned; it is pure arithmetic, and it is the
+    reason a trained policy can be dropped onto a corridor with a different
+    length or headway: every input is a ratio, not a raw count.
+
+RUN      python envs/obs.py       (prints one example vector)
+=============================================================================
 """
 import numpy as np
-from reward import Q_REF
 
-OBS_DIM = 7
+from reward import Q_REF          # 20 riders = "a normally busy stop"
+
+OBS_DIM = 7                       # how many numbers the network expects
 
 
-def featurize(o):
-    H0, cap, n = o["H0"], o["cap"], o["n"]
-    return np.array([
-        o["idx"] / max(1, n - 1),
-        o["hf"] / H0,
-        o["hb"] / H0,
-        o["load"] / cap,
-        o["queue"] / Q_REF,
-        (o["w"] - 0.5) / 2.5,
-        o["b"],
-    ], dtype=np.float32)
+def featurize(readings):
+    """Turn one situation into the 7 numbers the network reads."""
+    headway = readings["H0"]              # 600 s, the scheduled gap
+    capacity = readings["cap"]            # 60 riders
+    number_of_stops = readings["n"]       # 27
+
+    where_it_is = readings["idx"] / max(1, number_of_stops - 1)
+    gap_ahead = readings["hf"] / headway
+    gap_behind = readings["hb"] / headway
+    how_full = readings["load"] / capacity
+    queue_at_stop = readings["queue"] / Q_REF
+    # The weather multiplier is 1.0 in clear conditions and rises when it is bad;
+    # this shifts it onto the same 0-to-1 scale as everything else.
+    weather = (readings["w"] - 0.5) / 2.5
+    breakdown_ahead = readings["b"]
+
+    return np.array([where_it_is, gap_ahead, gap_behind, how_full,
+                     queue_at_stop, weather, breakdown_ahead], dtype=np.float32)
 
 
 if __name__ == "__main__":
-    o = dict(hf=600, hb=600, load=20, queue=5, idx=5, n=27, H0=600.0, cap=60, bus=3, w=1.0, b=0.0)
-    v = featurize(o)
-    print("obs vector (len %d):" % len(v), np.round(v, 3))
-    assert len(v) == OBS_DIM
+    example = dict(hf=600, hb=600, load=20, queue=5, idx=5, n=27,
+                   H0=600.0, cap=60, bus=3, w=1.0, b=0.0)
+    vector = featurize(example)
+    print("obs vector (len %d):" % len(vector), np.round(vector, 3))
+    assert len(vector) == OBS_DIM
     print("ok")
