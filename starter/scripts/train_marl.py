@@ -11,7 +11,7 @@ TRAINING DISTURBANCES (methods.tex, activation matrix "Training" row)
     --stage-a-only turns this off (D+T every episode).
 
 EVALUATION DURING TRAINING (to pick checkpoint_best.pt)
-    Stage A, Stage B with observed rain, and Stage B at eta 0.6, 3 seeds each (seeds 90000+, never the
+    Stage A, Stage B with observed rain, and Stage B at eta 0.6, 6 seeds each (seeds 90000+, never the
     seeds 0-29 used for the final comparison). Score = mean headway CV over the three cells. Runs in
     parallel.
 
@@ -41,7 +41,7 @@ from ddqn import DDQNAgent
 
 STAGE_B = dict(T=True, S=True, W=True, B=True)
 VALIDATION = [("A", dict(T=True)), ("B_obs", dict(STAGE_B, eta=0.0)), ("B_0.6", dict(STAGE_B, eta=0.6))]
-EVAL_SEEDS = 3
+EVAL_SEEDS = 6
 
 
 def training_scenario(cfg, episode):
@@ -154,8 +154,8 @@ if __name__ == "__main__":
     ap.add_argument("--discount", choices=["event", "fixed"], default="event")
     ap.add_argument("--irr", choices=["dev", "even", "both"], default="dev",
                     help="irregularity term: dev = gap ahead vs the timetable, even = gap ahead vs gap behind, both")
-    ap.add_argument("--wait", choices=["queue", "hold"], default="queue",
-                    help="waiting term: queue = riders waiting at the stop, hold = in-vehicle delay from holding")
+    ap.add_argument("--wait", choices=["queue", "hold", "both"], default="queue",
+                    help="waiting term: queue = riders waiting at the stop, hold = in-vehicle delay from holding, both = the two priced the same per rider-second")
     ap.add_argument("--weights", default="1.0,0.5,1.0", help="w1,w2,w3 for the three reward terms")
     ap.add_argument("--stage-a-only", action="store_true", help="train on D+T only (no randomized S, W, B)")
     ap.add_argument("--jobs", type=int, default=9, help="parallel workers for evaluation")

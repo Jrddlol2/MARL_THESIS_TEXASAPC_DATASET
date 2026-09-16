@@ -33,6 +33,11 @@ def wait_queue(prev, cur, ctx):        # 2b: at-stop wait ~ waiting riders x hea
     return (cur["queue"] * cur["hf"]) / (Q_REF * ctx["H0"])
 def wait_hold(prev, cur, ctx):         # 2a: in-vehicle delay from holding, weighted by onboard load
     return (ctx["hold"] / ctx["H0"]) * (prev["load"] / prev["cap"])
+def wait_both(prev, cur, ctx):         # 2c: both, priced the same per rider-second
+    # riders waiting x the gap they endured, plus riders on board x the seconds they were held.
+    # Same denominator for both, so a second of delay costs the same whoever bears it -- 2a divides
+    # the in-vehicle part by capacity instead, which quietly discounts it to about a third.
+    return (cur["queue"] * cur["hf"] + prev["load"] * ctx["hold"]) / (Q_REF * ctx["H0"])
 
 def skip_stranded(prev, cur, ctx):     # 3a: stranded riders (demand-aware)
     return ctx["skip"] * (prev["queue"] / Q_REF)
@@ -40,7 +45,7 @@ def skip_flat(prev, cur, ctx):         # 3b: flat discouragement per skip
     return float(ctx["skip"])
 
 IRR  = {"dev": irr_dev, "even": irr_even, "both": irr_both}
-WAIT = {"queue": wait_queue, "hold": wait_hold}
+WAIT = {"queue": wait_queue, "hold": wait_hold, "both": wait_both}
 SKIP = {"stranded": skip_stranded, "flat": skip_flat}
 
 
