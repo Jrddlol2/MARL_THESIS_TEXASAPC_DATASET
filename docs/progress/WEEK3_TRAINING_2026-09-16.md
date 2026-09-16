@@ -58,9 +58,55 @@ never saw the conditions it has to win in.
 - **Statistics, also fixed beforehand:** paired Wilcoxon signed-rank by seed, Holm correction across
   the three baseline comparisons, α = 0.05, 30 paired seeds. `scripts/eval_marl.py` prints the verdicts.
 
-## 4. Training run
+## 4. Run A — the schedule-adherence reward
 
-<!-- FILLED IN WHEN THE RUN FINISHES -->
+`experiments/dr1/`, 800 episodes in 3 h 44 min. The reward penalised how far the gap *ahead* sat from
+the 600 s timetable. Its frozen policy was then evaluated on all nine conditions, 30 seeds each, on the
+same seeds as the baselines (`results/marl_eval_dr1.md`).
+
+**Bunching (headway CV)**
+
+| Condition | No Control | Forward-Headway | Even-Headway | MARL |
+|---|---|---|---|---|
+| Stage A | 0.556 | 0.396 | **0.342** | 0.362 |
+| + surge | 0.596 | 0.427 | **0.371** | 0.399 |
+| + weather (observed rain) | 0.559 | 0.400 | **0.346** | 0.363 |
+| + breakdown | 0.564 | 0.423 | **0.370** | 0.396 |
+| Stage B, observed rain | 0.609 | 0.458 | **0.404** | 0.437 |
+| Stage B η 0.3 | 0.685 | 0.574 | **0.534** | 0.563 |
+| Stage B η 0.6 | 0.820 | 0.742 | **0.725** | 0.729 |
+| Stage B η 1.0 | 0.904 | 0.836 | 0.832 | **0.823** |
+| Stage B η 1.3 | 0.929 | 0.862 | 0.864 | **0.849** |
+
+**What it shows.** The learned policy beats No-Control everywhere and beats Forward-Headway in every
+single condition (2–9% lower bunching). Against Even-Headway it is 5–8% worse on ordinary days, level
+at η 0.6, and ahead at η 1.0 and 1.3 — the severe-weather regime where the fixed rules stop coping.
+The crossover the thesis argues for is visible; it just happens later than hoped.
+
+**Against the pre-registered criteria, three of four fail**
+
+| Criterion | Result |
+|---|---|
+| Stage A (ii): bunching below No-Control | **PASS** (0.362 vs 0.556, p < 0.001) |
+| Stage A (i): waiting no worse than Even-Headway | FAIL — 345 s vs 339 s, significantly worse |
+| Project gate: bunching below Even-Headway | FAIL — 0.362 vs 0.342 |
+| Stage B: waiting below the best baseline in every cell | FAIL — closest at η 1.3, 537 s vs 541 s, p = 0.09 |
+
+**Why it fails, in one number.** In-vehicle travel time is 4,671 s against Even-Headway's 4,543 s: the
+agent holds about two minutes more per trip. Chasing the timetable buys spacing at the riders' expense,
+which is what loses the waiting-time test. The during-training evaluations (3 seeds) read about 0.44 in
+Stage A and were pessimistic; the 30-seed evaluation gives 0.362. Only the 30-seed numbers should be
+quoted.
+
+**Kept on record:** `experiments/dr1/config.json`, `metrics.csv`, `checkpoint_best.pt`,
+`checkpoint.pt`, `results/marl_eval_dr1.{csv,md}`, figures `dr1_curve`, `dr1_convergence`,
+`marl_dr1_headway_cv`, `marl_dr1_wait`.
+
+## 4b. Run B — the evenness reward (running)
+
+`experiments/dr2_even/`, identical in every respect except the irregularity term, which now penalises
+the difference between the gap ahead and the gap behind — the quantity headway CV measures, and the one
+Even-Headway optimises. Results to follow.
 
 ## 5. Also done this week
 
