@@ -4,7 +4,15 @@ sumo/persons_*.xml
 sumo/tri_*.xml
 sumo/tripinfo_*.xml
 sumo/mc_*.xml
-experiments/
+# Training runs: keep the record of each run (what it was, how it went, the policy), but not the
+# resumable state, which carries the whole replay buffer.
+experiments/*
+!experiments/*/
+experiments/*/*
+!experiments/*/metrics.csv
+!experiments/*/config.json
+!experiments/*/checkpoint.pt
+!experiments/*/checkpoint_best.pt
 sumo/view.xml
 sumo/pois.add.xml
 sumo/stops_view.add.xml

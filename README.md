@@ -299,7 +299,7 @@ Everything under `starter/` runs **from the `starter/` folder**.
 | `results/stageB_weather_sweep.csv` | Stage B by weather strength, all controllers |
 | `results/archive/` | Results from earlier simulator versions |
 | `legacy/` | Old scripts kept for reference, not used by anything current ([`legacy/README.md`](starter/legacy/README.md)) |
-| `experiments/` | Training runs (not in Git) |
+| `experiments/<run>/` | **Every training run is kept**: `config.json` (what it was), `metrics.csv` (how it went), `checkpoint_best.pt` and `checkpoint.pt` (the policies). Only `training_state.pt`, which carries the replay buffer, stays out of Git |
 
 ---
 
