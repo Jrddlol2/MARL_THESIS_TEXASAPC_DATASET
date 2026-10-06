@@ -70,12 +70,28 @@ CELLS = [
 BASELINE_NAMES = ["NC", "FH", "EH"]
 
 _agent = None       # one agent per worker process
+_cfg = None         # the Config the checkpoint was trained with
+
+
+def run_config(ckpt):
+    """The Config saved next to the checkpoint (config.json), so evaluation acts exactly like
+    training did -- above all skip_enabled. Falls back to the default Config if there is none."""
+    path = os.path.join(os.path.dirname(os.path.abspath(ckpt)), "config.json")
+    cfg = Config()
+    if os.path.exists(path):
+        import json
+        saved = json.load(open(path)).get("config", {})
+        for field in ("skip_enabled", "H0", "dt", "net", "control_stops"):
+            if field in saved:
+                value = saved[field]
+                setattr(cfg, field, tuple(value) if isinstance(value, list) else value)
+    return cfg
 
 
 def _load_agent(ckpt):
-    global _agent
-    cfg = Config()
-    _agent = DDQNAgent(OBS_DIM, N_ACTIONS, hidden=cfg.net, seed=cfg.seed)
+    global _agent, _cfg
+    _cfg = run_config(ckpt)
+    _agent = DDQNAgent(OBS_DIM, N_ACTIONS, hidden=_cfg.net, seed=_cfg.seed)
     _agent.load(ckpt)
 
 
@@ -83,7 +99,7 @@ def _run(task):
     """One run: (cell, controller, seed) -> (cell, controller, seed, headway_cv, wait_s, travel_s, wait_direct)."""
     short, controller, seed = task
     _, _, settings, slowdown, _, _ = next(c for c in CELLS if c[0] == short)
-    cfg = Config()
+    cfg = _cfg if _cfg is not None else Config()
     if controller == "MARL":
         decide = MarlController(_agent, cfg, training=False)
     else:

@@ -163,9 +163,10 @@ if __name__ == "__main__":
     ap.add_argument("--stage-a-only", action="store_true", help="train on D+T only (no randomized S, W, B)")
     ap.add_argument("--jobs", type=int, default=9, help="parallel workers for evaluation")
     ap.add_argument("--resume", action="store_true", help="continue from experiments/<name>/training_state.pt")
+    ap.add_argument("--skip", action="store_true", help="let the agent use the skip half of the action space")
     ap.add_argument("--name", default="dr1")
     a = ap.parse_args()
     train(Config(episodes=a.episodes, eps_decay=a.eps_decay, discount=a.discount, randomize=not a.stage_a_only,
                  irr=a.irr, wait=a.wait, w=tuple(float(x) for x in a.weights.split(",")), name=a.name,
-                 hold_price=a.hold_price, seed=a.seed),
+                 hold_price=a.hold_price, seed=a.seed, skip_enabled=a.skip),
           eval_every=a.eval_every, save_every=a.save_every, resume=a.resume, jobs=a.jobs)
