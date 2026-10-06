@@ -47,10 +47,10 @@ DISTURBANCES  (switch each on with True; D and T are on in every scenario)
     W  weather      ONE slow-down for the whole corridor and the whole run,
                     the same for every bus (rain hits every bus at once):
                     observed Austin ordinary rain (fitted, x1.0135) or a
-                    literature rain level (TSSP 2018; Ji et al. 2024)
+                    US rain level (FHWA 2006; FHWA Road Weather Management)
     B  breakdown    one bus fails at a stop and is REMOVED for the rest
                     of the run; its riders get off and wait for the next
-                    bus (Guedes & Borenstein 2018; Daganzo 2009)
+                    bus (Guedes & Borenstein 2018)
 
 STOPS ARE SERVED ON DEMAND
     Like a real bus, a bus drives past a stop where nobody is waiting and
@@ -200,14 +200,18 @@ DEMAND_DISPERSION = MODEL["demand_dispersion_var_over_mean"]       # 3.8 (1.0 = 
 # W: weather is ONE running-time multiplier for the whole corridor and the whole run.
 # weather_slowdown = fraction of average speed lost in that weather:
 #   0      observed Austin ordinary rain (fitted from the NOAA join: x1.0135, not significant)
-#   0.053  light rain      -5.3% speed  (TSSP 2018, expressway speed under PAGASA rain levels)
-#   0.063  moderate rain   -6.3% speed  (TSSP 2018)
-#   0.074  heavy rain      -7.4% speed  (TSSP 2018)
-#   0.25   extreme rainstorm, -25% bus speed (Ji et al. 2024, typhoon rainstorm, bus GPS)
-# Running time is multiplied by 1 / (1 - slowdown). Applied to every bus alike, as rain and
-# snow are applied to all vehicles in Da et al. (2024) and Turnau et al. (2025).
+#   0.03   light rain        -3% speed   (FHWA 2006, Hranac et al., p.5-17: 2-3.6% in light rain;
+#                                         Baltimore, Twin Cities, Seattle)
+#   0.075  heavy rain        -7.5% speed (FHWA 2006, p.5-17: 6-9% at about 1.6 cm/h)
+#   0.10   wet arterial      -10% speed  (FHWA Road Weather Management: arterial speed drops
+#                                         10-25% on wet pavement; lower end)
+#   0.25   extreme, wet arterial -25%    (same FHWA page, upper end; Route 801 is an arterial)
+# Running time is multiplied by 1 / (1 - slowdown). One synthetic change applied to every bus
+# alike, the way RL studies model weather: Wang & Sun (2023) scale cruising speed once per
+# episode; Da et al. (2023, 2024) and Turnau et al. (2025) apply one set of rain/snow vehicle
+# parameters to all vehicles.
 RAIN_MULTIPLIER = MODEL["rain"]["rain_multiplier"]
-WEATHER_LEVELS = {"observed": 0.0, "light": 0.053, "moderate": 0.063, "heavy": 0.074, "extreme": 0.25}
+WEATHER_LEVELS = {"observed": 0.0, "light": 0.03, "heavy": 0.075, "wet_arterial": 0.10, "extreme": 0.25}
 
 
 def weather_factor_for(slowdown):

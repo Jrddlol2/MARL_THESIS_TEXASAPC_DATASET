@@ -75,7 +75,7 @@ are kept outside this repo.
 |---|---|---|
 | Medenilla | Statistics script (Friedman → Wilcoxon → Holm, bootstrap, degradation) | Part 1 Oct 12 |
 | Badal | Demand surge: corridor-wide N(1, σd²) clip [1, 10] (Wang & Sun 2023 p.9) + local +10/20/50 riders (p.11) | Nov 2 |
-| Lopez | Weather: corridor-wide slowdown 5.3 / 6.3 / 7.4 / 25% (Mejia & Sigua 2018 p.15; Ji 2024 p.11) | Nov 2 |
+| Lopez | Weather: corridor-wide slowdown 3 / 7.5 / 10 / 25% (FHWA 2006 p.5-17; FHWA Road Weather Management, arterials 10–25%) | Nov 2 |
 | Marquez | Breakdown: 1 and 3 buses removed, riders picked up by the next bus (Guedes & Borenstein 2018 pp.1–2) | Nov 2 |
 
 ## 6. Timeline to MSA 3
@@ -95,3 +95,26 @@ are kept outside this repo.
 - The manuscript (26 Aug) still shows the η-lognormal weather, the [1, 3] surge clip, the Poisson
   breakdown and a 240 s EH cap; the locked versions are in the local `5_latex_temp` copy.
 - Drop the "two enhancements will be tested" sentence (manuscript p.48).
+
+## 8. Weather levels changed (2026-10-06, evening)
+
+The light / moderate / heavy levels (5.3 / 6.3 / 7.4%) came from a Philippine expressway study and the
+extreme level (25%) from a Chinese typhoon study whose own table shows only an 8% drop (worst area 14%).
+Both are replaced by US sources, page-checked:
+
+| Level | Speed loss | Source |
+|---|---|---|
+| Observed ordinary rain | ×1.0135 (not significant) | our NOAA × APC join (Austin) |
+| Light rain | 3% | FHWA 2006 (Hranac et al., FHWA-HOP-07-073) p.5-17: 2–3.6% |
+| Heavy rain | 7.5% | FHWA 2006 p.5-17: 6–9% at about 1.6 cm/h |
+| Wet arterial | 10% | FHWA Road Weather Management: arterials 10–25% on wet pavement |
+| Extreme, wet arterial | 25% | same, upper end (unchanged value) |
+
+**RL precedent for synthetic weather:** Wang & Sun 2023 (IEEE T-ITS, bus MARL) scale cruising speed by one
+factor per episode, randomised in training (p.9); Da et al. 2023 (IEEE CDC, Table I) and 2024 (AAAI) and
+Turnau et al. 2025 (MARL, arXiv, p.8 and Table 5) model rain as one set of vehicle settings applied to all
+vehicles. None of these take their weather values from measurements; we take ours from FHWA.
+
+The training range (0–25%) and the extreme cell are unchanged. The light, heavy and wet-arterial Stage B
+baselines are re-run (dev and test seeds) by `starter/scripts/queue_2026-10-06_weather.sh`, which then
+starts the overnight skip sweep.

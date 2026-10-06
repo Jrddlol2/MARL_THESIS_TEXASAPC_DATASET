@@ -77,7 +77,7 @@ class Config:
     # ---- what the weather is like while training (methods.tex activation matrix) -----
     # Demand and traffic are always on. Surge, weather and breakdown are switched on at
     # random each episode; when weather is on, the corridor-wide speed loss is drawn from 0 to
-    # slowdown_max (0.25 = extreme rainstorm, Ji et al. 2024).
+    # slowdown_max (0.25 = upper end of FHWA's 10-25% arterial speed drop on wet pavement).
     randomize: bool = True
     p_surge: float = 0.5
     p_weather: float = 0.5

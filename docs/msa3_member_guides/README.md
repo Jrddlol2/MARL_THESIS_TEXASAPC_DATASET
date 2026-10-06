@@ -7,7 +7,7 @@ no solution code. The answer keys are kept outside this repo.
 |---|---|---|---|---|
 | `1_Medenilla_Statistics/` | Medenilla | Friedman → Wilcoxon → Holm, bootstrap CIs, degradation. Input: `all_controllers_runs.csv` (MSA 2 test corridor) | Part 1: Oct 12 | seconds (no simulation) |
 | `2_Badal_Surge/` | Badal | Demand surge: corridor-wide N(1, σd²) clip [1, 10] + local +10/+20/+50 riders | Nov 2 | ~45–60 min |
-| `3_Lopez_Weather/` | Lopez | Corridor-wide slowdown 5.3 / 6.3 / 7.4 / 25% | Nov 2 | ~30–45 min |
+| `3_Lopez_Weather/` | Lopez | Corridor-wide slowdown 3 / 7.5 / 10 / 25% (FHWA) | Nov 2 | ~30–45 min |
 | `4_Marquez_Breakdown/` | Marquez | 1 and 3 buses removed; riders picked up by the next bus | Nov 2 | ~20–35 min |
 | `shared_build_v2/` | Badal, Lopez, Marquez | The one test-corridor simulator everyone uses | — | baseline ~5–10 min |
 

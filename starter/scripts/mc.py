@@ -18,7 +18,7 @@ Options (after N and JOBS), used for sensitivity checks:
     --max-hold 240      cap every hold at 240 s instead of the default 120 s
     --breakdowns 3      remove 3 buses instead of 1 when B is on
     --surge-sd 2        surge strength sigma_d (default 1; Wang & Sun test 1, 2, 3)
-    --weather heavy     weather level when W is on: observed (default), light, moderate, heavy,
+    --weather heavy     weather level when W is on: observed (default), light, heavy, wet_arterial,
                         extreme, or a speed-loss fraction such as 0.1 (see WEATHER_LEVELS)
     --seed-start 100    first seed (default 0); 100 = the fresh test seeds (files get _s100)
     --traffic-sd 0.1    extra episode-wide traffic stress sigma_s (default 0 = off)

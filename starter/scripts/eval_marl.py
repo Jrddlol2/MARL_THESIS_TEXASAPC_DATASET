@@ -13,9 +13,11 @@ THE EVALUATION MATRIX
     Ablation W              D+T+W, observed ordinary rain only
     Ablation B              D+T+B
     Stage B, observed rain  D+T+S+W+B
-    Stage B, light / moderate / heavy rain / extreme rainstorm
-                            D+T+S+W+B with a corridor-wide slowdown of 5.3 / 6.3 / 7.4 / 25% speed
-                            (TSSP 2018; Ji et al. 2024), the same for every bus
+    Stage B, light / heavy rain / wet arterial / extreme
+                            D+T+S+W+B with a corridor-wide slowdown of 3 / 7.5 / 10 / 25% speed
+                            (FHWA 2006 p.5-17; FHWA Road Weather Management, arterials 10-25%),
+                            the same for every bus. Levels changed 2026-10-06 from the earlier
+                            TSSP/Ji values, before any final (test-seed) MARL evaluation.
 Baseline results are read from results/mc_results*.csv (same seeds, so pairing holds); a cell with no
 saved baseline is simulated here.
 
@@ -62,10 +64,10 @@ CELLS = [
     ("W",          "Ablation W (observed rain)",   dict(T=True, W=True),  0.0,   "",                 "Ablation W (D+T+W)"),
     ("B",          "Ablation B (D+T+B)",           dict(T=True, B=True),  0.0,   "",                 "Ablation B (D+T+B)"),
     ("B_obs",      "Stage B (observed rain)",      STAGE_B,               0.0,   "",                 "Stage B (D+T+S+W+B)"),
-    ("B_light",    "Stage B (light rain)",         STAGE_B,               0.053, "stageB_light",     "Stage B (D+T+S+W+B)"),
-    ("B_moderate", "Stage B (moderate rain)",      STAGE_B,               0.063, "stageB_moderate",  "Stage B (D+T+S+W+B)"),
-    ("B_heavy",    "Stage B (heavy rain)",         STAGE_B,               0.074, "stageB_heavy",     "Stage B (D+T+S+W+B)"),
-    ("B_extreme",  "Stage B (extreme rainstorm)",  STAGE_B,               0.25,  "stageB_extreme",   "Stage B (D+T+S+W+B)"),
+    ("B_light",    "Stage B (light rain)",         STAGE_B,               0.03,  "stageB_light",     "Stage B (D+T+S+W+B)"),
+    ("B_heavy",    "Stage B (heavy rain)",         STAGE_B,               0.075, "stageB_heavy",     "Stage B (D+T+S+W+B)"),
+    ("B_wet",      "Stage B (wet arterial)",       STAGE_B,               0.10,  "stageB_wet_arterial", "Stage B (D+T+S+W+B)"),
+    ("B_extreme",  "Stage B (extreme, wet arterial)", STAGE_B,            0.25,  "stageB_extreme",   "Stage B (D+T+S+W+B)"),
 ]
 BASELINE_NAMES = ["NC", "FH", "EH"]
 

@@ -4,7 +4,7 @@
 set -e
 for START in 0 100; do
   python scripts/mc.py 30 10 --seed-start $START
-  for LEVEL in light moderate heavy extreme; do
+  for LEVEL in light heavy wet_arterial extreme; do
     python scripts/mc.py 30 10 --weather $LEVEL --only StageB --tag stageB_$LEVEL --seed-start $START
   done
 done

@@ -126,15 +126,19 @@ SUMO's recorded per-passenger wait. Lower is better.
 | + breakdown (one bus removed) | 0.634 / 431 s | 0.495 (-22%) / 392 s | **0.445** (-30%) / **380 s** |
 | Stage B — everything, observed rain | 0.658 / 449 s | 0.522 (-21%) / 410 s | **0.475** (-28%) / **396 s** |
 
-**Stage B with the weather levels** (everything on; corridor-wide slowdown from Mejia & Sigua 2018 and Ji 2024):
+**Stage B with the weather levels** (everything on, one corridor-wide slowdown for every bus). The levels
+changed on 2026-10-06 to US sources: light rain −3% and heavy rain −7.5% (FHWA 2006, p.5-17), wet
+arterial −10% and −25% (FHWA Road Weather Management: arterial speeds drop 10–25% on wet pavement).
+Modelling weather as one synthetic change applied to every vehicle follows RL practice: Wang & Sun 2023
+(bus MARL, speed scaling per episode, p.9), Da et al. 2023/2024 and Turnau et al. 2025 (rain settings
+applied to all vehicles). The re-run of these cells is in progress
+(`starter/scripts/queue_2026-10-06_weather.sh`); this table will be refreshed from the result files.
+The extreme level (−25%) did not change:
 
 | Weather | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
 | observed rain only | 0.658 | 0.522 (-21%) | 0.475 (-28%) |
-| light rain, −5.3% speed | 0.666 | 0.530 (-20%) | 0.487 (-27%) |
-| moderate, −6.3% | 0.666 | 0.533 (-20%) | 0.491 (-26%) |
-| heavy, −7.4% | 0.668 | 0.537 (-20%) | 0.494 (-26%) |
-| extreme rainstorm, −25% | 0.708 | 0.583 (-18%) | 0.570 (-20%) |
+| extreme, wet arterial −25% | 0.708 | 0.583 (-18%) | 0.570 (-20%) |
 
 **Statistics** (Friedman → paired Wilcoxon → Holm, bootstrap 95% CIs): Even-Headway beats
 Forward-Headway, and Forward-Headway beats No Control, in all five cells of the main matrix (development seeds, Holm p < 0.001).
@@ -163,7 +167,7 @@ holding-only and tied Even-Headway). Six reward variants, training seed 0, devel
 local LaTeX copy and still need merging):
 
 - Training runs in SUMO, not a separate lightweight Python/PettingZoo simulator.
-- Weather is a corridor-wide slowdown (5.3 / 6.3 / 7.4 / 25%), not the η-lognormal sweep.
+- Weather is a corridor-wide slowdown (3 / 7.5 / 10 / 25%, FHWA), not the η-lognormal sweep.
 - Surge clip is [1, 10] (Wang & Sun 2023 p.9), not [1, 3].
 - Breakdown removes 1 bus (sensitivity 3) drawn from the seed; riders are picked up by the next bus
   (Guedes & Borenstein 2018 pp.1–2), not a Poisson rate.
@@ -400,7 +404,7 @@ python scripts/build_real_net.py                   # ~15 s   -> SUMO network + c
 python scripts/test_simulator.py                   # ~3 min  -> 'all checks passed'
 python scripts/validate_simulator.py               #         -> results/validation/
 python scripts/mc.py 30 10                         # ~20 min on 10 workers -> the baseline table (seeds 0-29)
-python scripts/mc.py 30 10 --weather heavy --only StageB --tag stageB_heavy   # also light, moderate, extreme
+python scripts/mc.py 30 10 --weather heavy --only StageB --tag stageB_heavy   # also light, wet_arterial, extreme
 python scripts/mc.py 30 10 --seed-start 100        # the same on the test seeds 100-129 (files get _s100)
 bash scripts/run_baselines_2026-09-18.sh           # all of the above, dev and test seeds (~70 min)
 python scripts/figures.py                          # redraw the figures

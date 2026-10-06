@@ -18,7 +18,7 @@ WHAT IT CHECKS
     8. The breakdown flag reaches only buses behind the broken-down bus, and
        the decision time t given to controllers increases for each bus.
     9. Weather is one corridor-wide slow-down: observed rain = x1.0135, heavy
-       and extreme rain slow buses in proportion (TSSP 2018; Ji et al. 2024).
+       and extreme rain slow buses in proportion (FHWA 2006; FHWA Road Weather Management).
    10. The weather value a controller sees is that corridor-wide level, the
        same for every bus and every decision -- never a bus's own future draw.
    11. Bus capacity is 55 (NTD 2021 Revenue Vehicle Inventory, 60-ft artics).
@@ -156,8 +156,9 @@ def spy_weather(obs):
 factors = {name: C.weather_factor_for(value) for name, value in C.WEATHER_LEVELS.items()}
 check("observed rain uses the fitted multiplier", abs(factors["observed"] - C.RAIN_MULTIPLIER) < 1e-12,
       f"x{factors['observed']:.4f}")
-check("heavy rain = -7.4% speed", abs(factors["heavy"] - 1 / (1 - 0.074)) < 1e-12, f"x{factors['heavy']:.4f}")
-check("extreme rainstorm = -25% speed", abs(factors["extreme"] - 1 / 0.75) < 1e-12, f"x{factors['extreme']:.4f}")
+check("heavy rain = -7.5% speed", abs(factors["heavy"] - 1 / (1 - 0.075)) < 1e-12, f"x{factors['heavy']:.4f}")
+check("wet arterial = -10% speed", abs(factors["wet_arterial"] - 1 / 0.9) < 1e-12, f"x{factors['wet_arterial']:.4f}")
+check("extreme wet arterial = -25% speed", abs(factors["extreme"] - 1 / 0.75) < 1e-12, f"x{factors['extreme']:.4f}")
 dry = C.simulate(C.BASELINES["NC"], seed=3, T=True)
 wet = C.simulate(spy_weather, seed=3, T=True, W=True, weather_slowdown=C.WEATHER_LEVELS["extreme"])
 slower = wet["travel_s"] / dry["travel_s"]

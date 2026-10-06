@@ -7,7 +7,7 @@ Every --eval_every episodes the greedy policy is evaluated and the best one kept
 TRAINING DISTURBANCES (methods.tex, activation matrix "Training" row)
     D and T are always on. S, W and B are switched on at random, each with probability 0.5, drawn
     fresh for every episode; when W is on, the corridor-wide speed loss ~ Uniform(0, 0.25), where 0
-    means observed ordinary rain only and 0.25 is the extreme rainstorm of Ji et al. (2024). The draw for episode k depends only on k, so --resume repeats it.
+    means observed ordinary rain only and 0.25 is the upper end of FHWA's arterial wet-pavement range. The draw for episode k depends only on k, so --resume repeats it.
     --stage-a-only turns this off (D+T every episode).
 
 EVALUATION DURING TRAINING (to pick checkpoint_best.pt)
