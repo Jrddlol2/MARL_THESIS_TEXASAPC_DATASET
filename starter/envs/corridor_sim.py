@@ -660,6 +660,13 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         served_visits = [0] * NUM_STOPS
         next_check = {}                    # bus -> earliest time worth checking its position again
         passed_visits = [0] * NUM_STOPS
+        # Who was on each bus when it last left a stop. SUMO lets riders board and
+        # get off in the same second the bus stops, before we can count them, so on
+        # arrival we compare against this list to find the riders already moved.
+        riders_at_departure = {}           # bus -> set of rider IDs
+        left_origin = {}                   # bus -> time it left stop 0 (travel time starts here)
+        boarded_before_count = 0           # riders SUMO moved on before we counted (diagnostic)
+        alighted_before_count = 0          # riders SUMO moved off before we counted (diagnostic)
 
         # ---- 5d. the main loop: one pass = one simulated second -----------------
         # NOTE: buses are always handled in the fixed order b0, b1, b2, ...
@@ -693,6 +700,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                             pass
                     if gui:
                         traci.vehicle.setColor(bus, base_colour(decide))
+                    riders_at_departure[bus] = riders_on(bus)
                     buses_set_up.add(bus)
                     continue
 
@@ -743,12 +751,22 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                         next_stop[bus] = i + 1
                         del passing_stop[bus]
                         was_stopped[bus] = False
+                        riders_at_departure[bus] = riders_on(bus)
                         continue
 
                 # ---- (1) the bus has JUST arrived at stop i ----------------------
                 if is_stopped and not was_stopped[bus] and i < NUM_STOPS:
                     stop = STOPS[i]
                     served_visits[i] += 1
+
+                    # Riders SUMO already moved this second (see riders_at_departure).
+                    riders_now = riders_on(bus)
+                    riders_before = riders_at_departure.get(bus, riders_now)
+                    boarded_already = len(riders_now - riders_before)
+                    alighted_already = len(riders_before - riders_now)
+                    boarded_before_count += boarded_already
+                    alighted_before_count += alighted_already
+                    carried_past = len(overcarried.get(bus, []))
 
                     # Riders carried past a skipped stop get off here.
                     for person in overcarried.pop(bus, []):
@@ -785,7 +803,10 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                     except traci.TraCIException:
                         waiting = 0
                     getting_off = count_riders_getting_off(bus, stop)
-                    dwell = DWELL_INTERCEPT + SECONDS_PER_BOARDING * waiting + SECONDS_PER_ALIGHTING * getting_off
+                    # Riders still to move + riders SUMO already moved this second.
+                    boarding = waiting + boarded_already
+                    alighting = getting_off + alighted_already + carried_past
+                    dwell = DWELL_INTERCEPT + SECONDS_PER_BOARDING * boarding + SECONDS_PER_ALIGHTING * alighting
                     if D:
                         dwell = dwell * dwell_noise[bus_number, i]
                     dwell = min(MAX_DWELL, dwell)
@@ -819,7 +840,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                             if position_of[broken] < position_of[bus_number]:
                                 b = 1.0
 
-                        obs = {"hf": hf, "hb": hb, "load": load, "queue": waiting, "idx": i,
+                        obs = {"hf": hf, "hb": hb, "load": load, "queue": boarding, "idx": i,
                                "n": NUM_STOPS, "H0": H0, "cap": BUS_CAPACITY,
                                "bus": bus_number, "w": w, "b": b, "max_hold": max_hold,
                                "t": t}
@@ -860,6 +881,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                 if not is_stopped and was_stopped[bus] and i < NUM_STOPS:
                     next_stop[bus] = i + 1
                     buses_released.discard(bus)
+                    riders_at_departure[bus] = riders_on(bus)
+                    if i == 0:
+                        left_origin[bus] = t
 
                 was_stopped[bus] = is_stopped
     finally:
@@ -884,10 +908,26 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         if not math.isnan(value):
             cv_per_stop.append(value)
 
+    # Headway CV as the manuscript defines it (Eq. 3.15): one standard deviation
+    # and one mean over ALL gaps recorded at stops 1..26, pooled together.
+    all_gaps = []
+    for stop in STOPS[1:]:
+        if len(arrivals_at_stop[stop]) >= 3:
+            all_gaps.extend(np.diff(sorted(arrivals_at_stop[stop])))
+    if all_gaps:
+        cv_pooled = float(np.std(all_gaps) / np.mean(all_gaps))
+    else:
+        cv_pooled = float("nan")
+
+    # Travel time as the manuscript defines it: from leaving the origin (stop 0)
+    # to reaching the last stop. The older "from entering SUMO" value is kept too.
     travel_times = []
+    travel_times_from_entry = []
     for bus in BUS_NAMES:
+        if bus in finish_time and bus in left_origin:
+            travel_times.append(finish_time[bus] - left_origin[bus])
         if bus in finish_time and bus in entry_time:
-            travel_times.append(finish_time[bus] - entry_time[bus])
+            travel_times_from_entry.append(finish_time[bus] - entry_time[bus])
 
     # Passenger wait (main measure): if people arrive at random, the average wait
     # is (average gap / 2) x (1 + CV squared). Weighted by how many board there.
@@ -944,9 +984,13 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
             load_leaving.append(float("nan"))
 
     result = {
-        "headway_cv": np.mean(cv_per_stop) if cv_per_stop else float("nan"),
+        "headway_cv": cv_pooled,
+        "headway_cv_stop_mean": np.mean(cv_per_stop) if cv_per_stop else float("nan"),
         "headway_cv_by_stop": cv_by_stop,
+        "boarded_before_count": boarded_before_count,
+        "alighted_before_count": alighted_before_count,
         "travel_s": np.mean(travel_times) if travel_times else float("nan"),
+        "travel_s_from_entry": np.mean(travel_times_from_entry) if travel_times_from_entry else float("nan"),
         "wait_s": weighted_sum / total_weight if total_weight else float("nan"),
         "wait_direct": float(np.mean(recorded_waits)) if recorded_waits else float("nan"),
         "load_leaving": load_leaving,
@@ -1049,6 +1093,14 @@ def served_share_list(served, passed):
         else:
             shares.append(float("nan"))
     return shares
+
+
+def riders_on(bus):
+    """IDs of the riders on this bus right now (empty set if SUMO can't tell)."""
+    try:
+        return set(traci.vehicle.getPersonIDList(bus))
+    except traci.TraCIException:
+        return set()
 
 
 def count_riders_getting_off(bus, stop):
