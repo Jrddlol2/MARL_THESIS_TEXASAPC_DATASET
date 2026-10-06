@@ -50,7 +50,8 @@ DISTURBANCES  (switch each on with True; D and T are on in every scenario)
                     US rain level (FHWA 2006; FHWA Road Weather Management)
     B  breakdown    one bus fails at a stop and is REMOVED for the rest
                     of the run; its riders get off and wait for the next
-                    bus (Guedes & Borenstein 2018)
+                    bus (Guedes & Borenstein 2018 pp.1-2; Daganzo 2009 p.8:
+                    a bus that "go[es] out of service")
 
 STOPS ARE SERVED ON DEMAND
     Like a real bus, a bus drives past a stop where nobody is waiting and
