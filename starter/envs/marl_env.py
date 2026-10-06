@@ -76,12 +76,13 @@ class Config:
 
     # ---- what the weather is like while training (methods.tex activation matrix) -----
     # Demand and traffic are always on. Surge, weather and breakdown are switched on at
-    # random each episode, and when weather is on its strength is drawn from 0 to eta_max.
+    # random each episode; when weather is on, the corridor-wide speed loss is drawn from 0 to
+    # slowdown_max (0.25 = extreme rainstorm, Ji et al. 2024).
     randomize: bool = True
     p_surge: float = 0.5
     p_weather: float = 0.5
     p_breakdown: float = 0.5
-    eta_max: float = 1.3
+    slowdown_max: float = 0.25
 
     # ---- keeping the learning stable (methods.tex) ----------------------------------
     # Scores worse than -5 are trimmed to -5 before learning, so one catastrophic episode
@@ -93,7 +94,8 @@ class Config:
     # ---- the run itself ---------------------------------------------------------------
     control_stops: tuple = (0, 1, 5, 17, 20)    # stops 5280, 5857, 5859, 5867, 4046
     episodes: int = 2_000
-    seed: int = 0
+    seed: int = 0                 # training seed: network init, exploration, and the episode sequence
+    hold_price: float = 1.0       # kappa in the 'priced' waiting term (1.0 = run D's equal pricing)
     name: str = "gate"          # results go to experiments/<name>/
 
 

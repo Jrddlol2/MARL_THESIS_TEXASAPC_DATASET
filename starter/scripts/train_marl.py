@@ -6,12 +6,12 @@ Every --eval_every episodes the greedy policy is evaluated and the best one kept
 
 TRAINING DISTURBANCES (methods.tex, activation matrix "Training" row)
     D and T are always on. S, W and B are switched on at random, each with probability 0.5, drawn
-    fresh for every episode; when W is on its synthetic strength eta ~ Uniform(0, 1.3), where 0 means
-    observed ordinary rain only. The draw for episode k depends only on k, so --resume repeats it.
+    fresh for every episode; when W is on, the corridor-wide speed loss ~ Uniform(0, 0.25), where 0
+    means observed ordinary rain only and 0.25 is the extreme rainstorm of Ji et al. (2024). The draw for episode k depends only on k, so --resume repeats it.
     --stage-a-only turns this off (D+T every episode).
 
 EVALUATION DURING TRAINING (to pick checkpoint_best.pt)
-    Stage A, Stage B with observed rain, and Stage B at eta 0.6, 6 seeds each (seeds 90000+, never the
+    Stage A, Stage B with observed rain, and Stage B in an extreme rainstorm, 6 seeds each (seeds 90000+, never the
     seeds 0-29 used for the final comparison). Score = mean headway CV over the three cells. Runs in
     parallel.
 
@@ -40,7 +40,8 @@ from obs import OBS_DIM
 from ddqn import DDQNAgent
 
 STAGE_B = dict(T=True, S=True, W=True, B=True)
-VALIDATION = [("A", dict(T=True)), ("B_obs", dict(STAGE_B, eta=0.0)), ("B_0.6", dict(STAGE_B, eta=0.6))]
+VALIDATION = [("A", dict(T=True)), ("B_obs", dict(STAGE_B, weather_slowdown=0.0)),
+              ("B_extreme", dict(STAGE_B, weather_slowdown=0.25))]
 EVAL_SEEDS = 6
 
 
@@ -48,12 +49,12 @@ def training_scenario(cfg, episode):
     """The disturbances for one training episode (always the same for the same episode number)."""
     if not cfg.randomize:
         return dict(T=True)
-    rng = np.random.default_rng(700_000 + episode)
-    surge, weather, breakdown, eta = rng.random(), rng.random(), rng.random(), rng.uniform(0.0, cfg.eta_max)
+    rng = np.random.default_rng(700_000 + 10_000 * cfg.seed + episode)
+    surge, weather, breakdown, slowdown = rng.random(), rng.random(), rng.random(), rng.uniform(0.0, cfg.slowdown_max)
     scenario = dict(T=True, S=bool(surge < cfg.p_surge), W=bool(weather < cfg.p_weather),
                     B=bool(breakdown < cfg.p_breakdown))
     if scenario["W"]:
-        scenario["eta"] = float(eta)
+        scenario["weather_slowdown"] = float(slowdown)
     return scenario
 
 
@@ -103,7 +104,7 @@ def train(cfg, eval_every=50, save_every=50, resume=False, jobs=9):
     elif resume:
         print(f"[{cfg.name}] --resume given but no {state_file}; starting fresh", flush=True)
 
-    header = ["episode", "S", "W", "B", "eta", "train_return", "train_cv", "eval_score"] + \
+    header = ["episode", "S", "W", "B", "slowdown", "train_return", "train_cv", "eval_score"] + \
              [f"eval_{cell}" for cell, _ in cells] + ["epsilon"]
     if start_episode == 0:
         json.dump({"config": dataclasses.asdict(cfg), "validation": [c for c, _ in cells], "eval_seeds": EVAL_SEEDS},
@@ -121,7 +122,7 @@ def train(cfg, eval_every=50, save_every=50, resume=False, jobs=9):
     for ep in range(start_episode, cfg.episodes):
         scenario = training_scenario(cfg, ep)
         ctrl = MarlController(agent, cfg, training=True)
-        r = simulate(ctrl, seed=1000 + ep, control_stops=cs, skip_enabled=cfg.skip_enabled, **scenario)
+        r = simulate(ctrl, seed=1000 + 10_000 * cfg.seed + ep, control_stops=cs, skip_enabled=cfg.skip_enabled, **scenario)
         ctrl.finalize()
         evals = {}
         if (ep + 1) % eval_every == 0:
@@ -134,7 +135,7 @@ def train(cfg, eval_every=50, save_every=50, resume=False, jobs=9):
             print(f"  ep {ep+1:4d}  eps {agent.epsilon():.2f}  eval score {score:.3f} ({detail})  "
                   f"({(time.time()-t0)/60:.0f} min){marker}", flush=True)
         w.writerow([ep + 1, int(scenario.get("S", False)), int(scenario.get("W", False)), int(scenario.get("B", False)),
-                    round(scenario.get("eta", 0.0), 3), round(ctrl.ret, 2), round(r["headway_cv"], 4),
+                    round(scenario.get("weather_slowdown", 0.0), 3), round(ctrl.ret, 2), round(r["headway_cv"], 4),
                     round(float(np.mean(list(evals.values()))), 4) if evals else ""] +
                    [round(evals[c], 4) if evals else "" for c, _ in cells] + [round(agent.epsilon(), 3)])
         log.flush()
@@ -154,14 +155,17 @@ if __name__ == "__main__":
     ap.add_argument("--discount", choices=["event", "fixed"], default="event")
     ap.add_argument("--irr", choices=["dev", "even", "both"], default="dev",
                     help="irregularity term: dev = gap ahead vs the timetable, even = gap ahead vs gap behind, both")
-    ap.add_argument("--wait", choices=["queue", "hold", "both"], default="queue",
+    ap.add_argument("--wait", choices=["queue", "hold", "both", "priced"], default="queue",
                     help="waiting term: queue = riders waiting at the stop, hold = in-vehicle delay from holding, both = the two priced the same per rider-second")
     ap.add_argument("--weights", default="1.0,0.5,1.0", help="w1,w2,w3 for the three reward terms")
+    ap.add_argument("--hold-price", type=float, default=1.0, help="kappa for --wait priced (1 = run D, 1/9 = Rodriguez)")
+    ap.add_argument("--seed", type=int, default=0, help="training seed (0 reproduces the earlier runs' sequence)")
     ap.add_argument("--stage-a-only", action="store_true", help="train on D+T only (no randomized S, W, B)")
     ap.add_argument("--jobs", type=int, default=9, help="parallel workers for evaluation")
     ap.add_argument("--resume", action="store_true", help="continue from experiments/<name>/training_state.pt")
     ap.add_argument("--name", default="dr1")
     a = ap.parse_args()
     train(Config(episodes=a.episodes, eps_decay=a.eps_decay, discount=a.discount, randomize=not a.stage_a_only,
-                 irr=a.irr, wait=a.wait, w=tuple(float(x) for x in a.weights.split(",")), name=a.name),
+                 irr=a.irr, wait=a.wait, w=tuple(float(x) for x in a.weights.split(",")), name=a.name,
+                 hold_price=a.hold_price, seed=a.seed),
           eval_every=a.eval_every, save_every=a.save_every, resume=a.resume, jobs=a.jobs)

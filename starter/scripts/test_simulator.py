@@ -17,6 +17,11 @@ WHAT IT CHECKS
        first stop, the last stop and the control stops are always served.
     8. The breakdown flag reaches only buses behind the broken-down bus, and
        the decision time t given to controllers increases for each bus.
+    9. Weather is one corridor-wide slow-down: observed rain = x1.0135, heavy
+       and extreme rain slow buses in proportion (TSSP 2018; Ji et al. 2024).
+   10. The weather value a controller sees is that corridor-wide level, the
+       same for every bus and every decision -- never a bus's own future draw.
+   11. Bus capacity is 55 (NTD 2021 Revenue Vehicle Inventory, 60-ft artics).
 
 RUN      python scripts/test_simulator.py        (from starter/, ~2 min)
          Prints PASS / FAIL for each check and exits with 1 if any fail.
@@ -117,7 +122,10 @@ def spy_breakdown_flag(obs):
     return 0.0, 0
 
 
-broken = C.simulate(spy_breakdown_flag, seed=3, T=True, B=True, control_stops=C.CONTROL_STOPS)
+# Seed 5: its breakdown happens with buses still running ahead of the broken one, so the
+# "buses ahead are not flagged" check has something to look at. (Seed 3 was used until the
+# 2026-09-18 weather change shifted the random draws; its breakdown now hits a bus near the front.)
+broken = C.simulate(spy_breakdown_flag, seed=5, T=True, B=True, control_stops=C.CONTROL_STOPS)
 flag_times = [t for t, bus, b in decisions if b == 1.0]
 check("a bus was removed", broken["buses_removed"] == 1)
 check("breakdown flag reaches buses behind it", len(flag_times) > 0, f"{len(flag_times)} flagged decisions")
@@ -135,6 +143,35 @@ for t, bus, b in decisions:
 check("breakdown flag never switches off for a bus", not switched_off)
 check("decision time t increases for each bus",
       all([t for t, _ in rows] == sorted({t for t, _ in rows}) for rows in times_per_bus.values()))
+
+# 9-10. Weather is one corridor-wide slow-down, and controllers see only that level ------------
+seen_w = []
+
+
+def spy_weather(obs):
+    seen_w.append(obs["w"])
+    return 0.0, 0
+
+
+factors = {name: C.weather_factor_for(value) for name, value in C.WEATHER_LEVELS.items()}
+check("observed rain uses the fitted multiplier", abs(factors["observed"] - C.RAIN_MULTIPLIER) < 1e-12,
+      f"x{factors['observed']:.4f}")
+check("heavy rain = -7.4% speed", abs(factors["heavy"] - 1 / (1 - 0.074)) < 1e-12, f"x{factors['heavy']:.4f}")
+check("extreme rainstorm = -25% speed", abs(factors["extreme"] - 1 / 0.75) < 1e-12, f"x{factors['extreme']:.4f}")
+dry = C.simulate(C.BASELINES["NC"], seed=3, T=True)
+wet = C.simulate(spy_weather, seed=3, T=True, W=True, weather_slowdown=C.WEATHER_LEVELS["extreme"])
+slower = wet["travel_s"] / dry["travel_s"]
+check("extreme rainstorm lengthens trips", 1.15 < slower < 1.40, f"trip time x{slower:.3f}")
+check("controllers see one corridor-wide weather value",
+      len(set(round(v, 9) for v in seen_w)) == 1 and abs(seen_w[0] - factors["extreme"]) < 1e-9,
+      f"{len(seen_w)} decisions, values {sorted(set(round(v, 4) for v in seen_w))}")
+seen_w.clear()
+C.simulate(spy_weather, seed=3, T=True)
+check("weather value is 1.0 when W is off", set(seen_w) == {1.0}, f"{sorted(set(seen_w))}")
+
+# 11. Capacity --------------------------------------------------------------------------------
+check("bus capacity is 55 (NTD 2021)", C.BUS_CAPACITY == 55, f"{C.BUS_CAPACITY}")
+check("SUMO bus type uses the same capacity", f'personCapacity="{C.BUS_CAPACITY}"' in C.VTYPE_TEXT)
 
 print()
 if failures:

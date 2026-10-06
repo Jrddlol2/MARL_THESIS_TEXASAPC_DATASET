@@ -119,6 +119,18 @@ def delay_everyone(before, after, decision):
     return (waiting_at_stops + held_on_board) / (Q_REF * decision["H0"])
 
 
+def delay_priced(before, after, decision):
+    """Waiting at stops plus in-vehicle delay from holding, the latter priced at kappa per rider-second.
+
+    kappa = decision["hold_price"]: 0 gives delay_at_stops x Q_REF-scaling (run B's term), 1 gives
+    delay_everyone (run D's term). Rodriguez et al. (2023) weight waiting 9x relative to ride time
+    (W_wait = 9), i.e. kappa = 1/9.
+    """
+    waiting_at_stops = after["queue"] * after["hf"]
+    held_on_board = before["load"] * decision["hold"]
+    return (waiting_at_stops + decision["hold_price"] * held_on_board) / (Q_REF * decision["H0"])
+
+
 # =============================================================================
 # PENALTY 3 OF 3 -- SKIPPING A STOP
 # =============================================================================
@@ -135,7 +147,7 @@ def skip_cost_flat(before, after, decision):
 
 # The names Config uses to choose between the alternatives above.
 SPACING = {"dev": spacing_vs_timetable, "even": spacing_vs_neighbours, "both": spacing_both_gaps}
-DELAY = {"queue": delay_at_stops, "hold": delay_on_board, "both": delay_everyone}
+DELAY = {"queue": delay_at_stops, "hold": delay_on_board, "both": delay_everyone, "priced": delay_priced}
 SKIP = {"stranded": skip_cost_by_riders, "flat": skip_cost_flat}
 
 # The older names, kept so nothing that imports them breaks.
@@ -157,7 +169,11 @@ def compose(before, after, action_id, config):
         return getattr(config, name)
 
     hold_seconds, skip = decode_action(action_id, setting("H0"), setting("dt"))
-    decision = {"H0": setting("H0"), "hold": hold_seconds, "skip": skip}
+    try:
+        hold_price = setting("hold_price")
+    except (KeyError, AttributeError):
+        hold_price = 1.0
+    decision = {"H0": setting("H0"), "hold": hold_seconds, "skip": skip, "hold_price": hold_price}
 
     weight_spacing, weight_delay, weight_skip = setting("w")
     spacing_penalty = SPACING[setting("irr")](before, after, decision)

@@ -44,8 +44,10 @@ DISTURBANCES  (switch each on with True; D and T are on in every scenario)
                     and buses start their trips early or late (fitted)
     S  surge        all boarding demand x f_d, f_d ~ N(1, sigma_d^2) clipped
                     to [1, 10], sigma_d = 1 (Wang & Sun 2023, Eq. 22)
-    W  weather      observed ordinary-rain slow-down (fitted) x a LABELLED
-                    SYNTHETIC lognormal stress with CV eta (Patil et al.)
+    W  weather      ONE slow-down for the whole corridor and the whole run,
+                    the same for every bus (rain hits every bus at once):
+                    observed Austin ordinary rain (fitted, x1.0135) or a
+                    literature rain level (TSSP 2018; Ji et al. 2024)
     B  breakdown    one bus fails at a stop and is REMOVED for the rest
                     of the run; its riders get off and wait for the next
                     bus (Guedes & Borenstein 2018; Daganzo 2009)
@@ -195,9 +197,24 @@ MAX_DWELL = MODEL["dwell_model"]["dwell_p95_s"]                     # 95th perce
 # D: day-to-day demand spread. Variance / mean of daily boardings per stop.
 DEMAND_DISPERSION = MODEL["demand_dispersion_var_over_mean"]       # 3.8 (1.0 = Poisson)
 
-# W: observed ordinary-rain slow-down (1.0135) and the synthetic severe layer
+# W: weather is ONE running-time multiplier for the whole corridor and the whole run.
+# weather_slowdown = fraction of average speed lost in that weather:
+#   0      observed Austin ordinary rain (fitted from the NOAA join: x1.0135, not significant)
+#   0.053  light rain      -5.3% speed  (TSSP 2018, expressway speed under PAGASA rain levels)
+#   0.063  moderate rain   -6.3% speed  (TSSP 2018)
+#   0.074  heavy rain      -7.4% speed  (TSSP 2018)
+#   0.25   extreme rainstorm, -25% bus speed (Ji et al. 2024, typhoon rainstorm, bus GPS)
+# Running time is multiplied by 1 / (1 - slowdown). Applied to every bus alike, as rain and
+# snow are applied to all vehicles in Da et al. (2024) and Turnau et al. (2025).
 RAIN_MULTIPLIER = MODEL["rain"]["rain_multiplier"]
-WEATHER_CV = 0.8            # eta: strength of the LABELLED SYNTHETIC weather stress
+WEATHER_LEVELS = {"observed": 0.0, "light": 0.053, "moderate": 0.063, "heavy": 0.074, "extreme": 0.25}
+
+
+def weather_factor_for(slowdown):
+    """Running-time multiplier for a weather slowdown (0 = observed ordinary rain)."""
+    if slowdown <= 0:
+        return RAIN_MULTIPLIER
+    return 1.0 / (1.0 - slowdown)
 
 # S: surge, Wang & Sun (2023): f_d ~ N(1, SURGE_SD^2) clipped to [1, 10]
 SURGE_SD = 1.0
@@ -232,7 +249,11 @@ for i in range(NUM_STOPS):
     LANE_LENGTH.append(_lengths[EDGES[i]])
 
 LONG_STOP = 600.0           # buses are told to stop "600 s"; we release them ourselves
-BUS_CAPACITY = 60           # passengers
+# Passengers per bus: 46 seated + 9 standing = 55 for every CapMetro 60-ft articulated fleet in the
+# 2021 NTD Revenue Vehicle Inventory (NOVA 5001/5101 series, New Flyer XE60); these buses logged 67% of
+# the Route 801 direction-6 APC records. The 40-ft buses (48) are the sensitivity case:
+# set CORRIDOR_CAPACITY=48.
+BUS_CAPACITY = int(os.environ.get("CORRIDOR_CAPACITY", "55"))
 SUMO_SECONDS_PER_PERSON = 0.5   # SUMO's own time to move one person on or off a bus
 
 # TIME_TO_REACH[i] = typical seconds for a bus to get from stop 0 to stop i.
@@ -284,7 +305,7 @@ def write_file_safely(file_name, text):
 os.makedirs("sumo", exist_ok=True)
 VTYPE_FILE = "sumo/vtype.add.xml"
 VTYPE_TEXT = ('<additional><vType id="bus" vClass="bus" length="12" width="6" speedFactor="1" speedDev="0" '
-              'accel="1.2" decel="4.0" maxSpeed="30" personCapacity="60"/></additional>\n')
+              'accel="1.2" decel="4.0" maxSpeed="30" personCapacity="' + str(BUS_CAPACITY) + '"/></additional>\n')
 if not os.path.exists(VTYPE_FILE) or open(VTYPE_FILE).read() != VTYPE_TEXT:
     write_file_safely(VTYPE_FILE, VTYPE_TEXT)
 
@@ -490,14 +511,14 @@ AMBER = (255, 170, 0)
 
 
 def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control_stops=None,
-             eta=None, trace=False, gui=False, gui_delay=20, max_hold=None, breakdowns=NUM_BREAKDOWNS,
+             weather_slowdown=0.0, trace=False, gui=False, gui_delay=20, max_hold=None, breakdowns=NUM_BREAKDOWNS,
              surge_sd=SURGE_SD, traffic_stress_sd=TRAFFIC_STRESS_SD, skip_enabled=False):
     """Run the corridor once with the controller `decide`.
 
     seed           makes the random disturbances repeatable (same seed = same run)
     D,S,T,W,B      which disturbances are switched on (see top of file)
     control_stops  stop indexes where decide() is asked; None = all interior stops
-    eta            strength of the synthetic weather stress (None = 0.8)
+    weather_slowdown  fraction of speed lost when W is on (0 = observed ordinary rain; see WEATHER_LEVELS)
     trace          also return every bus's arrival times (for Marey diagrams)
     gui            open the SUMO window and colour the buses (for demos)
     gui_delay      milliseconds the GUI waits per simulated second
@@ -529,10 +550,6 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
         control_stops = set(control_stops)
     if max_hold is None:
         max_hold = MAX_HOLD_SECONDS
-    if eta is None:
-        weather_cv = WEATHER_CV
-    else:
-        weather_cv = eta
 
     random = np.random.default_rng(1000 + seed)
 
@@ -553,12 +570,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
     # T: how early or late each bus starts its trip, drawn from the observed deviations
     dispatch_draw = random.choice(DISPATCH_SAMPLE, size=NUM_BUSES)
 
-    # W: synthetic weather stress per bus per segment, mean 1, clipped to [0.5, 3].
-    # Drawn even when eta = 0 (every value is then exactly 1), so the draws after it
-    # (surge, breakdown) are the same at every weather strength.
-    log_variance = math.log(1 + weather_cv * weather_cv)
-    weather_stress = random.lognormal(-0.5 * log_variance, math.sqrt(log_variance), size=(NUM_BUSES, NUM_STOPS))
-    weather_stress = np.clip(weather_stress, 0.5, 3.0)
+    # W: one running-time multiplier for every bus on every segment (no random draw, so the
+    # draws after it -- surge, breakdown -- are the same at every weather level).
+    weather_factor = weather_factor_for(weather_slowdown) if W else 1.0
 
     # S: one demand multiplier for the whole run
     surge_draw = random.normal(1.0, max(surge_sd, 1e-12))
@@ -725,7 +739,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                         load_sum[i] += traci.vehicle.getPersonNumber(bus)
                         load_count[i] += 1
                         if i < NUM_STOPS - 1:
-                            set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress)
+                            set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_factor)
                         next_stop[bus] = i + 1
                         del passing_stop[bus]
                         was_stopped[bus] = False
@@ -795,10 +809,9 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                             load = traci.vehicle.getPersonNumber(bus)
                         except traci.TraCIException:
                             load = 0
-                        if W:
-                            w = float(weather_stress[bus_number, i])
-                        else:
-                            w = 1.0
+                        # Weather level the agent is told: the corridor-wide multiplier, as a
+                        # weather service would report it. It is NOT this bus's own future draw.
+                        w = float(weather_factor)
                         # Breakdown flag: 1 only if a bus AHEAD of this one has broken
                         # down (the incident is downstream, so this bus meets the gap).
                         b = 0.0
@@ -841,7 +854,7 @@ def simulate(decide, seed=0, D=True, S=False, T=False, W=False, B=False, control
                     if gui:
                         traci.vehicle.setColor(bus, base_colour(decide))
                     if i < NUM_STOPS - 1:
-                        set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress)
+                        set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_factor)
 
                 # ---- (3) the bus has just driven off: aim at the next stop --------
                 if not is_stopped and was_stopped[bus] and i < NUM_STOPS:
@@ -990,7 +1003,7 @@ def estimate_backward_headway(bus_number, i, t, running_order, position_of, remo
     return float(max(0.0, expected_arrival - t))
 
 
-def set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_stress):
+def set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weather_factor):
     """Running time on road piece i: the period's typical time, x traffic
     variation (T), x rain and weather stress (W). A speed factor of
     1 / time_factor makes the drive take that long -- faster OR slower."""
@@ -998,7 +1011,7 @@ def set_segment_speed(bus, bus_number, i, T, W, run_factor, traffic_stress, weat
     if T:
         time_factor = time_factor * float(run_factor[bus_number, i]) * traffic_stress
     if W:
-        time_factor = time_factor * RAIN_MULTIPLIER * float(weather_stress[bus_number, i])
+        time_factor = time_factor * weather_factor
     try:
         traci.vehicle.setSpeedFactor(bus, 1.0 / time_factor)
     except traci.TraCIException:

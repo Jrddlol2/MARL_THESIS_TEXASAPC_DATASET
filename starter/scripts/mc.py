@@ -18,20 +18,22 @@ Options (after N and JOBS), used for sensitivity checks:
     --max-hold 240      cap every hold at 240 s instead of the default 120 s
     --breakdowns 3      remove 3 buses instead of 1 when B is on
     --surge-sd 2        surge strength sigma_d (default 1; Wang & Sun test 1, 2, 3)
-    --eta 1.2           synthetic weather strength (default 0.8)
+    --weather heavy     weather level when W is on: observed (default), light, moderate, heavy,
+                        extreme, or a speed-loss fraction such as 0.1 (see WEATHER_LEVELS)
+    --seed-start 100    first seed (default 0); 100 = the fresh test seeds (files get _s100)
     --traffic-sd 0.1    extra episode-wide traffic stress sigma_s (default 0 = off)
     --only-breakdown    run only the two scenarios that include B
     --only A,W,StageB   run only these scenarios (A, S, W, B, StageB)
     --tag NAME          write results/mc_results_NAME.csv and mc_summary_NAME.md
 Example:  python scripts/mc.py 30 10 --max-hold 240 --tag hold240
-          python scripts/mc.py 30 10 --eta 0 --only W,StageB --tag observed_rain
-With --eta 0 the weather W is the observed ordinary-rain slow-down only (manuscript definition for
+          python scripts/mc.py 30 10 --weather extreme --only StageB --tag stageB_extreme
+By default the weather W is the observed ordinary-rain slow-down only (manuscript definition for
 the W ablation and the observed-weather Stage B cell).
 """
 import os, sys, time, csv, numpy as np
 from concurrent.futures import ProcessPoolExecutor, as_completed
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "envs"))
-from corridor_sim import simulate, BASELINES, CONTROL_STOPS, STOPS, H0, NUM_BUSES
+from corridor_sim import simulate, BASELINES, CONTROL_STOPS, STOPS, H0, NUM_BUSES, WEATHER_LEVELS, BUS_CAPACITY
 
 
 
@@ -47,10 +49,12 @@ JOBS = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 6
 MAX_HOLD = float(option("--max-hold", "nan"))          # nan = the simulator's default (120 s)
 BREAKDOWNS = int(option("--breakdowns", "1"))
 SURGE_SD = float(option("--surge-sd", "1.0"))
-ETA = float(option("--eta", "0.8"))
+WEATHER = option("--weather", "observed")
+SLOWDOWN = WEATHER_LEVELS[WEATHER] if WEATHER in WEATHER_LEVELS else float(WEATHER)
+SEED_START = int(option("--seed-start", "0"))
 TRAFFIC_SD = float(option("--traffic-sd", "0.0"))
 TAG = option("--tag", "")
-SUFFIX = "_" + TAG if TAG else ""
+SUFFIX = ("_" + TAG if TAG else "") + (f"_s{SEED_START}" if SEED_START else "")
 SCEN = [("Stage A (D+T)",        dict(T=True)),
         ("Ablation S (D+T+S)",   dict(T=True, S=True)),
         ("Ablation W (D+T+W)",   dict(T=True, W=True)),
@@ -70,7 +74,7 @@ os.makedirs("results", exist_ok=True)
 def _run_one(task):
     """Worker: one (scenario, controller, seed) replication. Picklable — looks up the decide fn locally."""
     name, kw, c, seed = task
-    extra = dict(breakdowns=BREAKDOWNS, surge_sd=SURGE_SD, eta=ETA, traffic_stress_sd=TRAFFIC_SD)
+    extra = dict(breakdowns=BREAKDOWNS, surge_sd=SURGE_SD, weather_slowdown=SLOWDOWN, traffic_stress_sd=TRAFFIC_SD)
     if np.isfinite(MAX_HOLD):
         extra["max_hold"] = MAX_HOLD
     try:
@@ -101,8 +105,8 @@ def paired_pct(nc, eh, n=5000, rng=np.random.default_rng(1)):
 def main():
     t0 = time.time()
     print(f"control stops: {[STOPS[i] for i in CONTROL_STOPS]}  (N={N}, jobs={JOBS}, "
-          f"max_hold={'120 (default)' if not np.isfinite(MAX_HOLD) else MAX_HOLD}, breakdowns={BREAKDOWNS}, surge_sd={SURGE_SD}, eta={ETA}, traffic_sd={TRAFFIC_SD})", flush=True)
-    tasks = [(name, kw, c, s) for name, kw in SCEN for c in CTRLS for s in range(N)]
+          f"max_hold={'120 (default)' if not np.isfinite(MAX_HOLD) else MAX_HOLD}, breakdowns={BREAKDOWNS}, surge_sd={SURGE_SD}, weather={WEATHER} ({SLOWDOWN:.3f}), capacity={BUS_CAPACITY}, seeds {SEED_START}-{SEED_START + N - 1}, traffic_sd={TRAFFIC_SD})", flush=True)
+    tasks = [(name, kw, c, s) for name, kw in SCEN for c in CTRLS for s in range(SEED_START, SEED_START + N)]
     rows = []
     with open(f"results/mc_results{SUFFIX}.csv", "w", newline="") as fh:
         w = csv.writer(fh)
@@ -130,12 +134,13 @@ def main():
         D[(name, c)]["wt"].append(wt); D[(name, c)]["wd"].append(wd)
     cap_text = "120 s" if not np.isfinite(MAX_HOLD) else f"{MAX_HOLD:.0f} s"
     L = [f"H0 = {H0:.0f} s, {NUM_BUSES} buses, {len(STOPS)} stops, N = {N} paired seeds, "
-         f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es), surge sigma_d {SURGE_SD}, weather eta {ETA}, "
+         f"max hold {cap_text}, B removes {BREAKDOWNS} bus(es), surge sigma_d {SURGE_SD}, weather {WEATHER} (speed loss {SLOWDOWN:.3f}), capacity {BUS_CAPACITY}, "
+         f"seeds {SEED_START}-{SEED_START + N - 1}, "
          f"traffic stress sigma_s {TRAFFIC_SD}. Ordinary-day variability fitted from APC (fit_variability.py). "
          f"Control stops: {[STOPS[i] for i in CONTROL_STOPS]} (§3.2.2 criteria). "
-         f"Wait = headway model; wait_dir = SUMO per-passenger (cross-check)."
-         + (" Weather W = observed ordinary-rain slow-down only (eta 0)." if ETA == 0 else ""), "",
-         "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |",
+         f"Wait = SUMO recorded per-passenger wait (primary); formula = headway model (H/2)(1+CV^2), cross-check."
+         + (" Weather W = observed ordinary-rain slow-down only." if SLOWDOWN == 0 else ""), "",
+         "| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | formula wait | n |",
          "|---|---|---|---|---|--:|--:|"]
     for name, _ in SCEN:
         for c in CTRLS:
@@ -143,16 +148,16 @@ def main():
             cv = boot_ci(d["cv"]); tt = boot_ci(d["tt"]); wt = boot_ci(d["wt"]); wd = boot_ci(d["wd"])
             n = sum(np.isfinite(v) for v in d["cv"])
             L.append(f"| {name} | {c} | {cv[0]:.3f} [{cv[1]:.3f}, {cv[2]:.3f}] | "
-                     f"{tt[0]:.0f} [{tt[1]:.0f}, {tt[2]:.0f}] | {wt[0]:.0f} [{wt[1]:.0f}, {wt[2]:.0f}] | "
-                     f"{wd[0]:.0f} | {n} |")
+                     f"{tt[0]:.0f} [{tt[1]:.0f}, {tt[2]:.0f}] | {wd[0]:.0f} [{wd[1]:.0f}, {wd[2]:.0f}] | "
+                     f"{wt[0]:.0f} | {n} |")
     L += ["", "**Paired % change vs No-Control (negative = controller better; CV with 95% CI):**", "",
           "| Scenario | FH Δ CV % [95% CI] | FH Δ wait % | EH Δ CV % [95% CI] | EH Δ wait % |",
           "|---|---|---|---|---|"]
     for name, _ in SCEN:
         fcv = paired_pct(D[(name, "NC")]["cv"], D[(name, "FH")]["cv"])
-        fwt = paired_pct(D[(name, "NC")]["wt"], D[(name, "FH")]["wt"])
+        fwt = paired_pct(D[(name, "NC")]["wd"], D[(name, "FH")]["wd"])
         ecv = paired_pct(D[(name, "NC")]["cv"], D[(name, "EH")]["cv"])
-        ewt = paired_pct(D[(name, "NC")]["wt"], D[(name, "EH")]["wt"])
+        ewt = paired_pct(D[(name, "NC")]["wd"], D[(name, "EH")]["wd"])
         L.append(f"| {name} | {fcv[0]:+.0f}% [{fcv[1]:+.0f}, {fcv[2]:+.0f}] | {fwt[0]:+.0f}% | "
                  f"{ecv[0]:+.0f}% [{ecv[1]:+.0f}, {ecv[2]:+.0f}] | {ewt[0]:+.0f}% |")
     open(f"results/mc_summary{SUFFIX}.md", "w", encoding="utf-8").write("\n".join(L) + "\n")
