@@ -1,0 +1,22 @@
+<additional>
+    <busStop id="s0" lane="e0_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s1" lane="e1_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s2" lane="e2_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s3" lane="e3_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s4" lane="e4_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s5" lane="e5_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s6" lane="e6_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s7" lane="e7_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s8" lane="e8_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s9" lane="e9_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s10" lane="e10_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s11" lane="e11_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s12" lane="e12_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s13" lane="e13_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s14" lane="e14_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s15" lane="e15_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s16" lane="e16_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s17" lane="e17_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s18" lane="e18_0" startPos="5.0" endPos="25.0"/>
+    <busStop id="s19" lane="e19_0" startPos="5.0" endPos="25.0"/>
+</additional>

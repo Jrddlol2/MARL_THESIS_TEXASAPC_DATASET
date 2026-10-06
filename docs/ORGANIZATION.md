@@ -10,6 +10,7 @@
 | root `README.md`, `CLAUDE.md` | project guide; agent instructions |
 | `revision/` | proposal-revision workflow files (`TRACKER.md`, `REVISION_QUEUE.md`, `AUDIT_TRAIL*.md`, `RTC_DECISION_LETTER.md`, `PROGRESS.md`, `CHANGE_REPORT_*`, pre-revision PDFs) — moved from the root 2026-09-14 |
 | `docs/progress/` | current write-up (`WEEK2_…`), figure captions, MSA deliverables (.docx) |
+| `docs/msa3_member_guides/` | MSA 3 member guides, one folder per member, plus the shared test-corridor build (`shared_build_v2/`) |
 | `docs/planning/` | risk register, manuscript change list, experiment plan, roadmap |
 | `docs/prompts/` | reusable prompts |
 | `docs/reference/` | code walkthroughs, `B3_Code_Demo_Guide.docx`, `DATA_CLEANING.md` |

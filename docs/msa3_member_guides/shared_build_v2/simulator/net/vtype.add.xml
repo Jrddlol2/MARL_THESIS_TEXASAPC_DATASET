@@ -1,0 +1,3 @@
+<additional>
+    <vType id="bus" vClass="bus" length="12.0" personCapacity="55" speedFactor="1.0" speedDev="0"/>
+</additional>

@@ -188,6 +188,7 @@ Open risks: [`docs/planning/RISK_REGISTER_MSA2_2026-09-13.md`](docs/planning/RIS
 | `data/raw/`, `data/processed/` | Where the scripts read data from; the 3.7 GB APC snapshot | **no** — too big (§9) |
 | `data/audit/` | **The evidence.** Checksums, queries, row counts, coverage results | yes |
 | `docs/progress/` | The current write-up and the MSA deliverables (.docx) | yes |
+| `docs/msa3_member_guides/` | **MSA 3 member guides** (one folder per member) and the shared test-corridor build | yes |
 | `docs/planning/` | Risk register, manuscript change list, experiment plan, roadmap | yes |
 | `docs/reference/` | Code walkthroughs, the code demo guide, data-cleaning notes | yes |
 | `docs/prompts/` | Reusable prompts | yes |
