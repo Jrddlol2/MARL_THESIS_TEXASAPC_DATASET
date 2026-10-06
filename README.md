@@ -34,28 +34,31 @@ counter (APC) data, July–December 2021.
 
 ---
 
-## 2. Where we are right now (2026-09-16)
+## 2. Where we are right now (2026-10-06)
 
 | | Status |
 |---|---|
 | Proposal | Defended, revised, submitted 2026-08-29 |
-| Dataset acquired and cleaned | **Done** — 229,421 stop events, checksummed |
+| MSA 1, MSA 2 | **Presented** (September; October 5–10) |
+| Dataset acquired and cleaned | **Done and frozen** — 229,421 stop events, checksummed |
 | Weather joined | **Done** — 100% of events matched to NOAA |
 | Corridor built in SUMO | **Done** — 27 stops, 26 road segments, real road geometry |
 | Corridor calibrated | **Done** — tested on held-out days: RMSPE 3.08%, GEH < 5 on 26/26 segments |
-| Simulator checked against real buses | **Done** — bunching, loads and stop service (§4) |
-| Baseline controllers (NC / FH / EH) | **Done** — 30 paired Monte Carlo runs per scenario |
-| MARL agent | **Training now** — 800 episodes with randomized disturbances, `starter/experiments/dr1/` (§5) |
-| Results chapter | **Drafted** from measured outputs; the MARL section waits on the run |
+| Simulator checked against real buses | **Re-checked 2026-10-06** after the boarding-count fix (§4) |
+| Baseline controllers (NC / FH / EH) | **Re-run 2026-10-06** on the fixed simulator, development and test seeds (§4) |
+| MARL agent | Holding-only runs tie Even-Headway. **First runs with the skip action are training** (§5) |
+| Results chapter | Drafted; its numbers predate the 2026-10-06 fixes and must be refreshed |
 | Discussion / Future Work chapters | **Not written** (still template text from another thesis) |
+
+What changed on 2026-10-06 and why: [`docs/progress/MSA3_KICKOFF_2026-10-06.md`](docs/progress/MSA3_KICKOFF_2026-10-06.md).
 
 **Milestones**
 
 | | When | Scope |
 |---|---|---|
 | MSA1 | Sep 7–12, 2026 | Dataset + corridor + calibration |
-| MSA2 | Oct 5–10, 2026 | Empirical extraction, disturbances, MARL formulation |
-| MSA3 | Nov 23–28, 2026 | Training and evaluation |
+| MSA2 | Oct 5–10, 2026 | Disturbances, baselines, MARL formulation, test corridor |
+| MSA3 | Nov 23–28, 2026 | EO 3.1 + 3.2: MARL vs baselines with statistics, ordinary and disturbed |
 
 Poster and paper due **Dec 5, 2026**. Results this semester are **preliminary**;
 final results run Jan–Apr 2027.
@@ -91,92 +94,84 @@ final results run Jan–Apr 2027.
 
 Everything the simulator randomises on an ordinary day (demand, dwell, running
 time, late or early trip starts) is **fitted from the APC data**. It is checked on
-service days it was not fitted on (`starter/results/validation/`):
+service days it was not fitted on (`starter/results/validation/`).
 
-| Check | Real buses | Simulator (No-Control) |
-|---|---|---|
-| Segment running time, held-out days | — | RMSPE 3.08%, GEH < 5 on 26/26 |
-| Same, with a date-order split instead | — | RMSPE 6.83%, GEH < 5 on 26/26 ([why](starter/results/validation/SPLIT_ROBUSTNESS.md)) |
-| Headway CV (bunching), whole corridor | 0.504 | 0.556 (about 10% high, in the second half) |
-| Headway CV at the first stop | 0.352 | 0.357 |
-| Bunching stop by stop | — | r = 0.87 |
-| Share of trips that stop at a quiet stop | 64% | 69% (r = 0.96) |
-| Riders on board along the route | APC `max_load` | about 2 lower, same shape (r = 0.99) |
+On 2026-10-06 we fixed a counting bug: SUMO boards and drops riders in the same second a bus stops,
+before the code counted them, so dwell used too few riders. With every rider counted, dwell is longer
+and the simulator bunches more than real buses do:
 
-### Baselines
-
-The manuscript's evaluation matrix (`methods.tex`, Stage A / Stage B evaluation). 30 paired runs
-per scenario, 10-minute headway, holds capped at 120 s (as in the RRL), one bus removed in a
-breakdown. Lower headway CV = more evenly spaced buses.
-
-| Scenario | No Control | Forward-Headway | Even-Headway |
+| Check | Real buses | Before fix | After fix (current) |
 |---|---|---|---|
-| Stage A — ordinary day (demand + traffic) | 0.556 | 0.396 (−29%) | **0.342** (−38%) |
-| + surge | 0.596 | 0.427 (−28%) | **0.371** (−38%) |
-| + weather (observed ordinary rain) | 0.559 | 0.400 (−28%) | **0.346** (−38%) |
-| + breakdown (one bus removed) | 0.564 | 0.423 (−25%) | **0.370** (−34%) |
-| Stage B — everything, observed rain | 0.609 | 0.458 (−25%) | **0.404** (−34%) |
+| Segment running time, held-out days | — | RMSPE 3.08%, GEH < 5 on 26/26 | unchanged (running time excludes dwell) |
+| Headway CV (bunching), stops 1–26, per-stop mean | 0.504 | 0.556 | **0.599** |
+| Headway CV at the first stop | 0.352 | 0.357 | 0.357 |
+| Bunching stop by stop (correlation) | — | r = 0.866 | r = 0.869 |
+| Riders on board along the route (error) | APC `max_load` | 2.07 riders | 1.88 riders (r = 0.988) |
 
-**Stage B weather sweep** — everything on, with the labelled synthetic weather stress η on top of
-observed rain (`results/stageB_weather_sweep.csv`, figure `stageB_weather_sweep.png`):
+We kept the fix: the mechanics are now right and every controller faces the same simulator. Real
+"no control" buses still run to a timetable, which damps bunching; that explanation still needs a source.
+
+### Baselines (fixed simulator, 2026-10-06)
+
+The manuscript's evaluation matrix. 30 paired runs per cell, development seeds 0–29 (the test seeds
+100–129 are run separately and kept for the final comparison), 10-minute headway, holds capped at
+120 s, capacity 55. Headway CV is now pooled over all headways (manuscript Eq. 3.15); waiting time is
+SUMO's recorded per-passenger wait. Lower is better.
+
+| Scenario | No Control: CV / wait | Forward-Headway | Even-Headway |
+|---|---|---|---|
+| Stage A — ordinary day (demand + traffic) | 0.609 / 410 s | 0.446 (-27%) / 367 s | **0.391** (-36%) / **355 s** |
+| + surge | 0.634 / 425 s | 0.472 (-25%) / 379 s | **0.421** (-34%) / **367 s** |
+| + weather (observed ordinary rain) | 0.612 / 413 s | 0.451 (-26%) / 371 s | **0.397** (-35%) / **358 s** |
+| + breakdown (one bus removed) | 0.634 / 431 s | 0.495 (-22%) / 392 s | **0.445** (-30%) / **380 s** |
+| Stage B — everything, observed rain | 0.658 / 449 s | 0.522 (-21%) / 410 s | **0.475** (-28%) / **396 s** |
+
+**Stage B with the weather levels** (everything on; corridor-wide slowdown from Mejia & Sigua 2018 and Ji 2024):
 
 | Weather | No Control | Forward-Headway | Even-Headway |
 |---|---|---|---|
-| observed rain only | 0.609 | 0.458 (−25%) | 0.404 (−34%) |
-| η = 0.3 | 0.685 | 0.574 (−16%) | 0.534 (−22%) |
-| η = 0.6 | 0.820 | 0.742 (−9%) | 0.725 (−12%) |
-| η = 0.8 *(earlier headline)* | 0.876 | 0.804 (−8%) | 0.796 (−9%) |
-| η = 1.0 | 0.904 | 0.836 (−8%) | 0.832 (−8%) |
-| η = 1.3 | 0.929 | 0.862 (−7%) | 0.864 (−7%) |
+| observed rain only | 0.658 | 0.522 (-21%) | 0.475 (-28%) |
+| light rain, −5.3% speed | 0.666 | 0.530 (-20%) | 0.487 (-27%) |
+| moderate, −6.3% | 0.666 | 0.533 (-20%) | 0.491 (-26%) |
+| heavy, −7.4% | 0.668 | 0.537 (-20%) | 0.494 (-26%) |
+| extreme rainstorm, −25% | 0.708 | 0.583 (-18%) | 0.570 (-20%) |
 
-All reductions are significant (95% CIs exclude zero). A 240 s cap (−9/−12% at η = 0.8) or three
-breakdowns (−8/−9%) do not change the picture.
-
-**What this means:** surge, breakdowns and observed rain barely weaken fixed holding: Even-Headway
-still cuts bunching by about a third. What defeats it is **strong weather stress**: its advantage
-shrinks from −34% to −12% by η = 0.6 and to −7% by η = 1.3, and Forward-Headway and Even-Headway
-become indistinguishable. That gap — beyond observed conditions, so labelled synthetic — is what the
-MARL controller has to close. The earlier "+ weather" row (0.865, −8/−9%) used η = 0.8, not the
-manuscript's observed-rain definition.
-
-Full write-up: [`docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md`](docs/progress/WEEK2_SIMULATOR_VS_REALITY_2026-09-14.md)
-(its Stage B reading used η = 0.8 only; the sweep above supersedes it).
+**Statistics** (Friedman → paired Wilcoxon → Holm, bootstrap 95% CIs): Even-Headway beats
+Forward-Headway, and Forward-Headway beats No Control, in all five cells of the main matrix (development seeds, Holm p < 0.001).
+Waiting time under a disturbance, as a ratio of the same controller's Stage A: surge ×1.03 and observed
+rain ×1.01 (not significant), breakdown ×1.05–1.07, Stage B ×1.10–1.12 (significant). Fixed holding
+helps a little less under stress, and the extreme rainstorm almost erases the gap between FH and EH.
+That is the room MARL has to work in.
 
 ---
 
-## 5. What's next
+## 5. What's next (to MSA 3, Nov 23–28)
 
-**Ready for training (done 2026-09-14):**
+**Running now:** the first MARL runs **with the skip action** (manuscript p.45; every earlier run was
+holding-only and tied Even-Headway). Six reward variants, training seed 0, development seeds only:
+`starter/scripts/overnight_2026-10-06_skip_sweep.sh`, log `starter/results/overnight_2026-10-06.log`.
 
-- **Event-based discount.** Each transition is discounted by e^(−β·Δt), Δt = seconds between the bus's
-  two decisions (Bradtke & Duff, as in `methods.tex`). β defaults to 0.99 per scheduled headway.
-- **Checkpoints during training.** `training_state.pt` every 50 episodes (`--resume` continues exactly),
-  `checkpoint_best.pt` = best evaluation CV so far (evaluated on seeds 90000+, never the test seeds).
-- **Breakdown flag** is 1 only for buses behind the broken-down bus.
-- **The pass mark, fixed before training:** in Stage A, the greedy MARL policy's mean headway CV over
-  seeds 0–29 must be **below Even-Headway (0.342)**.
-- **`eval_marl.py` follows the manuscript:** all 9 evaluation cells (Stage A, S, W observed rain, B, Stage B
-  observed rain and η 0.3/0.6/1.0/1.3), the manuscript's acceptance criteria (Stage A: wait no worse than EH
-  and CV below NC; Stage B: wait below the best baseline in every cell) plus the training gate. Paired
-  Wilcoxon, Holm-corrected, α 0.05, fixed before any MARL result.
-- **All baseline cells of that matrix are run** (§4).
+| Week | Critical path | Members (test corridor, verification) |
+|---|---|---|
+| Oct 6–12 | Fixes, baselines, skip on, sweep night 1 | Medenilla: statistics script |
+| Oct 13–19 | Sweep night 2, choose the reward (EO 2.1) | Badal surge, Lopez weather, Marquez breakdown |
+| Oct 20–Nov 2 | Final training (3 seeds), freeze the policy | Disturbance results due Nov 2 |
+| Nov 3–9 | Final evaluation on test seeds 100–129, once | Statistics on all results |
+| Nov 10–22 | Chapter 4, manuscript update, deck | Deck + script |
 
-**Next:** the Stage A gate run (`train_marl.py --episodes 800 --name gate`, about 3 hours), then
-`eval_marl.py --ckpt experiments/gate/checkpoint_best.pt`. If it passes: skip action, then reward weights.
+**Manuscript text that no longer matches the code** (the 26 Aug manuscript; most fixes are drafted in a
+local LaTeX copy and still need merging):
 
-**Manuscript text that no longer matches the code:**
-
-- `methods.tex:18, 38` say training runs in a separate lightweight Python simulator. It runs in
-  SUMO (about 13 s per episode). **Decided: change the text.**
-- `methods.tex:291` says a chronological calibration/test split. The code alternates service days,
-  because weekday ridership varies by month (October is 31% above July), so a date-order split would
-  test on busier months than it calibrates on. **Pending decision** (recommended: change the text and
-  report a date-order split as a check).
-- `methods.tex:69–83` declare GEH on bus counts and RMSE. The code uses GEH on running times and RMSPE.
-- `results.tex`, `discussion.tex`, `futurework.tex` are template text from another thesis (§7).
+- Training runs in SUMO, not a separate lightweight Python/PettingZoo simulator.
+- Weather is a corridor-wide slowdown (5.3 / 6.3 / 7.4 / 25%), not the η-lognormal sweep.
+- Surge clip is [1, 10] (Wang & Sun 2023 p.9), not [1, 3].
+- Breakdown removes 1 bus (sensitivity 3) drawn from the seed; riders are picked up by the next bus
+  (Guedes & Borenstein 2018 pp.1–2), not a Poisson rate.
+- EH and MARL holds are capped at 120 s (240 s as sensitivity), not 0.4 H0.
+- GEH is applied to running times, not bus counts.
+- "Two enhancements will be tested" (p.48): to be dropped.
 
 Open risks: [`docs/planning/RISK_REGISTER_MSA2_2026-09-13.md`](docs/planning/RISK_REGISTER_MSA2_2026-09-13.md).
-Manuscript to-do list: [`docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md`](docs/planning/GTFS_FINDINGS_CHANGE_LIST_2026-09-12.md).
 
 ---
 
@@ -401,18 +396,21 @@ python scripts/pipeline/run_all.py                 # OR ~100 s from the raw snap
 cd starter
 python scripts/fit_variability.py                  # ~2 min  -> sim_inputs/fitted/
 python scripts/build_real_net.py                   # ~15 s   -> SUMO network + calibration_real.csv
-python scripts/test_simulator.py                   # ~3 min  -> 18 PASS lines
+python scripts/test_simulator.py                   # ~3 min  -> 'all checks passed'
 python scripts/validate_simulator.py               #         -> results/validation/
-python scripts/mc.py 30 10                         # ~25 min on 10 workers -> the baseline table
-python scripts/mc.py 30 10 --eta 0 --only W,StageB --tag observed_rain     # manuscript W and Stage B cells
-python scripts/mc.py 30 10 --eta 0.3 --only StageB --tag stageB_eta0.3     # sweep; also 0.6, 1.0, 1.3
+python scripts/mc.py 30 10                         # ~20 min on 10 workers -> the baseline table (seeds 0-29)
+python scripts/mc.py 30 10 --weather heavy --only StageB --tag stageB_heavy   # also light, moderate, extreme
+python scripts/mc.py 30 10 --seed-start 100        # the same on the test seeds 100-129 (files get _s100)
+bash scripts/run_baselines_2026-09-18.sh           # all of the above, dev and test seeds (~70 min)
 python scripts/figures.py                          # redraw the figures
 
 # MARL
 python scripts/train_marl.py --episodes 3 --eval_every 3 --name smoke     # ~2 min plumbing check
-python scripts/train_marl.py --episodes 800 --name gate                   # ~3 h; add --resume to continue
-python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt --cells A   # the gate: Stage A only
-python scripts/eval_marl.py --ckpt experiments/gate/checkpoint_best.pt             # full matrix, 270 MARL runs
+python scripts/train_marl.py --episodes 800 --skip --irr even --wait both --name sk_D   # ~5 h with skip on
+python scripts/train_marl.py --episodes 800 --skip --weights 1,0.5,2 --name sk_w2        # a reward-weight variant
+python scripts/eval_marl.py --ckpt experiments/sk_D/checkpoint_best.pt --cells A        # Stage A only
+python scripts/eval_marl.py --ckpt experiments/sk_D/checkpoint_best.pt                  # full matrix, dev seeds
+python scripts/eval_marl.py --ckpt experiments/sk_D/checkpoint_best.pt --seed-start 100 # test seeds: ONCE, at the end
 
 # watch buses move
 python scripts/watch.py EH StageB

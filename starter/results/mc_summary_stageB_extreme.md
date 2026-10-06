@@ -2,12 +2,12 @@ H0 = 600 s, 18 buses, 27 stops, N = 30 paired seeds, max hold 120 s, B removes 1
 
 | Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | formula wait | n |
 |---|---|---|---|---|--:|--:|
-| Stage B (D+T+S+W+B) | NC | 0.654 [0.620, 0.688] | 5911 [5849, 5979] | 486 [470, 504] | 422 | 30 |
-| Stage B (D+T+S+W+B) | FH | 0.530 [0.498, 0.563] | 6040 [5982, 6104] | 450 [433, 467] | 387 | 30 |
-| Stage B (D+T+S+W+B) | EH | 0.514 [0.485, 0.545] | 5996 [5941, 6058] | 443 [428, 459] | 382 | 30 |
+| Stage B (D+T+S+W+B) | NC | 0.708 [0.675, 0.742] | 6119 [6052, 6191] | 510 [494, 526] | 432 | 30 |
+| Stage B (D+T+S+W+B) | FH | 0.583 [0.552, 0.616] | 6208 [6142, 6281] | 473 [458, 490] | 394 | 30 |
+| Stage B (D+T+S+W+B) | EH | 0.570 [0.540, 0.602] | 6152 [6089, 6223] | 467 [452, 482] | 390 | 30 |
 
 **Paired % change vs No-Control (negative = controller better; CV with 95% CI):**
 
 | Scenario | FH Δ CV % [95% CI] | FH Δ wait % | EH Δ CV % [95% CI] | EH Δ wait % |
 |---|---|---|---|---|
-| Stage B (D+T+S+W+B) | -19% [-24, -13] | -8% | -21% [-26, -16] | -9% |
+| Stage B (D+T+S+W+B) | -18% [-22, -13] | -7% | -20% [-24, -14] | -9% |

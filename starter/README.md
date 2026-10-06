@@ -13,7 +13,7 @@ sim_inputs/    per-stop data; fitted/ holds what the simulator actually uses
 sumo/          SUMO networks (the simulator uses corridor_real.* and stops_real.add.xml)
 results/       calibration_real.csv, validation/, mc_summary*.md, figures/; archive/ = older versions
 legacy/        old scripts kept for reference, not used by anything current
-experiments/   training runs (not in Git)
+experiments/   training runs (config.json, metrics.csv and the two checkpoints in Git; training_state.pt is not)
 ```
 
 ## Requirements
@@ -24,6 +24,12 @@ experiments/   training runs (not in Git)
 ## Quick check that everything works
 
 ```bash
-python scripts/test_simulator.py                                          # ~3 min, 18 PASS lines
+python scripts/test_simulator.py                                          # ~3 min, ends 'all checks passed'
 python scripts/train_marl.py --episodes 3 --eval_every 3 --save_every 3 --name smoke     # ~2 min
 ```
+
+## Status (2026-10-06)
+
+Fixed today: every rider is counted in dwell, headway CV is pooled (manuscript Eq. 3.15), travel time
+starts at the origin, and MARL can use the skip action (`train_marl.py --skip`). Details:
+[`docs/progress/MSA3_KICKOFF_2026-10-06.md`](../docs/progress/MSA3_KICKOFF_2026-10-06.md).

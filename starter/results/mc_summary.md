@@ -1,29 +1,29 @@
-H0 = 600 s, 18 buses, 27 stops, N = 30 paired seeds, max hold 120 s, B removes 1 bus(es), surge sigma_d 1.0, weather observed (speed loss 0.000), capacity 55, seeds 0-29, traffic stress sigma_s 0.0. Ordinary-day variability fitted from APC (fit_variability.py). Control stops: ['5280', '5857', '5859', '5867', '4046'] (§3.2.2 criteria). Wait = headway model; wait_dir = SUMO per-passenger (cross-check). Weather W = observed ordinary-rain slow-down only.
+H0 = 600 s, 18 buses, 27 stops, N = 30 paired seeds, max hold 120 s, B removes 1 bus(es), surge sigma_d 1.0, weather observed (speed loss 0.000), capacity 55, seeds 0-29, traffic stress sigma_s 0.0. Ordinary-day variability fitted from APC (fit_variability.py). Control stops: ['5280', '5857', '5859', '5867', '4046'] (§3.2.2 criteria). Wait = SUMO recorded per-passenger wait (primary); formula = headway model (H/2)(1+CV^2), cross-check. Weather W = observed ordinary-rain slow-down only.
 
-| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | wait_dir | n |
+| Scenario | Ctrl | Headway CV [95% CI] | Travel (s) [95% CI] | Wait (s) [95% CI] | formula wait | n |
 |---|---|---|---|---|--:|--:|
-| Stage A (D+T) | NC | 0.549 [0.512, 0.582] | 4398 [4378, 4422] | 385 [373, 398] | 391 | 30 |
-| Stage A (D+T) | FH | 0.386 [0.364, 0.408] | 4538 [4520, 4558] | 348 [340, 356] | 350 | 30 |
-| Stage A (D+T) | EH | 0.336 [0.317, 0.357] | 4548 [4532, 4566] | 338 [331, 345] | 340 | 30 |
-| Ablation S (D+T+S) | NC | 0.582 [0.547, 0.618] | 4503 [4445, 4566] | 393 [380, 407] | 407 | 30 |
-| Ablation S (D+T+S) | FH | 0.417 [0.388, 0.446] | 4629 [4579, 4684] | 354 [345, 363] | 362 | 30 |
-| Ablation S (D+T+S) | EH | 0.365 [0.339, 0.392] | 4634 [4587, 4686] | 343 [335, 351] | 352 | 30 |
-| Ablation W (D+T+W) | NC | 0.551 [0.516, 0.587] | 4453 [4433, 4475] | 386 [373, 397] | 393 | 30 |
-| Ablation W (D+T+W) | FH | 0.390 [0.369, 0.413] | 4593 [4575, 4614] | 349 [341, 356] | 350 | 30 |
-| Ablation W (D+T+W) | EH | 0.341 [0.322, 0.361] | 4599 [4583, 4617] | 338 [332, 345] | 343 | 30 |
-| Ablation B (D+T+B) | NC | 0.572 [0.537, 0.605] | 4410 [4390, 4432] | 401 [389, 414] | 414 | 30 |
-| Ablation B (D+T+B) | FH | 0.430 [0.405, 0.455] | 4544 [4526, 4563] | 365 [357, 374] | 376 | 30 |
-| Ablation B (D+T+B) | EH | 0.384 [0.364, 0.405] | 4555 [4539, 4574] | 355 [347, 363] | 365 | 30 |
-| Stage B (D+T+S+W+B) | NC | 0.603 [0.570, 0.638] | 4571 [4514, 4634] | 409 [396, 423] | 431 | 30 |
-| Stage B (D+T+S+W+B) | FH | 0.464 [0.433, 0.497] | 4696 [4645, 4751] | 373 [362, 384] | 393 | 30 |
-| Stage B (D+T+S+W+B) | EH | 0.417 [0.390, 0.445] | 4698 [4649, 4751] | 361 [352, 371] | 380 | 30 |
+| Stage A (D+T) | NC | 0.609 [0.574, 0.643] | 4590 [4566, 4617] | 410 [395, 425] | 398 | 30 |
+| Stage A (D+T) | FH | 0.446 [0.422, 0.471] | 4684 [4662, 4708] | 367 [358, 376] | 358 | 30 |
+| Stage A (D+T) | EH | 0.391 [0.369, 0.414] | 4678 [4658, 4699] | 355 [347, 362] | 346 | 30 |
+| Ablation S (D+T+S) | NC | 0.634 [0.599, 0.669] | 4719 [4653, 4792] | 425 [410, 441] | 404 | 30 |
+| Ablation S (D+T+S) | FH | 0.472 [0.444, 0.500] | 4801 [4742, 4867] | 379 [368, 389] | 362 | 30 |
+| Ablation S (D+T+S) | EH | 0.421 [0.393, 0.450] | 4790 [4736, 4851] | 367 [358, 377] | 351 | 30 |
+| Ablation W (D+T+W) | NC | 0.612 [0.576, 0.646] | 4647 [4623, 4673] | 413 [399, 428] | 399 | 30 |
+| Ablation W (D+T+W) | FH | 0.451 [0.427, 0.475] | 4741 [4718, 4765] | 371 [362, 380] | 358 | 30 |
+| Ablation W (D+T+W) | EH | 0.397 [0.375, 0.419] | 4731 [4710, 4752] | 358 [351, 366] | 346 | 30 |
+| Ablation B (D+T+B) | NC | 0.634 [0.601, 0.666] | 4605 [4582, 4631] | 431 [416, 446] | 414 | 30 |
+| Ablation B (D+T+B) | FH | 0.495 [0.468, 0.522] | 4692 [4670, 4715] | 392 [381, 403] | 376 | 30 |
+| Ablation B (D+T+B) | EH | 0.445 [0.423, 0.468] | 4687 [4667, 4708] | 380 [371, 389] | 363 | 30 |
+| Stage B (D+T+S+W+B) | NC | 0.658 [0.625, 0.690] | 4790 [4725, 4862] | 449 [434, 466] | 419 | 30 |
+| Stage B (D+T+S+W+B) | FH | 0.522 [0.490, 0.554] | 4868 [4809, 4934] | 410 [397, 424] | 381 | 30 |
+| Stage B (D+T+S+W+B) | EH | 0.475 [0.449, 0.504] | 4854 [4798, 4917] | 396 [386, 407] | 369 | 30 |
 
 **Paired % change vs No-Control (negative = controller better; CV with 95% CI):**
 
 | Scenario | FH Δ CV % [95% CI] | FH Δ wait % | EH Δ CV % [95% CI] | EH Δ wait % |
 |---|---|---|---|---|
-| Stage A (D+T) | -30% [-34, -25] | -10% | -39% [-44, -33] | -12% |
-| Ablation S (D+T+S) | -28% [-33, -24] | -10% | -37% [-42, -32] | -13% |
-| Ablation W (D+T+W) | -29% [-32, -26] | -10% | -38% [-42, -33] | -12% |
-| Ablation B (D+T+B) | -25% [-29, -20] | -9% | -33% [-37, -29] | -12% |
-| Stage B (D+T+S+W+B) | -23% [-29, -18] | -9% | -31% [-37, -25] | -12% |
+| Stage A (D+T) | -27% [-32, -22] | -11% | -36% [-41, -30] | -13% |
+| Ablation S (D+T+S) | -25% [-29, -21] | -11% | -34% [-39, -28] | -14% |
+| Ablation W (D+T+W) | -26% [-31, -22] | -10% | -35% [-39, -31] | -13% |
+| Ablation B (D+T+B) | -22% [-26, -18] | -9% | -30% [-34, -25] | -12% |
+| Stage B (D+T+S+W+B) | -21% [-27, -15] | -9% | -28% [-32, -23] | -12% |
