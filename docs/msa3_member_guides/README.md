@@ -3,9 +3,12 @@
 Each member has one folder. The guides say **what** to build and **how to check it**. They contain
 no solution code. The answer keys are kept outside this repo.
 
+**No member task uses the CapMetro dataset.** Everything runs on the synthetic 20-stop test corridor,
+the same way the MSA 2 controller task did. The Route 801 (real-data) work stays with Jared.
+
 | Folder | Member | Task | Due | Run time (4-core laptop) |
 |---|---|---|---|---|
-| `1_Medenilla_Statistics/` | Medenilla | Friedman → Wilcoxon → Holm, bootstrap CIs, degradation. Input: `all_controllers_runs.csv` (MSA 2 test corridor) | Part 1: Oct 12 | seconds (no simulation) |
+| `1_Medenilla_Statistics/` | Medenilla | Friedman → Wilcoxon → Holm, bootstrap CIs, degradation. Part 1: `all_controllers_runs.csv` (MSA 2 test corridor); Part 2: the three disturbance results | Part 1: Oct 12; Part 2: Nov 3–9 | seconds (no simulation) |
 | `2_Badal_Surge/` | Badal | Demand surge: corridor-wide N(1, σd²) clip [1, 10] + local +10/+20/+50 riders | Nov 2 | ~45–60 min |
 | `3_Lopez_Weather/` | Lopez | Corridor-wide slowdown 3 / 7.5 / 10 / 25% (FHWA) | Nov 2 | ~30–45 min |
 | `4_Marquez_Breakdown/` | Marquez | 1 and 3 buses removed; riders picked up by the next bus | Nov 2 | ~20–35 min |
