@@ -1,0 +1,44 @@
+Manuscript version 2 (2026-11-06), for Conformity of Revisions No. 2
+====================================================================
+
+What this is
+  The full LaTeX compile set for the revised manuscript that goes with
+  Conformity of Revisions No. 2 and the letter of request to the RTC.
+  Upload this folder to Overleaf as-is (main.tex is the entry point).
+
+Where it comes from
+  The October revision (B3_Proposed-Revision-Manuscript.pdf, Overleaf build
+  of 2026-10-21), plus two edits made on 2026-11-06:
+
+  1. problem.tex, Section 2.3.1 Main Objective, now reads:
+       "To evaluate a Multi-Agent Reinforcement Learning controller for
+        dynamic bus scheduling under baseline and non-ideal operating
+        conditions."
+     (the wording proposed to the Exam Chair; conformity entry P2)
+
+  2. methods.tex, Section 3.2.6 Weather-Induced Anomalies: one paragraph
+     added after "...correspond to Austin rainfall categories." It states
+     that the Espino et al. (2018) rainfall coefficients [9] are not
+     adopted as model parameters (answers the Reference 10 question,
+     conformity item 13).
+
+  The intro in this set also has the complete sentence for Figure 1.3
+  ("...schedule timepoints, while the direction-code-6 subset modelled here
+  comprises the 29 distinct stop IDs served between and including them.").
+  The October PDF printed it cut off after "are schedule".
+
+The PDF here
+  B3_Manuscript_v2_2026-11-06_local-build.pdf was built locally with
+  Tectonic (XeTeX), with breakurl switched off for that build only. Its page
+  breaks match the October Overleaf PDF from p. 19 to the end. Recompile on
+  Overleaf for the submission copy.
+
+Page changes vs the October PDF (for the conformity)
+  - Item 7 (Stage A / Section 3.2.10): p. 53 -> p. 54
+  - Item 13 (new paragraph): pp. 41-42
+  - Section 3.2.8 starts on p. 51 (was p. 50); the table of contents updates itself
+  - Every other conformity page is unchanged
+
+Not touched
+  The .tex files at the repo root (the 2026-09-16 implementation-aligned
+  line) are unchanged. This folder sits alongside them; nothing was deleted.
